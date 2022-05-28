@@ -1,7 +1,6 @@
 # TurboGenius
 
-.. image:: logo/turbogenius_logo.png
-    :alt: logo
+![turbogeniuslogo](logo/turbogenius_logo.png)
 
 `TurboGenius` is a python package realizing simple workflows of the SISSA ab-initio quantum Monte Carlo code, `TurboRVB` and also provide useful command-line tools.
 

@@ -1,0 +1,31 @@
+&simulation
+    itestr4=-9
+    ngen=100
+    iopt=0
+    maxtime=170000
+/
+
+&pseudo
+/
+
+&vmc
+/
+
+&optimization
+    ncg=1
+    nweight=10
+    nbinr=10
+    iboot=0
+    tpar=0.001
+    parr=-0.1
+/
+
+&readio
+/
+
+&parameters
+    iesd=1
+    iesfree=1
+    ieskin=1
+/
+

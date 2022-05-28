@@ -1,0 +1,21 @@
+&simulation
+    itestr4=2
+    ngen=10000
+    maxtime=170000
+    iopt=1
+/
+
+&pseudo
+/
+
+&vmc
+    !epscut=1e-10
+/
+
+&readio
+    iread=3
+/
+
+&parameters
+    !ieskin=1
+/

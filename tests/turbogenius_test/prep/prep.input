@@ -1,0 +1,49 @@
+&simulation
+    itestr4=-4
+    iopt=1
+    maxtime=172800
+/
+
+&pseudo
+/
+
+&vmc
+/
+
+&optimization
+    molopt=1
+/
+
+&readio
+    writescratch=1
+/
+
+&parameters
+    yes_kpoints=.false.
+/
+
+&kpoints
+/
+
+&molecul
+    ax=0.3
+    ay=0.3
+    az=0.3
+    nx=50
+    ny=50
+    nz=56
+/
+
+&dft
+    contracted_on=.true.
+    maxit=50
+    epsdft=1e-05
+    mixing=0.5
+    typedft=1
+    optocc=0
+    epsshell=0.01
+    memlarge=.false.
+    nelocc=1
+/
+
+2

@@ -1,0 +1,8 @@
+.DS_Store
+workflow_*.py
+build/
+docs/
+__pycache__/
+workflows_examples/
+archived/
+*.egg-info/

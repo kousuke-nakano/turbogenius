@@ -26,7 +26,7 @@ ccECP_basis_set_list=ccECP.list_of_basis_all
 BFD_basis_set_list=BFD.list_of_basis_all
 ecp_list=["BFD", "ccECP"]
 
-def database_setup(database=None, sleep_time=0.5, force=False):
+def database_setup(database=None, sleep_time=1.5, force=False):
     database_list=["BFD", "ccECP", "BSE"]
     basis_sets_output_dir=os.path.join(turbo_genius_tmp_dir, "basis_set", database)
     pseudo_potential_output_dir = os.path.join(turbo_genius_tmp_dir, "pseudo_potential", database)

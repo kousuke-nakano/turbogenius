@@ -130,7 +130,7 @@ class BSE:
         else:
             self.basis_sets_output_dir=basis_sets_output_dir
 
-    def to_file(self, element_list, basis_list, sleep_time=0.1):
+    def to_file(self, element_list, basis_list, sleep_time=1.0):
         if self.basis_sets_output_dir is None: return
         os.makedirs(self.basis_sets_output_dir, exist_ok=True)
         for e, b in itertools.product(element_list, basis_list):
@@ -166,7 +166,7 @@ class BFD:
         else:
             self.ecp_output_dir = pseudo_potential_output_dir
 
-    def to_file(self, element_list, basis_list, sleep_time=1):
+    def to_file(self, element_list, basis_list, sleep_time=1.5):
         if self.basis_sets_output_dir is not None:
             os.makedirs(self.basis_sets_output_dir, exist_ok=True)
         if self.ecp_output_dir is not None:
@@ -214,7 +214,7 @@ class BFD:
                 else:
                     logger.info(f"e={e:s} b={b:s} already downloaded or NaN in the database")
 
-    def all_to_file(self, sleep_time=1):
+    def all_to_file(self, sleep_time=1.5):
         logger.debug(self.list_of_basis_all)
         self. to_file(basis_list=self.list_of_basis_all, element_list=chemical_symbols, sleep_time=sleep_time)
 

@@ -1,0 +1,51 @@
+&simulation
+    itestr4=-9
+    ngen=40000
+    iopt=1
+    maxtime=170000
+    !nscra=None
+    disk_io='mpiio'
+/
+
+&pseudo
+/
+
+&vmc
+    !epscut=0.0
+/
+
+&optimization
+    !molopt=-1
+    !twobodyoff=.true.
+    !iesdtwobodyoff=.true.
+    !kl=-7
+    ncg=1
+    nweight=400
+    nbinr=10
+    iboot=0
+    tpar=0.001
+    parr=-0.1
+    !npbra=10
+    !parcutpar=4.5
+    !minz=None
+    !maxz=None
+    !minzj=None
+    !maxzj=None
+/
+
+&readio
+    !iread=3
+    !nowrite12=.true.
+/
+
+&parameters
+    iesd=1
+    iesfree=1
+    !iessw=1
+    !iesup=1
+    !iesm=1
+    !ieskin=1
+    !yes_kpoints=.false.
+/
+&kpoints
+/

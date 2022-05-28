@@ -1,0 +1,11 @@
+&simulation
+!ngen = 500
+/
+&system
+/
+&corrfun
+bin_length=100
+initial_bin=2
+correlated_samp=.true.
+!shiftlog=0.d0
+/

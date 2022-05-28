@@ -1,0 +1,55 @@
+&simulation
+    itestr4=-6
+    ngen=5000
+    !nscra=10
+    !nw=40
+    iopt=1
+    !iseedr=536473883
+    !nbra=40
+    maxtime=216000
+    disk_io='mpiio'
+/
+
+&pseudo
+/
+
+&dmclrdmc
+    tbra=0.1d0
+    etry=0.0d0
+    Klrdmc=0.0
+    alat=0.10d0
+    alat2=0.0d0
+    !iesrandoma=.true.
+    !plat(1)=0.0
+    gamma=0.0
+    parcutg=1
+    !novar=0
+    !epscutdmc=0
+    !tstepfn=1.0
+/
+
+&readio
+    !iread=2
+/
+
+&parameters
+    !ieser=1
+    !isfix=1
+    !ieskin=0
+    !scalepulay=1
+    !yes_kpoints=.false.
+/
+
+&kpoints
+    !kp_type=1
+    !nk1=2
+    !nk2=2
+    !nk3=2
+    !k1=1
+    !k2=1
+    !k3=1
+    !double_kpgrid=.true.
+/
+
+&kpoints
+/

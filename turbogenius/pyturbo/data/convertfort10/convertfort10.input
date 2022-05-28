@@ -1,0 +1,15 @@
+&option
+/
+
+&control
+/
+
+&mesh_info
+    nx=100
+    ny=100
+    nz=100
+    ax=0.1
+    ay=0.1
+    az=0.1
+/
+

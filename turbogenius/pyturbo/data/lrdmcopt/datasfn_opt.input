@@ -1,0 +1,48 @@
+&simulation
+    itestr4=-29        ! LRDMC option
+    maxtime=216000
+    ngen=5000
+    iopt=1
+    !iseedr=536473883  ! Initial random number
+    disk_io='mpiio'
+/
+&pseudo
+    !nintpsa=6       ! 6 points integration pseudo default
+    !npsamax=1       ! max number of overlapping pseudo atoms cores defined                            in pseudo.dat
+/
+&dmclrdmc
+    tbra=0.10d0    ! DMC time (H^{-1}) between consecutive branching
+    etry=0.0d0
+    Klrdmc=0.0d0   ! eta =1.+Klrdmc  a^2
+    alat=-0.10
+    alat2=0.0d0      ! Do not use double mesh (faster).
+    !iesrandoma=.true.
+    true_wagner=1
+    parcutg=0
+    cutweight=-0.01d0
+/
+&optimization
+    kl=-7
+    ncg=1
+    !epsdgel=1d-3
+    nweight=100
+    nbinr=10
+    iboot=0
+    tpar=0.02d0
+    parr=5.0d-4
+    !npbra=5
+    parcutpar=4.5d0
+/
+&readio
+    !iread=2
+/
+&parameters
+    !iesd=1
+    !iesfree=1
+    iessw=1
+    !iesup=1
+    !iesm=1
+    !ieskin=1
+/
+&kpoints
+/

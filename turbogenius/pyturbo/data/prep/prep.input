@@ -1,0 +1,51 @@
+&simulation
+    itestr4=-4
+    iopt=1
+    !double_mesh=.false.
+/
+&pseudo
+/
+&vmc
+/
+&optimization
+    molopt=1
+/
+&readio
+    writescratch=1
+/
+&parameters
+    yes_kpoints=.false.
+/
+&kpoints
+/
+&molecul
+    ax=0.10
+    ay=0.10
+    az=0.10
+    nx=30
+    ny=30
+    nz=100
+/
+&dft
+    contracted_on=.true.
+    maxit=50
+    epsdft=1d-5
+    mixing=0.5d0
+    typedft=4
+    optocc=1
+    !nelocc=21
+    !neloccdo=21
+    epsshell=1d-2
+    memlarge=.false.
+    !bands=nan
+    !l0_at=1.0
+    !scale_z=12
+    !scale_hartree=-1.000d0
+    !corr_hartree=.true.
+    !linear=.false.
+    !nxs=24
+    !nys=25
+    !nzs=15
+    !randspin=-1.0d0
+    !h_field=1.0d-10
+/

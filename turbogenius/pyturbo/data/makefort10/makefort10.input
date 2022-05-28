@@ -1,0 +1,27 @@
+&system
+    posunits='bohr'
+    natoms=0
+    ntyp=0
+    complexfort10=.false.
+    pbcfort10=.false.
+    yes_pfaff=.false.
+/
+&electrons
+    orbtype='normal'
+    jorbtype='normal'
+    twobody=-6
+    twobodypar=1.0
+    onebodypar=1.0
+    filling='diagonal'
+    yes_crystal=.false.
+    yes_crystalj=.false.
+    no_4body_jas=.true.
+    neldiff=0
+/
+
+&symmetries
+    nosym=.false.
+    eqatoms=.true.
+    rot_det=.true.
+    symmagp=.true.
+/

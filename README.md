@@ -1,4 +1,8 @@
 # TurboGenius
+
+.. image:: logo/turbogenius_logo.png
+    :alt: logo
+
 `TurboGenius` is a python package realizing simple workflows of the SISSA ab-initio quantum Monte Carlo code, `TurboRVB` and also provide useful command-line tools.
 
 `TurboRVB` software package is now composed of the 4 layers:
@@ -24,15 +28,11 @@ For python users, several one-to-one corresponding python modules (classes) are 
 
 Installing from source
 
-.. code-block:: console
-
     git clone git@git-scm.sissa.it:sorella/turbo_genius.git
     cd turbogenius
     pip install -e . or pip install .
 
 Lauching the command line tool. You can easily see what commands are implemented in ``TurboGenius``.
-
-.. code-block:: console
 
     % turbogenius --help
     Usage: turbogenius [OPTIONS] COMMAND [ARGS]...
@@ -53,9 +53,7 @@ Lauching the command line tool. You can easily see what commands are implemented
     vmc                  vmc_genius
     vmcopt               vmcopt_genius
 
-You can also see what options are implemented for each command, e.g., vmcopt:
-
-.. code-block:: console
+You can also see what options are implemented for each command, e.g., vmcopt
 
     % turbogenius vmcopt --help
     Usage: turbogenius vmcopt [OPTIONS]
@@ -100,7 +98,7 @@ One can manage any job of `TurboRVB` on python scripts. There are one-to-one cor
 Examples are in the `tests` directory.
 
 # Documentation
-[ToBe] There is a Read the Docs in the `docs` directory, but still in progress.
+There is a Read the Docs in the `docs` directory, but still in progress.
 You can generate a html file using `sphinx`. Go to the `docs` directory, 
 and type `make html`. The document is generated in `docs/_build/html`.
 `index.html` is the main page.

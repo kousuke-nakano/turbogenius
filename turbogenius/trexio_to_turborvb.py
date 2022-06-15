@@ -37,7 +37,7 @@ from pyturbo.utils.utility import turbo_prim_orb_type_num, turbo_cont_orb_type_n
 from pyturbo.utils.utility import return_atomic_number
 
 #import turbo-genius modules
-from utils_workflows.env import turbo_genius_root, turbo_genius_data_dir
+from utils_workflows.env import turbo_genius_root, turbo_genius_tmp_dir
 from trexio_wrapper import Trexio_wrapper_r
 
 def trexio_to_turborvb_wf(trexio_file,
@@ -702,7 +702,7 @@ def main():
                         default=False,
                         action="store_true"
                         )
-    parser.add_argument('-l', '--loglevel', help='logger setlevel', default="INFO", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
+    parser.add_argument('-log', '--loglevel', help='logger setlevel', default="INFO", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
     parser.add_argument('-c', '--cleanup', help='clean up temporary files', default=True, action="store_true")
     args = parser.parse_args()
 
@@ -788,7 +788,8 @@ def main():
             # jas. basis set
             for element in element_symbols:
                 jas_basis_sets_list = glob.glob(
-                    os.path.join(turbo_genius_data_dir, "basis_set", "BSE", f"{element}_{args.jas_basis_sets}*.basis"))
+                    os.path.join(turbo_genius_tmp_dir, "basis_set", "BSE", f"{element}_{args.jas_basis_sets}*.basis"))
+                logger.debug(jas_basis_sets_list)
                 jas_basis_chosen, jas_basis_choice = database_founder(data_sets_list=jas_basis_sets_list,
                                                                       element=element, data_choice=jas_basis_choice,
                                                                       prefix="basis_set")
@@ -818,7 +819,7 @@ def main():
             os.makedirs(turborvb_scratch_dir, exist_ok=True)
             shutil.move(os.path.join(trexio_dir, "fort.10"), os.path.join(turborvb_scratch_dir, "fort.10_{:0>6}".format(num)))
 
-    if twist_average:
+    if args.twist_average:
         shutil.copy(os.path.join(os.getcwd(), "fort.10_{:0>6}".format(0)), os.path.join(os.getcwd(), "fort.10"))
 
 

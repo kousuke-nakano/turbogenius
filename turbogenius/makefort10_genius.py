@@ -22,7 +22,7 @@ from pyturbo.pseudopotentials import Pseudopotentials
 from pyturbo.basis_set import Jas_Basis_sets, Det_Basis_sets
 
 #turbo-genius modules
-from utils_workflows.env import turbo_genius_root, turbo_genius_data_dir, turbo_genius_tmp_dir
+from utils_workflows.env import turbo_genius_root, turbo_genius_tmp_dir
 from utils_workflows.utility import prompt
 from database_setup import database_setup
 from database_setup import all_electron_basis_set_list, ccECP_basis_set_list, BFD_basis_set_list

@@ -156,7 +156,7 @@ def pyscf_to_trexio(pyscf_checkfile="pyscf.chk", trexio_filename="trexio.hdf5", 
         # for p -> px, py, pz
         # for l >= d -> m=(-l ... 0 ... +l)
 
-        basis_type="gto"
+        basis_type="gaussian" # thanks anthony!
         basis_shell_num=int(np.sum([mol.atom_nshells(i) for i in range(nucleus_num)]))
         nucleus_index=[]
         for i in range(nucleus_num):

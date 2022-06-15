@@ -136,6 +136,12 @@ from turbo_genius_cli import cli, decorate_grpost, header
               default=False,
               type=bool
               )
+@click.option("-interactive", "plot_interactive",
+              help= 'flag for interactive plotting graph',
+              is_flag=True,
+              default=False,
+              type=bool
+              )
 @header
 def vmcopt(
             g,r,post,
@@ -161,7 +167,8 @@ def vmcopt(
             opt_jas_basis_coeff=False,
             twist_average=False,
             kpoints=[1, 1, 1, 0, 0, 0],
-            plot_graph=False
+            plot_graph=False,
+            plot_interactive=False
 ):
     pkl_name="vmcopt_genius_cli.pkl"
     root_dir=os.getcwd()
@@ -218,8 +225,8 @@ def vmcopt(
         else:
             logger.info("Job was failure. See the output file.")
             return
-        if plot_graph: vmcopt_genius.plot_energy_and_devmax(interactive=True)
-        if plot_graph: vmcopt_genius.plot_parameters_history(interactive=True)
+        if plot_graph: vmcopt_genius.plot_energy_and_devmax(interactive=plot_interactive)
+        if plot_graph: vmcopt_genius.plot_parameters_history(interactive=plot_interactive)
         vmcopt_genius.average(optwarmupsteps=optwarmupsteps, graph_plot=plot_graph)
 
 class VMCopt_genius(GeniusIO):

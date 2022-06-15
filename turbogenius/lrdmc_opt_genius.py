@@ -296,10 +296,10 @@ class LRDMCopt_genius(GeniusIO):
         self.energy, self.energy_error = self.get_energy(output_names=output_names)
         self.estimated_time_for_1_generation = self.get_estimated_time_for_1_generation(output_names=output_names)
 
-    def average(self, optwarmupsteps, input_name="datasfn_opt.input", output_name="out_fn_opt"):
+    def average(self, optwarmupsteps=10, graph_plot=False, input_name="datasfn_opt.input", output_name="out_fn_opt"):
         flags = self.lrdmcopt.check_results(output_names=[output_name])
         assert all(flags)
-        self.lrdmcopt.average_optimized_parameters(equil_steps=optwarmupsteps, input_file_used=input_name, graph_plot=True)
+        self.lrdmcopt.average_optimized_parameters(equil_steps=optwarmupsteps, input_file_used=input_name, graph_plot=graph_plot)
 
     def get_energy(self, output_names=["out_fn_opt"]):
         return self.lrdmcopt.get_energy(output_names=output_names)

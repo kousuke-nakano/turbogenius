@@ -334,8 +334,11 @@ class Makefort10_genius(GeniusIO):
             logger.info("cutbasis for Jas. part.")
             # cut basis, jas_basis, according to max criteria, exponents > max (det part)
             for nuc, element in enumerate(structure.element_symbols):
-                thr_exp= 8 * return_atomic_number(element) ** 2
+                # to be refactored!! Is this appropriate for the Jastrow part??
+                thr_exp= 4 * return_atomic_number(element) # not 8*Z**2 but 4*Z
                 jas_basis_sets.cut_exponents(thr_exp=thr_exp, nucleus_index=nuc, method="larger")
+                thr_angmom = jas_basis_sets.get_largest_angmom(nucleus_index=nuc)
+                jas_basis_sets.cut_exponents(thr_angmom=thr_angmom, nucleus_index=nuc, method="larger-angmom")
         else:
             pass
 

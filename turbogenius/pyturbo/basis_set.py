@@ -79,7 +79,13 @@ class Basis_sets:
         else:
             return True
 
-    def cut_exponents(self, thr_exp, nucleus_index=None, method="larger"):
+
+    def get_largest_angmom(self, nucleus_index):
+        shell_index_list = [i for i, x in enumerate(self.nucleus_index) if x == nucleus_index]
+        shell_ang_mom_list = [self.shell_ang_mom[i] for i in shell_index_list]
+        return np.max(shell_ang_mom_list)
+
+    def cut_exponents(self, thr_exp=None, thr_angmom=None, nucleus_index=None, method="larger"):
         # method = larger, smaller, equil
 
         logger.debug("--Before cut--")
@@ -117,8 +123,11 @@ class Basis_sets:
                     elif method=="smaller":
                         if self.exponent[prim_index] <= thr_exp:
                             cut_prim_index.append(prim_index)
-                    elif method=="equil":
+                    elif method=="equal":
                         if self.exponent[prim_index] == thr_exp:
+                            cut_prim_index.append(prim_index)
+                    elif method=="larger-angmom":
+                        if self.shell_ang_mom[prim_index] >= thr_angmom:
                             cut_prim_index.append(prim_index)
                     else:
                         logger.error(f"Not implemented method={method}")

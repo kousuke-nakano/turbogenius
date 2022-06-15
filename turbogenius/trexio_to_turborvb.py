@@ -802,7 +802,8 @@ def main():
             if args.jas_cut_basis_option:
                 # cut basis, jas_basis, according to max criteria, exponents > max (det part)
                 for nuc, element in enumerate(element_symbols):
-                    thr_exp = 8 * return_atomic_number(element) ** 2
+                    #thr_exp = 8 * return_atomic_number(element) ** 2
+                    thr_exp = 8 * return_atomic_number(element) # not 8*Z**2 but 8*Z
                     jas_basis_sets.cut_exponents(thr_exp=thr_exp, nucleus_index=nuc, method="larger")
 
         # jastrow is None

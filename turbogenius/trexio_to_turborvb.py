@@ -697,9 +697,9 @@ def main():
                   default=False,
                   action="store_true"
                   )
-    parser.add_argument("-twist", "--twist",
+    parser.add_argument("-twist", "--twist_average",
                         help="flag for twist average",
-                        default=Fakse,
+                        default=False,
                         action="store_true"
                         )
     parser.add_argument('-l', '--loglevel', help='logger setlevel', default="INFO", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])

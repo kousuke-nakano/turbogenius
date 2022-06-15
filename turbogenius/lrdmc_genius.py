@@ -61,7 +61,7 @@ from turbo_genius_cli import cli, decorate_grpost, header
               type = int)
 @click.option("-maxtime", "maxtime",
               help= 'Specify maxtime',
-              default = 1,
+              default = 3600,
               type = int)
 @click.option("-twist", "twist_average",
               help= 'flag for twist_average',

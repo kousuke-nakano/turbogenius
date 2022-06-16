@@ -31,6 +31,7 @@
     !maxz=None
     !minzj=None
     !maxzj=None
+    !idyn=5
 /
 
 &readio
@@ -48,4 +49,12 @@
     !yes_kpoints=.false.
 /
 &kpoints
+/
+&dynamic
+    !temp=0.0d0
+    !friction=0.1
+    !delta0=1.0
+    !iskipdyn=6
+    !maxdev_dyn=6.5
+    !smoothcut=0.9d0 
 /

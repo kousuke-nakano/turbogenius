@@ -32,6 +32,7 @@
     parr=5.0d-4
     !npbra=5
     parcutpar=4.5d0
+    !idyn=5
 /
 &readio
     !iread=2
@@ -45,4 +46,12 @@
     !ieskin=1
 /
 &kpoints
+/
+&dynamic
+    !temp=0.0d0
+    !friction=0.1
+    !delta0=1.0
+    !iskipdyn=6
+    !maxdev_dyn=6.5
+    !smoothcut=0.9d0 
 /

@@ -118,6 +118,16 @@ from turbo_genius_cli import cli, decorate_grpost, header
               default=False,
               type=bool
               )
+@click.option("-opt_structure", "opt_structure",
+              help= 'flag for opt_structure',
+              is_flag=True,
+              default=False,
+              type=bool
+              )
+@click.option("-strlearn", "str_learning_rate",
+              help= 'Specify str_learning_rate',
+              default = 1.0e-6,
+              type = float)
 @click.option("-twist", "twist_average",
               help= 'flag for twist_average',
               is_flag=True,
@@ -165,6 +175,8 @@ def vmcopt(
             opt_jas_basis_exp=False,
             opt_det_basis_coeff=False,
             opt_jas_basis_coeff=False,
+            opt_structure=False,
+            str_learning_rate=1.0e-6,
             twist_average=False,
             kpoints=[1, 1, 1, 0, 0, 0],
             plot_graph=False,
@@ -193,6 +205,8 @@ def vmcopt(
             opt_jas_basis_exp=opt_jas_basis_exp,
             opt_det_basis_coeff=opt_det_basis_coeff,
             opt_jas_basis_coeff=opt_jas_basis_coeff,
+            opt_structure=opt_structure,
+            str_learning_rate=str_learning_rate,
             twist_average=twist_average,
             kpoints=kpoints,
         )
@@ -250,6 +264,8 @@ class VMCopt_genius(GeniusIO):
                  opt_jas_basis_exp=False,
                  opt_det_basis_coeff=False,
                  opt_jas_basis_coeff=False,
+                 opt_structure=False,
+                 str_learning_rate=1.0e-6,
                  twist_average=False,
                  kpoints=[1, 1, 1, 0, 0, 0],
                  ):
@@ -308,6 +324,17 @@ class VMCopt_genius(GeniusIO):
         self.vmcopt.set_parameter(parameter="iesup", value=iesup, namelist="&parameters")
         self.vmcopt.set_parameter(parameter="iesm", value=iesm, namelist="&parameters")
 
+        #structural optimization
+        if opt_structure:
+            logger.info("Structural optimization flag is on.")
+            self.vmcopt.set_parameter(parameter="ieskin", value=1, namelist="&parameters")
+            self.vmcopt.set_parameter(parameter="idyn", value=5, namelist="&optimization")
+            self.vmcopt.set_parameter(parameter="tion", value=str_learning_rate, namelist="&optimization")
+            self.vmcopt.set_parameter(parameter="temp", value=0.0, namelist="&dynamic")
+            self.vmcopt.set_parameter(parameter="iskipdyn", value=5, namelist="&dynamic")
+            self.vmcopt.set_parameter(parameter="maxdev_dyn", value=6.0, namelist="&dynamic")
+            self.vmcopt.set_parameter(parameter="ngen", value=vmcoptsteps * steps * 5, namelist="&simulation") # 5 = iskipdyn
+
         # Does the VMC optimization changes the nodal surface? if not, it is better to switch off epscut option.
         if opt_det_mat or opt_det_basis_exp or opt_det_basis_coeff:
             self.vmcopt.comment_out(parameter="epscut")
@@ -348,10 +375,10 @@ class VMCopt_genius(GeniusIO):
                 logger.error(f"twist_average = {self.twist_average} is not implemented.")
                 raise NotImeplementedError
 
-    def run_all(self, cont=False, input_name="datasmin.input", output_name="out_min", average_parameters=True):
+    def run_all(self, optwarmsteps, cont=False, input_name="datasmin.input", output_name="out_min", average_parameters=True):
         self.generate_input(cont=cont, input_name=input_name)
         self.run(input_name=input_name, output_name=output_name)
-        if average_parameters: self.average(input_name=input_name, output_name=output_name)
+        if average_parameters: self.average(optwarmupsteps=optwarmsteps, input_name=input_name, output_name=output_name)
 
     def generate_input(self, cont=False, input_name="datasmin.input"):
         io_fort10=IO_fort10(fort10=self.fort10)

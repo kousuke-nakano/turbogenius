@@ -5,6 +5,13 @@
 
 GeniusIO abstract class
 
+ToDo:
+    To mix manual (by hand) and automatic (turbogenius) calculations,
+    a "parse" function should be implemented in the geniusIO (and its children).
+    Indeed, a function to purse an input file to generate the corresponding genius
+    instance and the pickled file is needed to edit (by turbogenius) input and output files
+    generated manually. This is also important for turboworkflow pakcage.
+
 """
 
 #python modules

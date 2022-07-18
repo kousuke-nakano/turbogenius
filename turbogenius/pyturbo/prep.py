@@ -1,10 +1,15 @@
 #!python
 # -*- coding: utf-8 -*-
 
-"""prep module
+"""
+
+pyturbo: prep related classes and methods
 
 Todo:
-    Todo list
+    * docstrings are not completed.
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+    * implementing __str__ method.
+    * implementing sanity_check method.
 
 """
 

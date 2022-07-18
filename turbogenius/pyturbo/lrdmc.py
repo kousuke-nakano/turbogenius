@@ -1,6 +1,18 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+pyturbo: lrdmc related classes and methods
+
+Todo:
+    * docstrings are not completed.
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+    * implementing __str__ method.
+    * implementing sanity_check method.
+
+"""
+
 #python modules
 import os, sys
 import re
@@ -50,7 +62,7 @@ class LRDMC(FortranIO):
     def sanity_check(self):
         pass
 
-    def generate_input(self, input_name):
+    def generate_input(self, input_name="datasfn.input"):
         self.namelist.write(input_name)
         logger.info(f"{input_name} has been generated.")
 
@@ -83,54 +95,69 @@ class LRDMC(FortranIO):
 
         return ave_time_1_generation # sec.
 
-    def get_energy(self, init=10, correct=10, bin=10, num_proc=1):
+    @staticmethod
+    def read_energy(twist_average=False):
+        line = get_line_from_file(file="pip0_fn.d", line_no=1).split()
+        energy = float(line[2])
+        if twist_average:
+            error = float(line[4])
+        else:
+            error = float(line[3])
+        return energy, error
+
+    def get_energy(self, init=10, correct=10, bin=10, num_proc=1, rerun=False):
         force_compute_flag=False
-        if file_check_flag("pip0_fn.d"):
-            with open("pip0_fn.d") as f:
-                pip0=f.read()
-            if os.stat("pip0_fn.d").st_size == 0:
-                force_compute_flag=True
-            elif "ERROR" in pip0:
-                force_compute_flag = True
-            else:
-                force_compute_flag = False
-        else: # if forces_vmc.dat' does not exist. always computed.
+        if rerun:
             force_compute_flag=True
+        else:
+            if file_check_flag("pip0_fn.d"):
+                with open("pip0_fn.d") as f:
+                    pip0=f.read()
+                if os.stat("pip0_fn.d").st_size == 0:
+                    force_compute_flag=True
+                elif "ERROR" in pip0:
+                    force_compute_flag = True
+                else:
+                    force_compute_flag = False
+            else: # if forces_vmc.dat' does not exist. always computed.
+                force_compute_flag=True
 
         if force_compute_flag:
             self.compute_energy_and_forces(init=init, correct=correct, bin=bin, num_proc=num_proc)
 
-        line = get_line_from_file(file="pip0_fn.d", line_no=1).split()
-        energy = float(line[2])
-        ### from here/to be deleted!!!!
-        try:
-            if self.twist_average_flag:
-                error = float(line[4])
-            else:
-                error = float(line[3])
-        except:
-        ### until here/to be deleted!!!
-            if self.twist_average:
-                error = float(line[4])
-            else:
-                error = float(line[3])
+        energy, error = self.read_energy(twist_average=self.twist_average)
         logger.debug("energy={}, error={}".format(energy, error))
         return energy, error
 
-    def get_forces(self, init=10, correct=10, bin=10, num_proc=1):
+    @staticmethod
+    def read_energy(twist_average=False):
+        if twist_average:
+            line = get_line_from_file(file="pip0_fn.d", line_no=0).split()
+            energy = float(line[3])
+            error = float(line[5])
+        else:
+            line = get_line_from_file(file="pip0_fn.d", line_no=1).split()
+            energy = float(line[2])
+            error = float(line[3])
+        return energy, error
+
+    def get_forces(self, init=10, correct=10, bin=10, num_proc=1, rerun=False):
 
         force_compute_flag=False
-        if file_check_flag("forces_fn.dat"):
-            with open("forces_fn.dat") as f:
-                fff=f.read()
-            if os.stat("forces_fn.dat").st_size == 0:
-                force_compute_flag = True
-            elif "ERROR" in fff:
-                force_compute_flag = True
-            else:
-                force_compute_flag = False
-        else: # if forces_vmc.dat' does not exist. always computed.
+        if rerun:
             force_compute_flag=True
+        else:
+            if file_check_flag("forces_fn.dat"):
+                with open("forces_fn.dat") as f:
+                    fff=f.read()
+                if os.stat("forces_fn.dat").st_size == 0:
+                    force_compute_flag = True
+                elif "ERROR" in fff:
+                    force_compute_flag = True
+                else:
+                    force_compute_flag = False
+            else: # if forces_vmc.dat' does not exist. always computed.
+                force_compute_flag=True
 
         if force_compute_flag:
             self.compute_energy_and_forces(init=init, correct=correct, bin=bin, num_proc=num_proc)

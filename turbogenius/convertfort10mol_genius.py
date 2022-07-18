@@ -1,6 +1,15 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+convertfort10mol genius related classes and methods
+
+Todo:
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -46,12 +55,12 @@ from turbo_genius_cli import cli, decorate_grpost, header
               )
 @header
 def convertfort10mol(
-            g,r,post,
-            operation,
-            log_level,
-            add_random_mo,
-            additional_mo,
-            grid_size
+            g:bool,r:bool,post:bool,
+            operation:bool,
+            log_level:str,
+            add_random_mo:bool,
+            additional_mo:int,
+            grid_size:float
 ):
     pkl_name="convertfort10mol_genius_cli.pkl"
     root_dir=os.getcwd()
@@ -98,12 +107,21 @@ def convertfort10mol(
 
 
 class Convertfort10mol_genius(GeniusIO):
+    """
 
+    This class is a wrapper of pyturbo convertfortmol class
+
+    Attributes:
+         fort10 (str): input fort.10 WF file
+         add_random_mo (bool): flag to add random MOs
+         additional_mo (int): The number of added MOs
+         grid_size (float): grid size for x,y,z (Bohr)
+    """
     def __init__(self,
                  fort10="fort.10_in",
                  add_random_mo=True,
                  grid_size=0.10,
-                 additional_mo=0
+                 additional_mo=0,
                  ):
 
         self.fort10 = fort10
@@ -166,20 +184,50 @@ class Convertfort10mol_genius(GeniusIO):
 
         self.energy=None
 
-    def run_all(self, input_name="convertfort10mol.input", output_name="out_mol"):
+    def run_all(self, input_name:str="convertfort10mol.input", output_name:str="out_mol")->None:
+        """
+            Generate input files and run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+
+        """
         self.generate_input(input_name=input_name)
         self.run(input_name=input_name, output_name=output_name)
 
-    def generate_input(self, input_name="convertfort10mol.input"):
+    def generate_input(self, input_name:str="convertfort10mol.input")->None:
+        """
+            Generate input file.
+
+            Args:
+                input_name (str): input file name
+
+        """
         self.convertfort10mol.generate_input(input_name=input_name)
 
-    def run(self, input_name="convertfort10mol.input", output_name="out_mol"):
+    def run(self, input_name:str="convertfort10mol.input", output_name:str="out_mol"):
+        """
+            Run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+        """
         self.convertfort10mol.run(input_name=input_name, output_name=output_name)
         flags=self.convertfort10mol.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self):
-        return self.convertfort10mol.check_results()
+    def check_results(self, output_names:list=["out_mol"])->bool:
+        """
+            Check the result.
+
+            Args:
+                output_names (list): a list of output file names
+            Return:
+                bool: True if all the runs were successful, False if an error is detected in the files.
+        """
+        return self.convertfort10mol.check_results(output_names=output_names)
 
 if __name__ == "__main__":
     logger = getLogger("Turbo-Genius")

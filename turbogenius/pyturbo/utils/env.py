@@ -1,6 +1,15 @@
 #!python -u
 # -*- coding: utf-8 -*-
 
+"""
+
+pyturbo: environmental values used in pyturbo
+
+Todo:
+    * docstrings are not completed.
+
+"""
+
 from __future__ import print_function
 
 # python modules

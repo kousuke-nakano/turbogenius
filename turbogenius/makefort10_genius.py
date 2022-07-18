@@ -1,6 +1,15 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+Makefort10 related classes and methods
+
+Todo:
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -10,6 +19,7 @@ import matplotlib.pyplot as plt
 import click
 import glob
 import pickle
+from typing import Union
 
 #pyturbo modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -113,25 +123,32 @@ from turbo_genius_cli import cli, decorate_grpost, header
               )
 @header
 def makefort10(
-            g,r,post,
-            operation,
-            log_level,
-            structure_file,
-            supercell,
-            det_basis_sets,
-            jas_basis_sets,
-            det_contracted_flag,
-            jas_contracted_flag,
-            all_electron_jas_basis_set,
-            pseudo_potential,
-            det_cut_basis_option,
-            jas_cut_basis_option,
-            complex,
-            phaseup,
-            phasedn,
-            neldiff
-):
+            g:bool,r:bool,post:bool,
+            operation:bool,
+            log_level:str,
+            structure_file:str,
+            supercell:list,
+            det_basis_sets:str,
+            jas_basis_sets:str,
+            det_contracted_flag:bool,
+            jas_contracted_flag:bool,
+            all_electron_jas_basis_set:bool,
+            pseudo_potential:Union[str,None],
+            det_cut_basis_option:bool,
+            jas_cut_basis_option:bool,
+            complex:bool,
+            phaseup:list,
+            phasedn:list,
+            neldiff:int
+) -> None:
+    """makefort10
 
+    makefort10 class launched by turbogenius_cli
+
+        Args:
+            See Makefort10_genius arguments.
+
+    """
     pkl_name="makefort10_genius_cli.pkl"
     root_dir=os.getcwd()
     pkl_file=os.path.join(root_dir, pkl_name)
@@ -190,23 +207,43 @@ def makefort10(
         shutil.move("fort.10_new", "fort.10")
 
 class Makefort10_genius(GeniusIO):
+    """
 
+    This class is a wrapper of pyturbo makefort10 class
+
+    Attributes:
+         structure_file (str): File name of the input structure, formats suppored by ASE are supported.
+         supercell (list):  3 integers, supercell sizes [x,y,z]
+         det_basis_set (str or list): basis set for the determinant part: e.g., "cc-pVQZ" (str), a list of gamess format basis sets is accepatable.
+         jas_basis_set (str or list): basis set for the Jastrow part: e.g., "cc-pVQZ" (str), a list of gamess format basis sets is accepatable.
+         det_contracted_flag (bool): if True determinant basis set is contracted, if False determinant basis set is uncontracted.
+         jas_contracted_flag (bool): if True Jastrow basis set is contracted, if False Jastrow basis set is uncontracted.
+         all_electron_jas_basis_set (bool): if True Jastrow basis set is read from the specified all-electron basis, if False, pseudo potential ones.
+         pseudo_potential (str or None): if None, all-electron calculations, if "str", the corresponding PP is read from the database.
+         det_cut_basis_option (bool): if True, determinant basis set is cut according to the Andrea Zen's procedure.
+         jas_cut_basis_option (bool): if True, Jastrow basis set is cut according to the Andrea Zen's procedure.
+         jastrow_type (int): One- and Two- Jastrow type specified.
+         complex (bool): if True, the WF is complex, if False, the WF is real.
+         phase_up (list): 3-float numbers for the up-phase [x, y, z].
+         phase_dn (list): 3-float numbers for the dn-phase [x, y, z].
+         neldiff (int): The number of difference between up and dn electrons.
+    """
     def __init__(self,
-                 structure_file,
-                 supercell=[1, 1, 1],
-                 det_basis_set = "cc-pVQZ",
-                 jas_basis_set = "cc-pVQZ",
-                 det_contracted_flag=True,
-                 jas_contracted_flag=True,
-                 all_electron_jas_basis_set = True,
-                 pseudo_potential = None,
-                 det_cut_basis_option=True,
-                 jas_cut_basis_option = True,
-                 jastrow_type=-6,
-                 complex=False,
-                 phase_up=[0.0, 0.0, 0.0],
-                 phase_dn=[0.0, 0.0, 0.0],
-                 neldiff=0
+                 structure_file:str,
+                 supercell:list=[1, 1, 1],
+                 det_basis_set:Union[str,list] = "cc-pVQZ",
+                 jas_basis_set:Union[str,list]= "cc-pVQZ",
+                 det_contracted_flag:bool = True,
+                 jas_contracted_flag:bool = True,
+                 all_electron_jas_basis_set:bool = True,
+                 pseudo_potential:Union[str,None] = None,
+                 det_cut_basis_option:bool = False,
+                 jas_cut_basis_option:bool = False,
+                 jastrow_type:int=-6,
+                 complex:bool=False,
+                 phase_up:list=[0.0, 0.0, 0.0],
+                 phase_dn:list=[0.0, 0.0, 0.0],
+                 neldiff:int=0
                  ):
 
         self.structure_file = structure_file
@@ -239,11 +276,6 @@ class Makefort10_genius(GeniusIO):
             logger.info("Pseudo potential calculation.")
             database_setup(database=pseudo_potential)
             database_setup(database="BSE") # for jastrow
-
-        pp_files=[]; det_basis_files=[]; jas_basis_files=[]
-        det_basis_choice = {}
-        jas_basis_choice = {}
-        pp_choice={}
 
         def database_founder(data_sets_list, element, data_choice, prefix="basis_set"):
             if len(data_sets_list) == 0:
@@ -278,44 +310,79 @@ class Makefort10_genius(GeniusIO):
                     return data_set_found, data_choice
 
         # det. basis set!
-        for element in structure.element_symbols:
-            if pseudo_potential is None: # all-electron
-                det_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", "BSE", f"{element}_{det_basis_set}*.basis"))
-                det_basis_chosen, det_basis_choice = database_founder(data_sets_list=det_basis_sets_list, element=element, data_choice=det_basis_choice, prefix="basis_set")
-            else: # pseudo potential calculation
-                det_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", pseudo_potential, f"{element}_{det_basis_set}*.basis"))
-                det_basis_chosen, det_basis_choice = database_founder(data_sets_list=det_basis_sets_list, element=element, data_choice=det_basis_choice, prefix="basis_set")
-            det_basis_files.append(det_basis_chosen)
+        if isinstance(det_basis_set, str):
+            det_basis_files = []; det_basis_choice = {}
+            for element in structure.element_symbols:
+                if pseudo_potential is None: # all-electron
+                    det_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", "BSE", f"{element}_{det_basis_set}*.basis"))
+                    det_basis_chosen, det_basis_choice = database_founder(data_sets_list=det_basis_sets_list, element=element, data_choice=det_basis_choice, prefix="basis_set")
+                else: # pseudo potential calculation
+                    det_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", pseudo_potential, f"{element}_{det_basis_set}*.basis"))
+                    det_basis_chosen, det_basis_choice = database_founder(data_sets_list=det_basis_sets_list, element=element, data_choice=det_basis_choice, prefix="basis_set")
+                det_basis_files.append(det_basis_chosen)
+
+            det_basis_sets = Det_Basis_sets.parse_basis_sets_from_gamess_format_files(files=det_basis_files)
+
+        elif isinstance(det_basis_set, list):
+            det_basis_sets = Det_Basis_sets.parse_basis_sets_from_texts(texts=det_basis_set, format="gamess")
+
+        else:
+            raise ValueError
+
         # jas. basis set
-        for element in structure.element_symbols:
-            if pseudo_potential is None: # all-electron
-                jas_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", "BSE", f"{element}_{jas_basis_set}*.basis"))
-                jas_basis_chosen, jas_basis_choice = database_founder(data_sets_list=jas_basis_sets_list, element=element, data_choice=jas_basis_choice, prefix="basis_set")
-            else: # pseudo potential calculation
-                if self.all_electron_jas_basis_set:
+        if isinstance(jas_basis_set, str):
+            jas_basis_files = []; jas_basis_choice = {}
+            for element in structure.element_symbols:
+                if pseudo_potential is None: # all-electron
                     jas_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", "BSE", f"{element}_{jas_basis_set}*.basis"))
-                    logger.info(jas_basis_sets_list)
                     jas_basis_chosen, jas_basis_choice = database_founder(data_sets_list=jas_basis_sets_list, element=element, data_choice=jas_basis_choice, prefix="basis_set")
-                else:
-                    jas_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", pseudo_potential, f"{element}_{jas_basis_set}*.basis"))
-                    jas_basis_chosen, jas_basis_choice = database_founder(data_sets_list=jas_basis_sets_list, element=element, data_choice=jas_basis_choice, prefix="basis_set")
-            jas_basis_files.append(jas_basis_chosen)
+                else: # pseudo potential calculation
+                    if self.all_electron_jas_basis_set:
+                        jas_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", "BSE", f"{element}_{jas_basis_set}*.basis"))
+                        logger.info(jas_basis_sets_list)
+                        jas_basis_chosen, jas_basis_choice = database_founder(data_sets_list=jas_basis_sets_list, element=element, data_choice=jas_basis_choice, prefix="basis_set")
+                    else:
+                        jas_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", pseudo_potential, f"{element}_{jas_basis_set}*.basis"))
+                        jas_basis_chosen, jas_basis_choice = database_founder(data_sets_list=jas_basis_sets_list, element=element, data_choice=jas_basis_choice, prefix="basis_set")
+                jas_basis_files.append(jas_basis_chosen)
+
+            jas_basis_sets = Jas_Basis_sets.parse_basis_sets_from_gamess_format_files(files=jas_basis_files)
+
+        elif isinstance(jas_basis_set, list):
+            jas_basis_sets = Jas_Basis_sets.parse_basis_sets_from_texts(texts=jas_basis_set, format="gamess")
+
+        else:
+            raise ValueError
+
         # pseudo potential
-        for element in structure.element_symbols:
-            if pseudo_potential is None: # all-electron
-                pp_chosen=None
-            else: # pseudo potential calculation
-                #if self.all_electron_jas_basis_set:
-                pp_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "pseudo_potential", pseudo_potential, f"{element}_{pseudo_potential}*.pseudo"))
-                pp_chosen, pp_choice = database_founder(data_sets_list=pp_sets_list, element=element, data_choice=pp_choice, prefix="pseudo_potential")
-            pp_files.append(pp_chosen)
+        if pseudo_potential is None: # all-electron
+            pp_files = []; pp_choice = {}
+            for element in structure.element_symbols:
+                pp_files.append(None)
+            pseudo_potentials = Pseudopotentials.parse_pseudopotential_from_gamess_format_files(pp_files)
 
-        pseudo_potentials = Pseudopotentials.parse_pseudopotential_from_gamess_format_files(pp_files)
-        det_basis_sets = Det_Basis_sets.parse_basis_sets_from_gamess_format_files(files=det_basis_files)
-        jas_basis_sets = Jas_Basis_sets.parse_basis_sets_from_gamess_format_files(files=jas_basis_files)
+        else:
+            if isinstance(pseudo_potential, str):
+                pp_files = []; pp_choice = {}
+                for element in structure.element_symbols:
+                    if pseudo_potential is None: # all-electron
+                        pp_chosen=None
+                    else: # pseudo potential calculation
+                        #if self.all_electron_jas_basis_set:
+                        pp_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "pseudo_potential", pseudo_potential, f"{element}_{pseudo_potential}*.pseudo"))
+                        pp_chosen, pp_choice = database_founder(data_sets_list=pp_sets_list, element=element, data_choice=pp_choice, prefix="pseudo_potential")
+                    pp_files.append(pp_chosen)
+                pseudo_potentials = Pseudopotentials.parse_pseudopotential_from_gamess_format_files(pp_files)
 
+            elif isinstance(pseudo_potential, list):
+                pseudo_potentials = Pseudopotentials.parse_pseudopotential_from_gamess_format_texts(texts=pseudo_potential)
 
-        # contracted -> uncontracted
+            else:
+                raise ValueError
+
+            pseudo_potentials.set_cutoffs()
+
+    # contracted -> uncontracted
         if not det_contracted_flag:
             logger.info("Contracted -> Uncontracted, Det. part.")
             det_basis_sets.contracted_to_uncontracted()
@@ -329,16 +396,16 @@ class Makefort10_genius(GeniusIO):
             # cut basis, det_basis, according to Andrea Zen's criteria, exponents > 8 * Z^2
             for nuc, element in enumerate(structure.element_symbols):
                 thr_exp= 8 * return_atomic_number(element) ** 2
-                det_basis_sets.cut_exponents(thr_exp=thr_exp, nucleus_index=nuc, method="larger")
+                det_basis_sets.cut_orbitals(thr_exp=thr_exp, nucleus_index=nuc, method="larger")
         if jas_cut_basis_option:
             logger.info("cutbasis for Jas. part.")
             # cut basis, jas_basis, according to max criteria, exponents > max (det part)
             for nuc, element in enumerate(structure.element_symbols):
                 # to be refactored!! Is this appropriate for the Jastrow part??
                 thr_exp= 4 * return_atomic_number(element) # not 8*Z**2 but 4*Z
-                jas_basis_sets.cut_exponents(thr_exp=thr_exp, nucleus_index=nuc, method="larger")
+                jas_basis_sets.cut_orbitals(thr_exp=thr_exp, nucleus_index=nuc, method="larger")
                 thr_angmom = jas_basis_sets.get_largest_angmom(nucleus_index=nuc)
-                jas_basis_sets.cut_exponents(thr_angmom=thr_angmom, nucleus_index=nuc, method="larger-angmom")
+                jas_basis_sets.cut_orbitals(thr_angmom=thr_angmom, nucleus_index=nuc, method="larger-angmom")
         else:
             pass
 
@@ -356,6 +423,7 @@ class Makefort10_genius(GeniusIO):
         namelist.set_parameter(parameter="neldiff", value=self.neldiff, namelist="&electrons")
 
         if complex:
+            det_basis_sets.real_to_complex()
             namelist.set_parameter(parameter="complexfort10", value='.true.', namelist="&system")
 
         self.makefort10 = Makefort10(
@@ -368,17 +436,47 @@ class Makefort10_genius(GeniusIO):
 
         self.makefort10.sanity_check()
 
-    def run_all(self, input_name="makefort10.input",  output_name="out_make", basis_sets_unique_element=True):
+    def run_all(self, input_name:str="makefort10.input",  output_name:str="out_make", basis_sets_unique_element:bool=True) -> None :
+        """
+            Generate input files and run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+                basis_sets_unique_element (bool): if True, the same basis set is assigned for atoms with the same elemental type.
+        """
         self.makefort10.generate_input(input_name=input_name, basis_sets_unique_element=basis_sets_unique_element)
         self.makefort10.run(input_name=input_name, output_name=output_name)
 
-    def generate_input(self, input_name="makefort10.input", basis_sets_unique_element=True):
+    def generate_input(self, input_name:str="makefort10.input", basis_sets_unique_element:bool=True) -> None:
+        """
+            Generate input file.
+
+            Args:
+                input_name (str): input file name
+                basis_sets_unique_element (bool): if True, the same basis set is assigned for atoms with the same elemental type.
+        """
         self.makefort10.generate_input(input_name=input_name, basis_sets_unique_element=basis_sets_unique_element)
 
-    def run(self, input_name="makefort10.input", output_name="out_make"):
+    def run(self, input_name:str="makefort10.input", output_name:str="out_make") -> None:
+        """
+            Run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+        """
         self.makefort10.run(input_name=input_name, output_name=output_name)
 
-    def check_results(self, output_names=["out_make"]):
+    def check_results(self, output_names:list=["out_make"]) -> bool:
+        """
+            Check the result.
+
+            Args:
+                output_names (list): a list of output file names
+            Return:
+                bool: True if all the runs were successful, False if an error is detected in the files.
+        """
         return self.makefort10.check_results(output_names=output_names)
 
 if __name__ == "__main__":

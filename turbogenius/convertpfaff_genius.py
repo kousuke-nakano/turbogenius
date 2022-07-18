@@ -1,6 +1,13 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+convertpfaff genius related classes and methods
+
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -41,12 +48,12 @@ from turbo_genius_cli import cli, decorate_grpost, header
               type = int)
 @header
 def convertpfaff(
-            g,r,post,
-            operation,
-            log_level,
-            rotate_flag,
-            rotate_angle,
-            scale_mean_field
+            g:bool,r:bool,post:bool,
+            operation:bool,
+            log_level:str,
+            rotate_flag:bool,
+            rotate_angle:float,
+            scale_mean_field:int
 ):
     pkl_name="convertpfaff_genius_cli.pkl"
     root_dir=os.getcwd()
@@ -88,10 +95,17 @@ def convertpfaff(
             convertpfaff_genius.check_results()
 
 class Convertpfaff_genius(GeniusIO):
+    """
 
+    This class is a wrapper of pyturbo Convertpfaff class
+
+    Attributes:
+         in_fort10 (str): fort.10 WF file (input WF file)
+         out_fort10 (str): fort.10 WF file (template WF file)
+    """
     def __init__(self,
-                 in_fort10="fort.10_in",
-                 out_fort10="fort.10_out",
+                 in_fort10:str="fort.10_in",
+                 out_fort10:str="fort.10_out",
                  ):
 
         self.in_fort10 = in_fort10
@@ -99,19 +113,43 @@ class Convertpfaff_genius(GeniusIO):
 
         self.convertpfaff=Convertpfaff.parse_from_default_namelist(in_fort10=in_fort10, out_fort10=out_fort10)
 
-    def run_all(self, rotate_flag=False, rotate_angle=0, scale_mean_field=1000, output_name="out_pfaff"):
+    def run_all(self, rotate_flag:bool=False, rotate_angle:float=0, scale_mean_field:int=1000, output_name:str="out_pfaff")->None:
+        """
+            Generate input files and run the command.
+
+            Args:
+                rotate_flag (bool): rotation flag, True or False
+                rotate_angle (float): rotation angle
+                scale_mean_field (int): scaling mean field
+                output_name (str): output file name
+
+        """
         self.generate_input()
         self.run(rotate_flag=rotate_flag, rotate_angle=rotate_angle, scale_mean_field=scale_mean_field, output_name=output_name)
 
-    def generate_input(self):
-        pass
+    def run(self, rotate_flag:float=False, rotate_angle:float=0, scale_mean_field:int=1000, output_name:str="out_pfaff")->None:
+        """
+            Run the command.
 
-    def run(self, rotate_flag=False, rotate_angle=0, scale_mean_field=1000, output_name="out_pfaff"):
+            Args:
+                rotate_flag (bool): rotation flag, True or False
+                rotate_angle (float): rotation angle
+                scale_mean_field (int): scaling mean field
+                output_name (str): output file name
+        """
         self.convertpfaff.run(rotate_flag=rotate_flag, rotate_angle=rotate_angle, scale_mean_field=scale_mean_field, output_name=output_name)
         flags=self.convertpfaff.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self, output_names=["out_pfaff"]):
+    def check_results(self, output_names:list=["out_pfaff"])->bool:
+        """
+            Check the result.
+
+            Args:
+                output_names (list): a list of output file names
+            Returns:
+                bool: True if all the runs were successful, False if an error is detected in the files.
+        """
         return self.convertpfaff.check_results(output_names=output_names)
 
 if __name__ == "__main__":

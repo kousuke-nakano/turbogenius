@@ -1,6 +1,15 @@
 #!python -u
 # -*- coding: utf-8 -*-
 
+"""
+
+pyturbo: execute, methods to launch turborvb commands on a local machine
+
+Todo:
+    * docstrings are not completed.
+
+"""
+
 from __future__ import print_function
 
 # python modules

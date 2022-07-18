@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+"""
+
+TREXIO related classes and methods
+
+Todo:
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
 # import python modules
 import os,sys
 import shutil
@@ -14,7 +23,14 @@ logger = getLogger('Turbo-Genius').getChild(__name__)
 import trexio
 
 class Trexio_wrapper_r():
+    """
 
+    This class is a wrapper for the TREXIO program
+
+    Attributes:
+         trexio_file (str): name of TREXIO file
+
+    """
     def __init__(self, trexio_file):
         # prefix and file names
         logger.info(f"TREXIO file = {trexio_file}")

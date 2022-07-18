@@ -1,6 +1,14 @@
 #!python
 # -*- coding: utf-8 -*-
 
+
+"""
+
+Database setup related classes and methods
+
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -26,8 +34,17 @@ ccECP_basis_set_list=ccECP.list_of_basis_all
 BFD_basis_set_list=BFD.list_of_basis_all
 ecp_list=["BFD", "ccECP"]
 
-def database_setup(database=None, sleep_time=1.5, force=False):
-    database_list=["BFD", "ccECP", "BSE"]
+def database_setup(database:str="", sleep_time:float=1.5, force:bool=False)->None:
+    """
+        Downloading basis set and pseudo potential database from the Internet.
+
+        Args:
+            database (str): name of database, it should be chosen from database_list=["BFD", "ccECP", "BSE"]
+            sleep_time (float): sleeping time for downloading (float)
+            force (bool): if true, overwrite an existing database
+
+    """
+
     basis_sets_output_dir=os.path.join(turbo_genius_tmp_dir, "basis_set", database)
     pseudo_potential_output_dir = os.path.join(turbo_genius_tmp_dir, "pseudo_potential", database)
     logger.debug(basis_sets_output_dir)

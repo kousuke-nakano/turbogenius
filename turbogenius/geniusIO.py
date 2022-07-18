@@ -1,6 +1,12 @@
 #!python -u
 # -*- coding: utf-8 -*-
 
+"""
+
+GeniusIO abstract class
+
+"""
+
 #python modules
 import os, sys
 from abc import ABC, abstractmethod
@@ -13,7 +19,7 @@ logger = getLogger('Turbo-Genius').getChild(__name__)
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from namelist import Namelist
 
-# fortranIO abstract class
+# GeniusIO abstract class
 class GeniusIO(ABC):
 
     def __init__(self,

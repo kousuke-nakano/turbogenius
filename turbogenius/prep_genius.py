@@ -1,6 +1,15 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+Prep related classes and methods
+
+Todo:
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -69,18 +78,26 @@ from turbo_genius_cli import cli, decorate_grpost, header, OptionEatAll
               )
 @header
 def prep(
-            g,r,post,
-            operation,
-            log_level,
-            lbox,
-            grid_size,
-            smearing,
-            h_field,
-            magnetic_moment_list,
-            xc,
-            maxtime,
-            kpoints,
-):
+            g:bool,r:bool,post:bool,
+            operation:bool,
+            log_level:bool,
+            lbox:list,
+            grid_size:list,
+            smearing:float,
+            h_field:float,
+            magnetic_moment_list:list,
+            xc:str,
+            maxtime:int,
+            kpoints:list,
+)->None:
+    """
+
+    prep class launched by turbogenius_cli
+
+        Args:
+            See Prep_genius arguments.
+
+    """
     pkl_name="dft_genius_cli.pkl"
     root_dir=os.getcwd()
     pkl_file=os.path.join(root_dir, pkl_name)
@@ -100,7 +117,6 @@ def prep(
                 magnetic_moment_list[i]=0
             else:
                 raise ValueError
-
 
         dft_genius=DFT_genius(
             maxtime=maxtime,
@@ -144,18 +160,33 @@ def prep(
         dft_genius.check_results()
 
 class DFT_genius(GeniusIO):
+    """
 
+    This class is a wrapper of pyturbo prep class
+
+    Attributes:
+         fort.10 (str): fort.10 WF file
+         grid_size (list):  3 floats, grid sizes [x,y,z]
+         lbox (list):  3 floats, Box sizes [x,y,z] (angstrom)
+         smearing (float): smearing parameter (Ha)
+         maxtime (int): maximun time (sec.)
+         h_field (float): magnetic field putting on each grid.
+         magnetic_moment_list (list): magnetic moment list, for all atoms.
+         xc (str): Exchange correlation functionals, lda or lsda
+         twist_average (bool): Twist average flag, True or False.
+         kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
+    """
     def __init__(self,
-                 fort10="fort.10",
-                 grid_size=[0.1, 0.1, 0.1],
-                 lbox=[15.0, 15.0, 15.0],
-                 smearing=0.0,
-                 maxtime=172800,
-                 h_field=0.0,
-                 magnetic_moment_list=[],
-                 xc='lda', # lda or lsda
-                 twist_average=False,
-                 kpoints=[1,1,1,0,0,0]
+                 fort10:str="fort.10",
+                 grid_size:list=[0.1, 0.1, 0.1],
+                 lbox:list=[15.0, 15.0, 15.0],
+                 smearing:float=0.0,
+                 maxtime:int=172800,
+                 h_field:float=0.0,
+                 magnetic_moment_list:list=[],
+                 xc:str='lda', # lda or lsda
+                 twist_average:bool=False,
+                 kpoints:list=[1,1,1,0,0,0]
                  ):
 
         self.fort10 = fort10
@@ -315,23 +346,60 @@ class DFT_genius(GeniusIO):
 
         self.energy=None
 
-    def run_all(self, cont=False, input_name="prep.input", output_name="out_prep"):
+    def run_all(self, cont:bool=False, input_name:str="prep.input", output_name:str="out_prep")->None:
+        """
+            Generate input files and run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+
+        """
         self.generate_input(cont=cont, input_name=input_name)
         self.run(input_name=input_name, output_name=output_name)
 
-    def generate_input(self, cont=False, input_name="prep.input"):
+    def generate_input(self, cont:bool=False, input_name:str="prep.input")->None:
+        """
+            Generate input file.
+
+            Args:
+                input_name (str): input file name
+
+        """
         if cont: self.prep.set_parameter("iopt", 0, "$systems")
         self.prep.generate_input(input_name=input_name)
 
-    def run(self, input_name="prep.input", output_name="out_prep"):
+    def run(self, input_name:str="prep.input", output_name:str="out_prep")->None:
+        """
+            Run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+        """
         self.prep.run(input_name=input_name, output_name=output_name)
         flags=self.prep.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self, output_names=["out_prep"]):
+    def check_results(self, output_names:list=["out_prep"])->None:
+        """
+            Check the result.
+
+            Args:
+                output_names (list): a list of output file names
+            Returns:
+                bool: True if all the runs were successful, False if an error is detected in the files.
+        """
         return self.prep.check_results(output_names=output_names)
 
-    def get_mangetic_moments_3d_array(self):
+    def get_mangetic_moments_3d_array(self): # -> numpy.array(XXX)
+        """
+            Return magnetic moment array according to the TurboRVB format.
+
+            Returns:
+                numpy.array: numpy array containing the Magnetic moments according to the TurboRVB format.
+
+        """
         if self.io_fort10.f10structure.ortho_flag:
             logger.error("Sorry, set magnetic moment is not implemented for a non-orthorhombic case.")
             raise NotImplementedError

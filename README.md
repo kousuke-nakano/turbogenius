@@ -2,13 +2,13 @@
 
 <img src="logo/turbogenius_logo.png" width="70%">
 
-`TurboGenius` is a python package realizing simple workflows of the SISSA ab-initio quantum Monte Carlo code, `TurboRVB` and also provide useful command-line tools.
+`TurboGenius` is an advanced python wrappers for the SISSA ab-initio quantum Monte Carlo code, `TurboRVB` and also provides useful command-line tools.
 
-`TurboRVB` software package is now composed of the 4 layers:
+`TurboRVB` software family is now composed of the 4 layered packages:
 
-- `TurboWorkflows` (Complicated workflows for realizing high-throughput calculations with AiiDA) [ToBe]
-- `TurboGenius` (Simple workflows and command-line tools)
-- `pyturbo` (Python wrappers)
+- `TurboWorkflows` (Workflows for realizing QMC high-throughput calculations)
+- `TurboGenius` (Advanced python wrappers and command-line tools)
+- `pyturbo` (Python-Fortran90 wrappers)
 - `TurboRVB` (Quantum Monte Carlo kernel)
 
 `TurboGenius` is the third layer package, which also contains the second layer package `pyturbo` inside as a submodule.
@@ -17,11 +17,9 @@
 This is a **beta** version!!!! Contact the developers whenever you find bugs. Any suggestion is also welcome!
 
 # Features of `turbogenius`
-One can manage any job of `TurboRVB` on python scripts, or on your terminal using the provided command line tool `turbogenius`. 
+One can manage any job of `TurboRVB` on python scripts, or on your terminal using the provided command line tool `turbogenius`.
 
 For python users, several one-to-one corresponding python modules (classes) are provided, i.e., `makefort10.x` -> `Makefort10_genius` class in `makefort10_genius.py`, `turborvb.x` -> `vmc_genius` class in `vmc_genius.py`. `TurboGenius` is designed as a higher layer package that provide several complicated procedures and functions such as fully automatic workflows. `Turbo-Genius` is implemented based on the lower layer packages `pyturbo` and `TurboRVB`. You can see several examples of `TurboGenius` scripts in the `tests` directory. You can also see several simple workflows using `TurboGenius` in the `tests` directory.
-
-`turbogenius` also implements several workflow methods. e.g., `workflow_vmc`, `workflow_lrdmc`. The workflows are implemebted based on the `genius` class memtioned above. You can also write your own workflows by piling up the `genius` blocks, or `workflows` as you want. The workflow method manages the `TurboRVB` jobs, i.e., automatically submits and collects jobs using `filemanager` pacakge. If you want to use `filemanager` pacakge. please contact Kosuke Nakano. You can see several workflow examples in `tests/workflows_examples` directory (Note: Since I am now refactoring file-manager and workflow again, I have not comitted the workflows to the repository.).
 
 # Quick use of `turbogenius`
 
@@ -35,10 +33,10 @@ Lauching the command line tool. You can easily see what commands are implemented
 
     % turbogenius --help
     Usage: turbogenius [OPTIONS] COMMAND [ARGS]...
-    
+
     Options:
     --help  Show this message and exit.
-    
+
     Commands:
     convertfort10        convertfort10_genius
     convertfort10mol     convertfort10mol_genius
@@ -56,7 +54,7 @@ You can also see what options are implemented for each command, e.g., vmcopt
 
     % turbogenius vmcopt --help
     Usage: turbogenius vmcopt [OPTIONS]
-    
+
     Options:
     -post                 Postprocess
     -r                    Run a program
@@ -86,11 +84,11 @@ You can also see what options are implemented for each command, e.g., vmcopt
     --help                Show this message and exit.
 
 # Features of `pyturbo`
-One can manage any job of `TurboRVB` on python scripts. There are one-to-one corresponding python modules (classes), i.e., `makefort10.x` -> `Makefort10` class in `makefort10.py`, `convertfort10.x` -> `Convertfort10mol` class in `convertfort10mol.py`. `pyturbo` is designed as a lower layer package such that the modules can be used as **components** of higher-level packages. Indeed, the classes are implemented as simple but flexible as possible. Other complicated methods and modules such as fully automatic workflows should be provided at the higher-level packages such as `TurboGenius`. You can see several examples of pyturbo scripts in the `tests` directory.
+One can manage any job of `TurboRVB` on python scripts. There are one-to-one corresponding python modules (classes), i.e., `makefort10.x` -> `Makefort10` class in `makefort10.py`, `convertfort10.x` -> `Convertfort10mol` class in `convertfort10mol.py`. `pyturbo` is designed as a lower layer package such that the modules can be used as **components** of higher-level packages. Indeed, the classes are implemented as simple but flexible as possible. Other complicated methods and modules such as fully automatic workflows should be provided at the higher-level packages such as `TurboGenius`. You can see several examples of `pyturbo` scripts in the `tests` directory.
 
 # Installation
 - `git clone this repository`
-- `cd turbogenius` 
+- `cd turbogenius`
 - `pip install -e .` or `pip install .`
 
 # Examples
@@ -98,7 +96,7 @@ Examples are in the `tests` directory.
 
 # Documentation
 There is a Read the Docs in the `docs` directory, but still in progress.
-You can generate a html file using `sphinx`. Go to the `docs` directory, 
+You can generate a html file using `sphinx`. Go to the `docs` directory,
 and type `make html`. The document is generated in `docs/_build/html`.
 `index.html` is the main page.
 

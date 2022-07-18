@@ -23,11 +23,12 @@ from turbogenius.pyturbo.utils.downloader import BFD, BSE, ccECP
 
 ## basis set downloads
 basis_sets_test_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), "basis_sets")
+pseudo_potential_output_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), "pseudo_potentials")
 os.chdir(basis_sets_test_dir)
 
 # BFD basis sets
-bfd=BFD(basis_sets_output_dir=basis_sets_test_dir)
-bfd.to_file(element_list=["H"], basis_list=["vtz","vqz"])
+bfd=BFD(basis_sets_output_dir=basis_sets_test_dir, pseudo_potential_output_dir=pseudo_potential_output_dir)
+bfd.to_file(element_list=["C"], basis_list=["vtz","vqz"])
 
 # BSE all-electron basis sets
 bse=BSE(basis_sets_output_dir=basis_sets_test_dir)
@@ -35,11 +36,11 @@ bse.to_file(element_list=["Na", "N"], basis_list=["cc-pVTZ", "cc-pVQZ"])
 
 # ccECP
 element_list = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar"]
-ccECP = ccECP(basis_sets_output_dir=basis_sets_test_dir)
+ccECP = ccECP(basis_sets_output_dir=basis_sets_test_dir, pseudo_potential_output_dir=pseudo_potential_output_dir)
 ccECP.to_file(basis_list=["cc-pVDZ"], element_list=element_list)
 
 ## basis set classes
-bfd=BFD(basis_sets_output_dir=basis_sets_test_dir)
+bfd=BFD(basis_sets_output_dir=basis_sets_test_dir, pseudo_potential_output_dir=pseudo_potential_output_dir)
 if not os.path.isfile("C_vqz.basis"): bfd.to_file(element_list=["C"], basis_list=["vqz"])
 if not os.path.isfile("H_vqz.basis"): bfd.to_file(element_list=["H"], basis_list=["vqz"])
 
@@ -49,7 +50,3 @@ det_basis_sets=Det_Basis_sets.parse_basis_sets_from_gamess_format_files(files=["
 jas_basis_sets=Jas_Basis_sets.parse_basis_sets_from_gamess_format_files(files=["C_vqz.basis", "C_vqz.basis"])
 jas_basis_sets.contracted_to_uncontracted() # convert contracted basis sets to uncontracted ones!!
 
-# eccep conveter -> gamess format
-file_name = "aug-cc-pV5Z-eCEPP.dat_F"
-basis_set = Basis_set.parse_basis_set_info_from_eCEPP_format_file(file=file_name)
-basis_set.to_text_gamess_format()

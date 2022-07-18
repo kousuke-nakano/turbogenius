@@ -1,6 +1,16 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+Wavefunction related classes and methods
+
+Todo:
+    * Refactoring this module based on TurboWorkflows because several tasks in the conversion could be a heavy calculation.
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
 #python modules
 from __future__ import annotations
 import os, sys
@@ -58,14 +68,14 @@ from turbo_genius_cli import cli, decorate_grpost, header, OptionEatAll
               type = float)
 @header
 def convertwf(
-            g,r,post,
-            operation,
-            log_level,
-            to_ansatz,
-            hybrid_orbitals,
-            grid_size,
-            nosymmetry,
-            rotate_angle,
+            g:bool,r:bool,post:bool,
+            operation:bool,
+            log_level:str,
+            to_ansatz:str,
+            hybrid_orbitals:list,
+            grid_size:float,
+            nosymmetry:bool,
+            rotate_angle:float,
 ):
     pkl_name="wavefunction_cli.pkl"
     root_dir=os.getcwd()
@@ -91,12 +101,30 @@ def convertwf(
         wavefunction.to_pf(grid_size=grid_size, rotate_angle=rotate_angle, nosym=nosymmetry, clean_flag=False)
 
 class Wavefunction(IO_fort10):
+    """
 
+    This class is a child class of pyturbo IO_fort.10 class.
+
+    Attributes:
+         fort10 (str): fort.10 WF file
+
+    """
     def __init__(self, fort10):
         super().__init__(fort10=fort10)
 
     # to pfaffian
-    def to_pf(self, grid_size=0.10, rotate_angle=-0.125, additional_hyb=[], nosym=False, clean_flag=False):
+    def to_pf(self, grid_size:float=0.10, rotate_angle:float=-0.125, additional_hyb:list=[], nosym:bool=False, clean_flag:bool=False)->None:
+        """
+            Convert for.10 to the Pfaffian format
+
+            Args:
+                grid_size (float): grid size (bohr)
+                rotate_angle (float): angle for the rotation (\*180 degree)
+                additional_hyb (list): a list of the numbers of added hybrid orbitals
+                nosym (bool): flag for nosymmetry
+                clean_flag (bool): cleaning temporary files
+
+        """
         # check if the wf is polarized or not.
         if self.f10header.nelup == self.f10header.neldn:
             logger.info("non-spin polarized case")
@@ -138,20 +166,60 @@ class Wavefunction(IO_fort10):
                 os.remove("fort.10_out")
 
     # to sd
-    def to_sd(self, grid_size=0.10, clean_flag=False):
+    def to_sd(self, grid_size:float=0.10, clean_flag:bool=False)->None:
+        """
+            Convert for.10 to the Slater determinant format
+
+            Args:
+                grid_size (float): grid size (bohr)
+                clean_flag (bool): cleaning temporary files
+
+        """
         # mo=Ndn/2
         self.add_MOs(add_random_mo=False, grid_size=grid_size, additional_mo=0, clean_flag=clean_flag)
 
     # to agps
-    def to_agps(self, grid_size=0.10, additional_hyb=[], nosym=False, clean_flag=False):
+    def to_agps(self, grid_size:float=0.10, additional_hyb:list=[], nosym:float=False, clean_flag:float=False)->None:
+        """
+            Convert for.10 to the symmetric AGP format
+
+            Args:
+                grid_size (float): grid size (bohr)
+                additional_hyb (list): a list of the numbers of added hybrid orbitals
+                nosym (bool): flag for nosymmetry
+                clean_flag (bool): cleaning temporary files
+
+        """
         self.to_agp(triplet=False, grid_size=grid_size, additional_hyb=additional_hyb, pfaffian_flag=False, nosym=nosym, clean_flag=clean_flag)
 
     # to agpu
-    def to_agpu(self, grid_size=0.10, additional_hyb=[], nosym=False, clean_flag=False):
+    def to_agpu(self, grid_size:float=0.10, additional_hyb:list=[], nosym:bool=False, clean_flag:bool=False)->None:
+        """
+            Convert for.10 to the non-symetric AGP format
+
+            Args:
+                grid_size (float): grid size (bohr)
+                additional_hyb (list): a list of the numbers of added hybrid orbitals
+                nosym (bool): flag for nosymmetry
+                clean_flag (bool): cleaning temporary files
+
+        """
         self.to_agp(triplet=True, grid_size=grid_size, additional_hyb=additional_hyb, pfaffian_flag=False, nosym=nosym, clean_flag=clean_flag)
 
     # to agps(triplet=false) or agpu(triplet=true)
-    def to_agp(self, triplet=False, pfaffian_flag=False, grid_size=0.10, additional_hyb=[], nosym=False, clean_flag=False, only_generate_template=False):
+    def to_agp(self, triplet:bool=False, pfaffian_flag:bool=False, grid_size:float=0.10, additional_hyb:list=[], nosym:bool=False, clean_flag:bool=False, only_generate_template:bool=False)->None:
+        """
+            Convert for.10 to the symmetric or non-symmetric AGP format
+
+            Args:
+                triplet (bool): flag for including the triplet pairing function, i.e., agps(triplet=false) or agpu(triplet=true)
+                pfaffian_flag (bool): Pfaffian
+                grid_size (float): grid size (bohr)
+                additional_hyb (list): a list of the numbers of added hybrid orbitals
+                nosym (bool): flag for nosymmetry
+                clean_flag (bool): cleaning temporary files
+
+        """
         shutil.copy(self.fort10, "fort.10_in")
 
         if pfaffian_flag:
@@ -267,7 +335,17 @@ class Wavefunction(IO_fort10):
             os.remove("fort.10_in")
             os.remove("fort.10_out")
 
-    def add_MOs(self, add_random_mo=True, grid_size=0.10, additional_mo=0, clean_flag=False):
+    def add_MOs(self, add_random_mo:bool=True, grid_size:float=0.10, additional_mo:int=0, clean_flag:bool=False)->None:
+        """
+            Add molecular orbitals to fort.10
+
+            Args:
+                add_random_mo (bool): flag for randomized MOs)
+                grid_size (float): grid size (bohr)
+                additional_mo (int): the number of added MOs (beyond the HOMO)
+                clean_flag (bool): cleaning temporary files
+
+        """
         shutil.copy(self.fort10, "fort.10_in")
         convertfort10mol_genius=Convertfort10mol_genius(fort10="fort.10_in",
                                                         add_random_mo=add_random_mo,
@@ -283,9 +361,16 @@ class Wavefunction(IO_fort10):
             remove_file('convertfort10.input')
             remove_file('out_conv')
 
-    def write(self, file):
+    def write(self, structure_file:str):
+        """
+            Write a structure file (i.e., convert fort.10 to a structure file, e.g., xyz)
+
+            Args:
+                structure_file (str): structure file name. all formats supported by ASE are acceptable.
+
+        """
         structure=self.f10structure.structure
-        structure.write(file=file)
+        structure.write(structure_file=structure_file)
 
 if __name__ == "__main__":
     logger = getLogger("Turbo-Genius")
@@ -305,7 +390,7 @@ if __name__ == "__main__":
 
     # moved to examples
     wavefunction=Wavefunction(fort10="fort.10_agpu")
-    wavefunction.write(file="test.xyz")
+    wavefunction.write(structure_file="test.xyz")
     #wavefunction.add_MOs()
     #wavefunction.to_agp()
     #wavefunction.to_sd()

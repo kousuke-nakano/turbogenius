@@ -1,6 +1,15 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+Readforward related classes and methods
+
+Todo:
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -41,12 +50,12 @@ from turbo_genius_cli import cli, decorate_grpost, header
               type = int)
 @header
 def readforward(
-            g,r,post,
-            operation,
-            log_level,
-            bin_block,
-            warmupblocks,
-            corr_sampling,
+            g:bool,r:bool,post:bool,
+            operation:bool,
+            log_level:str,
+            bin_block:int,
+            warmupblocks:int,
+            corr_sampling:bool,
 ):
     pkl_name="readforward_genius_cli.pkl"
     root_dir=os.getcwd()
@@ -90,13 +99,24 @@ def readforward(
             readforward_genius.check_results()
 
 class Readforward_genius(GeniusIO):
+    """
 
+    This class is a wrapper of pyturbo readforward class
+
+    Attributes:
+         in_fort10 (str): fort.10 WF file
+         corr_fort10 (str): fort.10 WF file (reference for the correlated sampling)
+         bin_block (int): binning length
+         warmupblocks (int): the number of disregarded blocks
+         corr_sampling (bool): if True, correlated sampling=True
+
+    """
     def __init__(self,
-                 in_fort10="fort.10_in",
-                 corr_fort10="fort.10_corr",
-                 bin_block=10,
-                 warmupblocks=2,
-                 corr_sampling=True
+                 in_fort10:str="fort.10_in",
+                 corr_fort10:str="fort.10_corr",
+                 bin_block:int=10,
+                 warmupblocks:int=2,
+                 corr_sampling:bool=True
                  ):
 
         self.in_fort10 = in_fort10
@@ -113,19 +133,49 @@ class Readforward_genius(GeniusIO):
             pass
             #self.convertfort10.comment_out(parameter="nz")
 
-    def run_all(self, input_name="datasvmc.input", output_name="out_readforward"):
+    def run_all(self, input_name:str="datasvmc.input", output_name:str="out_readforward")->None:
+        """
+            Generate input files and run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+
+        """
         self.generate_input(input_name=input_name)
         self.run(input_name=input_name, output_name=output_name)
 
-    def generate_input(self, input_name="datasvmc.input"):
+    def generate_input(self, input_name:str="datasvmc.input")->None:
+        """
+            Generate input file.
+
+            Args:
+                input_name (str): input file name
+
+        """
         self.readforward.generate_input(input_name=input_name)
 
-    def run(self, input_name="datasvmc.input", output_name="out_readforward"):
+    def run(self, input_name:str="datasvmc.input", output_name:str="out_readforward")->None:
+        """
+            Run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+        """
         self.readforward.run(input_name=input_name, output_name=output_name)
         flags=self.readforward.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self, output_names=["out_readforward"]):
+    def check_results(self, output_names:list=["out_readforward"])->None:
+        """
+            Check the result.
+
+            Args:
+                output_names (list): a list of output file names
+            Returns:
+                bool: True if all the runs were successful, False if an error is detected in the files.
+        """
         return self.readforward.check_results(output_names=output_names)
 
 if __name__ == "__main__":

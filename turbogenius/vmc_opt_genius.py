@@ -1,6 +1,15 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+vmc_opt genius related classes and methods
+
+Todo:
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -154,34 +163,34 @@ from turbo_genius_cli import cli, decorate_grpost, header
               )
 @header
 def vmcopt(
-            g,r,post,
-            operation,
-            log_level,
-            vmcoptsteps=100,
-            optwarmupsteps=10,
-            steps=10,
-            bin_block=1,
-            warmupblocks=0,
-            num_walkers=-1,  # default -1 -> num of MPI process.
-            maxtime=172800,
-            optimizer="sr",
-            learning_rate=0.35,
-            regularization=0.001,
-            opt_onebody=True,
-            opt_twobody=True,
-            opt_det_mat=False,
-            opt_jas_mat=True,
-            opt_det_basis_exp=False,
-            opt_jas_basis_exp=False,
-            opt_det_basis_coeff=False,
-            opt_jas_basis_coeff=False,
-            opt_structure=False,
-            str_learning_rate=1.0e-6,
-            twist_average=False,
-            kpoints=[1, 1, 1, 0, 0, 0],
-            plot_graph=False,
-            plot_interactive=False
-):
+            g:bool,r:bool,post:bool,
+            operation:bool,
+            log_level:str,
+            vmcoptsteps:int=100,
+            optwarmupsteps:int=10,
+            steps:int=10,
+            bin_block:int=1,
+            warmupblocks:int=0,
+            num_walkers:int=-1,  # default -1 -> num of MPI process.
+            maxtime:int=172800,
+            optimizer:str="sr",
+            learning_rate:float=0.35,
+            regularization:float=0.001,
+            opt_onebody:bool=True,
+            opt_twobody:bool=True,
+            opt_det_mat:bool=False,
+            opt_jas_mat:bool=True,
+            opt_det_basis_exp:bool=False,
+            opt_jas_basis_exp:bool=False,
+            opt_det_basis_coeff:bool=False,
+            opt_jas_basis_coeff:bool=False,
+            opt_structure:bool=False,
+            str_learning_rate:float=1.0e-6,
+            twist_average:bool=False,
+            kpoints:list=[1, 1, 1, 0, 0, 0],
+            plot_graph:bool=False,
+            plot_interactive:bool=False
+) -> None:
     pkl_name="vmcopt_genius_cli.pkl"
     root_dir=os.getcwd()
     pkl_file=os.path.join(root_dir, pkl_name)
@@ -244,30 +253,57 @@ def vmcopt(
         vmcopt_genius.average(optwarmupsteps=optwarmupsteps, graph_plot=plot_graph)
 
 class VMCopt_genius(GeniusIO):
+    """
 
+    This class is a wrapper of pyturbo VMCopt class
+
+    Attributes:
+         fort10 (str): fort.10 WF file
+         vmcoptsteps (int): total number of optimization steps
+         steps (int): number of MCMC steps per optimization step
+         bin_block (int): binning length
+         warmupblocks (int): the number of disregarded blocks,
+         num_walkers (int): The number of walkers, -1 (default) = the number of MPI processes
+         maxtime (int): Maxtime (sec.)
+         optimizer (str): Choose optimizer, selected from sr:stochastic reconfiguration or lr:linear method.
+         learning_rate (float): optimization step size, default values=sr:0.05, lr:0.35
+         regularization (float): regularization parameter
+         opt_onebody (bool): flag to optimize onebody Jastrow
+         opt_twobody (bool): flag to optimize twobody Jastrow
+         opt_det_mat (bool): flag to optimize matrix elements in the determinant part
+         opt_jas_mat (bool): flag to optimize matrix elements in the Jastrow part
+         opt_det_basis_exp (bool): flag to optimize exponents of the determinant basis sets
+         opt_jas_basis_exp (bool): flag to optimize exponents of the Jastrow basis sets
+         opt_det_basis_coeff (bool): flag to optimize coefficients of the determinant basis sets
+         opt_jas_basis_coeff (bool): flag to optimize coefficients of the Jastrow basis sets
+         opt_structure (bool): flag to optimize the structure
+         str_learning_rate (float): optimization step size for structural optimization
+         twist_average (bool): Twist average flag, True or False
+         kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
+    """
     def __init__(self,
-                 fort10="fort.10",
-                 vmcoptsteps = 100,
-                 steps = 10,
-                 bin_block = 1,
-                 warmupblocks = 0,
-                 num_walkers=-1, # default -1 -> num of MPI process.
-                 maxtime=172800,
-                 optimizer="sr",
-                 learning_rate=0.35,
-                 regularization=0.001,
-                 opt_onebody=True,
-                 opt_twobody=True,
-                 opt_det_mat=False,
-                 opt_jas_mat=True,
-                 opt_det_basis_exp=False,
-                 opt_jas_basis_exp=False,
-                 opt_det_basis_coeff=False,
-                 opt_jas_basis_coeff=False,
-                 opt_structure=False,
-                 str_learning_rate=1.0e-6,
-                 twist_average=False,
-                 kpoints=[1, 1, 1, 0, 0, 0],
+                 fort10:str="fort.10",
+                 vmcoptsteps:int = 100,
+                 steps:int = 10,
+                 bin_block:int = 1,
+                 warmupblocks:int = 0,
+                 num_walkers:int=-1, # default -1 -> num of MPI process.
+                 maxtime:int=172800,
+                 optimizer:str="sr",
+                 learning_rate:float=0.35,
+                 regularization:float=0.001,
+                 opt_onebody:bool=True,
+                 opt_twobody:bool=True,
+                 opt_det_mat:bool=False,
+                 opt_jas_mat:bool=True,
+                 opt_det_basis_exp:bool=False,
+                 opt_jas_basis_exp:bool=False,
+                 opt_det_basis_coeff:bool=False,
+                 opt_jas_basis_coeff:bool=False,
+                 opt_structure:bool=False,
+                 str_learning_rate:float=1.0e-6,
+                 twist_average:bool=False,
+                 kpoints:list=[1, 1, 1, 0, 0, 0],
                  ):
 
         self.fort10 = fort10
@@ -375,33 +411,89 @@ class VMCopt_genius(GeniusIO):
                 logger.error(f"twist_average = {self.twist_average} is not implemented.")
                 raise NotImeplementedError
 
-    def run_all(self, optwarmsteps, cont=False, input_name="datasmin.input", output_name="out_min", average_parameters=True):
+    def run_all(self, optwarmsteps:int, cont:bool=False, input_name:str="datasmin.input", output_name:str="out_min", average_parameters:bool=True)->None:
+        """
+            Generate input files and run the command.
+
+            Args:
+                optwarmsteps (int): the number of disregarded steps
+                cont (bool): if True, continuation run (i.e., iopt=0), if False, starting from scratch (i.e., iopt=1).
+                input_name (str): input file name
+                output_name (str): output file name
+                average_parameters (bool): if True, average the optimized parameters
+
+        """
         self.generate_input(cont=cont, input_name=input_name)
         self.run(input_name=input_name, output_name=output_name)
-        if average_parameters: self.average(optwarmupsteps=optwarmsteps, input_name=input_name, output_name=output_name)
+        if average_parameters: self.average(optwarmupsteps=optwarmsteps, input_name=input_name, output_names=[output_name])
 
-    def generate_input(self, cont=False, input_name="datasmin.input"):
+    def generate_input(self, cont:bool=False, input_name:str="datasmin.input")->None:
+        """
+            Generate input file.
+
+            Args:
+                cont (bool): if True, continuation run (i.e., iopt=0), if False, starting from scratch (i.e., iopt=1).
+                input_name (str): input file name
+
+        """
         io_fort10=IO_fort10(fort10=self.fort10)
         io_fort10.io_flag=0
-        if cont: self.vmcopt.set_parameter("iopt", 0, "$systems")
+        if cont: self.vmcopt.set_parameter("iopt", 0, "&simulation")
         self.vmcopt.generate_input(input_name=input_name)
 
-    def run(self, input_name="datasmin.input", output_name="out_min"):
+    def run(self, input_name:str="datasmin.input", output_name:str="out_min")->None:
+        """
+            Run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+        """
         self.vmcopt.run(input_name=input_name, output_name=output_name)
         flags=self.vmcopt.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self, output_names=["out_min"]):
+    def check_results(self, output_names:list=["out_min"])->bool:
+        """
+            Check the result.
+
+            Args:
+                output_names (list): a list of output file names
+            Returns:
+                bool: True if all the runs were successful, False if an error is detected in the files.
+        """
         return self.vmcopt.check_results(output_names=output_names)
 
-    def plot_energy_and_devmax(self, output_names=["out_min"], interactive=True):
-        return self.vmcopt.plot_energy_and_devmax(output_names=output_names, interactive=interactive)
+    def plot_energy_and_devmax(self, output_names:list=["out_min"], interactive:bool=True)->None:
+        """
+            plot energy and devmax
 
-    def store_result(self, output_names=["out_min"]):
+            Args:
+                output_names (list): a list of output file names
+                interactive (bool): flag for an interactive plot
+        """
+        self.vmcopt.plot_energy_and_devmax(output_names=output_names, interactive=interactive)
+
+    def store_result(self, output_names:list=["out_min"])->None:
+        """
+            Store results. energy, energy_error, and estimated_time_for_1_generation are stored in this class.
+
+            Args:
+                output_names (list): a list of output file names
+        """
         self.energy, self.energy_error = self.get_energy(output_names=output_names)
         self.estimated_time_for_1_generation = self.get_estimated_time_for_1_generation(output_names=output_names)
 
-    def average(self, optwarmupsteps, input_name="datasmin.input", output_name="out_min", graph_plot=False):
+    def average(self, optwarmupsteps:int, input_name:str="datasmin.input", output_names:list=["out_min"], graph_plot:bool=False)->None:
+        """
+            Average parameters of fort.10
+
+            Args:
+                optwarmupblocks (int): the number of disregarded optimization steps
+                input_name (str): the input file used in the latest calculation
+                output_names (list): a list of output file names
+                graph_plot (bool): Flag for plotting a graph
+        """
         current_dir=os.getcwd()
         if self.twist_average:
             if self.opt_det_mat or self.opt_det_basis_exp or self.opt_det_basis_coeff:
@@ -417,7 +509,7 @@ class VMCopt_genius(GeniusIO):
             logger.info("Twist-average flag is False. Open boundary condition or PBC at single k point.")
             twist_average_copyjas = False
 
-        flags = self.vmcopt.check_results(output_names=[output_name])
+        flags = self.vmcopt.check_results(output_names=output_names)
         assert all(flags)
         self.vmcopt.average_optimized_parameters(equil_steps=optwarmupsteps, input_file_used=input_name, graph_plot=graph_plot)
 
@@ -438,13 +530,37 @@ class VMCopt_genius(GeniusIO):
             copy_jastrow(args="kpoints")
             os.chdir(current_dir)
 
-    def get_energy(self, output_names=["out_min"]):
+    def get_energy(self, output_names:list=["out_min"])->list:
+        """
+            return energy list
+
+            Args:
+                output_names (list): a list of output file names
+
+            Return:
+                list: a list of history of energies.
+        """
         return self.vmcopt.get_energy(output_names=output_names)
 
-    def get_estimated_time_for_1_generation(self, output_names=["out_min"]):
+    def get_estimated_time_for_1_generation(self, output_names:list=["out_min"])->float:
+        """
+            This procedure stores estimated_time_for_1_generation.
+
+            Args:
+                output_names (list): a list of output file names
+
+            Return:
+                float: estimated_time_for_1_generation.
+        """
         return self.vmcopt.get_estimated_time_for_1_generation(output_names=output_names)
 
-    def plot_parameters_history(self, interactive=True):
+    def plot_parameters_history(self, interactive:bool=True)->None:
+        """
+            plot history of optimized variational parameters
+
+            Args:
+                interactive (bool): flag for an interactive plot
+        """
         self.vmcopt.plot_parameters_history(interactive=interactive)
 
 if __name__ == "__main__":

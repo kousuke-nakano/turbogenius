@@ -1,6 +1,18 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+pyturbo: pseudopotentials related classes and methods
+
+Todo:
+    * docstrings are not completed.
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+    * implementing __str__ method.
+    * implementing sanity_check method.
+
+"""
+
 #python modules
 import os, sys
 import re
@@ -220,8 +232,7 @@ class Pseudopotentials:
         )
 
     @classmethod
-    def parse_pseudopotential_from_gamess_format_files(cls, files):
-
+    def parse_pseudopotential_from_gamess_format_texts(cls, texts):
         max_ang_mom_plus_1 = []
         z_core = []
         cutoff = []
@@ -232,18 +243,17 @@ class Pseudopotentials:
         coefficient = []
         power = []
 
-        for nuc_i, file in enumerate(files):
-
-            if file is None:
+        for nuc_i, text in enumerate(texts):
+            if text is None:
                 continue
 
-            pseudo_potential=Pseudopotential.parse_pseudopotential_from_gamess_format_file(file)
+            pseudo_potential = Pseudopotential.parse_pseudopotential_from_gamess_format_text(text)
 
             # storing
             max_ang_mom_plus_1.append(pseudo_potential.max_ang_mom_plus_1)
             z_core.append(pseudo_potential.z_core)
             cutoff.append(pseudo_potential.cutoff)
-            nucleus_index+=[nuc_i]*pseudo_potential.ecp_num
+            nucleus_index += [nuc_i] * pseudo_potential.ecp_num
             element_list.append(pseudo_potential.element)
 
             logger.debug(pseudo_potential.max_ang_mom_plus_1)
@@ -254,16 +264,30 @@ class Pseudopotentials:
             power += pseudo_potential.power
 
         return cls(
-            max_ang_mom_plus_1 = max_ang_mom_plus_1,
-            z_core = z_core,
-            cutoff = cutoff,
-            nucleus_index = nucleus_index,
+            max_ang_mom_plus_1=max_ang_mom_plus_1,
+            z_core=z_core,
+            cutoff=cutoff,
+            nucleus_index=nucleus_index,
             element_list=element_list,
-            ang_mom = ang_mom,
-            exponent = exponent,
-            coefficient = coefficient,
-            power = power
+            ang_mom=ang_mom,
+            exponent=exponent,
+            coefficient=coefficient,
+            power=power
         )
+
+    @classmethod
+    def parse_pseudopotential_from_gamess_format_files(cls, files):
+
+        texts=[]
+        for file in files:
+            if file is None:
+                texts.append(None)
+            else:
+                with open(file, 'r') as f:
+                    text = f.readlines()
+                texts.append("".join(text))
+
+        return cls.parse_pseudopotential_from_gamess_format_texts(texts=texts)
 
     @classmethod
     def parse_pseudopotential_from_turborvb_format_files(cls, files):

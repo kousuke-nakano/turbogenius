@@ -1,6 +1,15 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+vmc genius related classes and methods
+
+Todo:
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -67,18 +76,18 @@ from turbo_genius_cli import cli, decorate_grpost, header
               )
 @header
 def vmc(
-            g,r,post,
-            operation,
-            log_level,
-            vmcsteps,
-            bin_block,
-            warmupblocks,
-            num_walkers,
-            maxtime,
-            twist_average,
-            kpoints,
-            force_calc_flag
-):
+            g:bool,r:bool,post:bool,
+            operation:bool,
+            log_level:str,
+            vmcsteps:int,
+            bin_block:int,
+            warmupblocks:int,
+            num_walkers:int,
+            maxtime:int,
+            twist_average:bool,
+            kpoints:list,
+            force_calc_flag:bool
+)->None:
     pkl_name="vmc_genius_cli.pkl"
     root_dir=os.getcwd()
     pkl_file=os.path.join(root_dir, pkl_name)
@@ -125,15 +134,27 @@ def vmc(
         vmc_genius.compute_energy_and_forces(bin_block=bin_block, warmupblocks=warmupblocks)
 
 class VMC_genius(GeniusIO):
+    """
 
+    This class is a wrapper of pyturbo VMC class
+
+    Attributes:
+         fort10 (str): fort.10 WF file
+         vmcsteps (int): total number of MCMC steps.
+         num_walkers (int): The number of walkers, -1 (default) = the number of MPI processes
+         maxtime (int): Maxtime (sec.)
+         twist_average (bool): Twist average flag, True or False
+         kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
+         force_calc_flag (bool): if True, compute energy and force, if False, compute only energy
+    """
     def __init__(self,
-                 fort10="fort.10",
-                 vmcsteps = 100,
-                 num_walkers=-1,  # default -1 -> num of MPI process.
-                 maxtime=172800,
-                 twist_average=False,
-                 kpoints=[1,1,1,0,0,0],
-                 force_calc_flag=True
+                 fort10:str="fort.10",
+                 vmcsteps:int = 100,
+                 num_walkers:int=-1,  # default -1 -> num of MPI process.
+                 maxtime:int=172800,
+                 twist_average:bool=False,
+                 kpoints:list=[1,1,1,0,0,0],
+                 force_calc_flag:bool=True
                  ):
 
         self.force_calc_flag = force_calc_flag
@@ -199,33 +220,91 @@ class VMC_genius(GeniusIO):
                 raise NotImeplementedError
 
 
-    def run_all(self, cont=False, input_name="datasvmc.input", output_name="out_vmc"):
+    def run_all(self, cont:bool=False, input_name:str="datasvmc.input", output_name:str="out_vmc")->None:
+        """
+            Generate input files and run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+
+        """
         self.generate_input(cont=cont, input_name=input_name)
         self.run(input_name=input_name, output_name=output_name)
         self.compute_energy_and_forces()
 
-    def generate_input(self, cont=False, input_name="datasvmc.input"):
-        if cont: self.vmc.set_parameter("iopt", 0, "$systems")
+    def generate_input(self, cont:bool=False, input_name:str="datasvmc.input")->None:
+        """
+            Generate input file.
+
+            Args:
+                cont (bool): if True, continuation run (i.e., iopt=0), if False, starting from scratch (i.e., iopt=1).
+                input_name (str): input file name
+
+        """
+        if cont: self.vmc.set_parameter("iopt", 0, "&simulation")
         self.vmc.generate_input(input_name=input_name)
 
     def run(self, input_name="datasvmc.input", output_name="out_vmc"):
+        """
+            Run the command.
+
+            Args:
+                input_name (str): input file name
+                output_name (str): output file name
+        """
         self.vmc.run(input_name=input_name, output_name=output_name)
         flags=self.vmc.check_results(output_names=[output_name])
         assert all(flags)
 
-    def store_result(self, bin_block=10, warmupblocks=5, output_names=["out_vmc"]):
+    def store_result(self, bin_block:int=10, warmupblocks:int=5, output_names:list=["out_vmc"], rerun:bool=False)->bool:
+        """
+            Store results. This procedure stores estimated_time_for_1_generation, energy, and energy_error.
+            This method is needed for storing data and access to them later.
+
+            Args:
+                bin_block (int): binning length
+                warmupblocks (int): the number of disregarded blocks
+                output_names (list): a list of output file names
+                rerun (bool): if true, compute energy and force again even if there are energy and force files.
+        """
         self.estimated_time_for_1_generation = self.get_estimated_time_for_1_generation(output_names=output_names)
-        self.energy, self.energy_error = self.vmc.get_energy(init=warmupblocks, bin=bin_block)
+        self.energy, self.energy_error = self.vmc.get_energy(init=warmupblocks, bin=bin_block, rerun=rerun)
 
-    def compute_energy_and_forces(self, bin_block=10, warmupblocks=5):
-        self.energy, self.energy_error = self.vmc.get_energy(init=warmupblocks, bin=bin_block)
+    def compute_energy_and_forces(self, bin_block:int=10, warmupblocks:int=5, rerun:bool=False)->None:
+        """
+            Compute energy and forces
+
+            Args:
+                bin_block (int): binning length
+                warmupblocks (int): the number of disregarded blocks
+                rerun (bool): if true, compute energy and force again even if there are energy and force files.
+        """
+        self.energy, self.energy_error = self.vmc.get_energy(init=warmupblocks, bin=bin_block, rerun=rerun)
         if self.force_calc_flag:
-            self.forces, self.forces_error = self.vmc.get_forces(init=warmupblocks, bin=bin_block)
+            self.forces, self.forces_error = self.vmc.get_forces(init=warmupblocks, bin=bin_block, rerun=False)
 
-    def get_estimated_time_for_1_generation(self, output_names=["out_vmc"]):
+    def get_estimated_time_for_1_generation(self, output_names:list=["out_vmc"])->float:
+        """
+            This procedure stores estimated_time_for_1_generation.
+
+            Args:
+                output_names (list): a list of output file names
+
+            Return:
+                float: estimated_time_for_1_generation.
+        """
         return self.vmc.get_estimated_time_for_1_generation(output_names=output_names)
 
-    def check_results(self, output_names=["out_vmc"]):
+    def check_results(self, output_names:list=["out_vmc"])->bool:
+        """
+            Check the result.
+
+            Args:
+                output_names (list): a list of output file names
+            Return:
+                bool: True if all the runs were successful, False if an error is detected in the files.
+        """
         return self.vmc.check_results(output_names=output_names)
 
 if __name__ == "__main__":

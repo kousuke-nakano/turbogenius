@@ -1,6 +1,15 @@
 #!python -u
 # -*- coding: utf-8 -*-
 
+"""
+
+pyturbo: utilities
+
+Todo:
+    * docstrings are not completed.
+
+"""
+
 from __future__ import print_function
 
 # python modules
@@ -10,6 +19,8 @@ import shutil
 import platform
 import subprocess
 import linecache
+import numpy as np
+from scipy.io import FortranFile
 
 # python special module
 from pymatgen.core.periodic_table import Element, ElementBase
@@ -22,6 +33,21 @@ logger = getLogger('pyturbo').getChild(__name__)
 # turbogenius module
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from env import pyturbo_root
+
+def get_linenum_fort12(fort12="fort.12"):
+    # check column length of fort.12
+    f = FortranFile(fort12, 'r')
+    a = f.read_reals(dtype='float64')
+    column_length = len(a)
+    f.close()
+    head = ("head", "<i")
+    tail = ("tail", "<i")
+    dt = np.dtype([head, ("a", "<{}d".format(column_length)), tail])
+    fd = open(fort12, "r")
+    fort12_b = np.fromfile(fd, dtype=dt, count=-1)
+    data_length = len(fort12_b)
+    fd.close()
+    return data_length
 
 def return_element_symbol(atomic_number):
     atomic_number = int(float(atomic_number))

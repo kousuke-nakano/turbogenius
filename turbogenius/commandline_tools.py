@@ -1,6 +1,12 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+TurboGenius command-line tools
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -13,16 +19,19 @@ from pyturbo.io_fort10 import IO_fort10
 #Logger
 from logging import config, getLogger, StreamHandler, Formatter
 logger = getLogger('Turbo-Genius').getChild(__name__)
-#logger = getLogger(__name__)
 
 from turbo_genius_cli import cli, decorate_grpost, header, OptionEatAll
 
 @cli.command(short_help = "visualize fort.10 structure by ASE")
 @header
 def view(
-        operation,
-        log_level,
-):
+        operation:bool,
+        log_level:str,
+)->None:
+    """
+        Visualize a molecule or crystal structure written in fort.10
+
+    """
     io_fort10=IO_fort10(fort10="fort.10")
     structure=io_fort10.f10structure.structure
     structure.view()
@@ -34,10 +43,17 @@ def view(
               type = str)
 @header
 def writestr(
-        operation,
-        log_level,
-        structure
+        operation:bool,
+        log_level:str,
+        structure:str
 ):
+    """
+        Write a structure file (i.e., convert fort.10 to a structure file, e.g., xyz)
+
+        Args:
+            structure (str): structure file name. all formats supported by ASE are acceptable.
+
+    """
     io_fort10=IO_fort10(fort10="fort.10")
     structure_=io_fort10.f10structure.structure
     structure_.write(structure)

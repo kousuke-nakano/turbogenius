@@ -1,6 +1,18 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+pyturbo: lrdmcopt related classes and methods
+
+Todo:
+    * docstrings are not completed.
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+    * implementing __str__ method.
+    * implementing sanity_check method.
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -75,49 +87,57 @@ class LRDMCopt(FortranIO):
             else:
                 flags.append(False)
 
-        if all(flags):
-            # plot the energies and devmax
-            logger.info("Plotting the energies and devmax")
-            out_min=[]
-            for output_name in output_names:
-                with open(output_name, 'r') as f:
-                    out_min+=f.readlines()
-
-            col = ['dum1', 'dum2', 'dum3', 'Energy', 'error']
-            energy_list = list(map(lambda x: x.split(), [i for i in out_min if re.match(r".*New.*Energy.*", i)]))
-            energy_pandas_str = pd.DataFrame(energy_list, columns=col)
-
-            col = ['dum1', 'dum2', 'dum3', 'dum4', 'devmax', 'num', 'num2']
-            devmax_list = list(map(lambda x: x.split(), [i for i in out_min if re.match(r".*devmax.*par.*Normal.*",i)]))
-            devmax_pandas_str = pd.DataFrame(devmax_list, columns=col)
-
-            fig, ax1 = plt.subplots()
-
-            ax1.errorbar(energy_pandas_str.index, energy_pandas_str["Energy"].astype("float"),
-                         energy_pandas_str["error"].astype("float"), color="black", marker="o", linestyle="dashed",
-                         capsize=2, label="Energy")
-
-            ax2 = ax1.twinx()
-            ax2.plot(devmax_pandas_str.index, devmax_pandas_str["devmax"].astype("float"), color="red", marker="x",
-                     linestyle="dashed", label="devmax")
-            ax2.hlines(4.5, devmax_pandas_str.index.min(), devmax_pandas_str.index.max(), "blue", linestyles='dashed',
-                       label="devmax < 4.5 (converged criteria)")
-
-            plt.xlabel('Optimiztion')
-            ax1.set_ylabel('Energy (Ha)')
-            ax2.set_ylabel('devmax')
-
-            plt.gca().get_yaxis().get_major_formatter().set_useOffset(False)  # No offset for y-axis
-            plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))  # Interger for x-axis
-
-            h1, l1 = ax1.get_legend_handles_labels()
-            h2, l2 = ax2.get_legend_handles_labels()
-            ax1.legend(h1 + h2, l1 + l2, loc='upper right')
-
-            plt.savefig("plot_energy_and_devmax.png", bbox_inches='tight', pad_inches=0.2)
-            plt.close()
-
         return flags
+
+    def plot_energy_and_devmax(self, output_names=["out_fn_opt"], interactive=False):
+
+        # plot the energies and devmax
+        logger.info("Plotting the energies and devmax")
+        out_min = []
+        for output_name in output_names:
+            with open(output_name, 'r') as f:
+                out_min += f.readlines()
+
+        col = ['dum1', 'dum2', 'dum3', 'Energy', 'error']
+        energy_list = list(map(lambda x: x.split(), [i for i in out_min if re.match(r".*New.*Energy.*", i)]))
+        energy_pandas_str = pd.DataFrame(energy_list, columns=col)
+
+        col = ['dum1', 'dum2', 'dum3', 'dum4', 'devmax', 'num', 'num2']
+        devmax_list = list(
+            map(lambda x: x.split(), [i for i in out_min if re.match(r".*devmax.*par.*Normal.*", i)]))
+        devmax_pandas_str = pd.DataFrame(devmax_list, columns=col)
+
+        plt.rcParams['font.family'] = 'sans-serif'
+        plt.rcParams['xtick.direction'] = 'in'
+        plt.rcParams['ytick.direction'] = 'in'
+        plt.rcParams['xtick.major.width'] = 1.0
+        plt.rcParams['ytick.major.width'] = 1.0
+        plt.rcParams['font.size'] = 12
+        plt.rcParams['axes.linewidth'] = 1.5
+        fig, ax1 = plt.subplots()
+        ax1.errorbar(energy_pandas_str.index, energy_pandas_str["Energy"].astype("float"),
+                     energy_pandas_str["error"].astype("float"), color="black", marker="o", linestyle="dashed",
+                     capsize=2, label="Energy")
+
+        ax2 = ax1.twinx()
+        ax2.plot(devmax_pandas_str.index, devmax_pandas_str["devmax"].astype("float"), color="red", marker="x",
+                 linestyle="dashed", label="devmax")
+        ax2.hlines(4.5, devmax_pandas_str.index.min(), devmax_pandas_str.index.max(), "blue", linestyles='dashed',
+                   label="devmax < 4.5 (converged criteria)")
+
+        plt.xlabel('Optimiztion')
+        ax1.set_ylabel('Energy (Ha)')
+        ax2.set_ylabel('devmax')
+
+        plt.gca().get_yaxis().get_major_formatter().set_useOffset(False)  # No offset for y-axis
+        plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))  # Interger for x-axis
+
+        h1, l1 = ax1.get_legend_handles_labels()
+        h2, l2 = ax2.get_legend_handles_labels()
+        ax1.legend(h1 + h2, l1 + l2, loc='upper right')
+        if interactive: plt.waitforbuttonpress()
+        plt.savefig("plot_energy_and_devmax.png", bbox_inches='tight', pad_inches=0.2)
+        plt.close()
 
     def get_energy(self, output_names=["out_fn_opt"]):
 

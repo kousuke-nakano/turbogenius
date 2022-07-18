@@ -26,9 +26,6 @@ os.chdir(lrdmc_test_dir)
 lrdmc_genius = LRDMC_genius(
     fort10="fort.10",
     lrdmcsteps=500,
-    bin_block=10,
-    warmupblocks=10,
-    correcting_factor=2,
     num_walkers=20,
     alat=-0.4,
     etry=-1.00,
@@ -38,6 +35,6 @@ lrdmc_genius = LRDMC_genius(
 )
 
 lrdmc_genius.run()
-lrdmc_genius.compute_energy_and_forces()
+lrdmc_genius.compute_energy_and_forces(bin_block=10, warmupblocks=10, correcting_factor=2,)
 logger.info(lrdmc_genius.energy)
 logger.info(lrdmc_genius.energy_error)

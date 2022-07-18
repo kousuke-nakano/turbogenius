@@ -1,6 +1,12 @@
 #!python -u
 # -*- coding: utf-8 -*-
 
+"""
+
+pyturbo: units used in pyturbo
+
+"""
+
 from __future__ import print_function
 
 # python modules

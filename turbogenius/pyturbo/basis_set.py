@@ -1,15 +1,25 @@
 #!python -u
 # -*- coding: utf-8 -*-
 
+"""
+
+pyturbo: basis set module
+
+Todo:
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
+
 #python modules
 import os, sys
 import re
 import numpy as np
+from typing import Union
 
 #logger set
 from logging import config, getLogger, StreamHandler, Formatter
 logger = getLogger('pyturbo').getChild(__name__)
-stream_handler = StreamHandler()
 
 #pyturbo modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -17,19 +27,33 @@ from utils.utility import return_ang_mom, turbo_prim_orb_type_num, turbo_cont_or
 from utils.env import pyturbo_root
 from utils.downloader import BSE, BFD, ccECP
 
-# we should consider also complex cases... gosh.
 class Basis_sets:
+    """
 
+    This class holds information about basis sets. The convention of the variables are the same as in the TREXIO module.
+    See the TREXIO documentation [https://github.com/TREX-CoE/trexio] in the detail.
+
+    Attributes:
+        nucleus_index (list): One-to-one correspondence between shells and atomic indices. Dimensions=shell_num.
+        shell_ang_mom (list): One-to-one correspondence between shells and angular momenta. Dimensions=shell_num.
+        shell_ang_mom_turbo_notation (list): TurboRVB notations corresponding to shell_ang_mom. Dimensions=shell_num.
+        shell_factor (list): Normalization factor of each shell. Dimensions=shell_num.
+        shell_index (list): One-to-one correspondence between primitives and shell index. Dimensions=prim_num.
+        exponent (list): Exponents of the primitives. Dimensions=prim_num.
+        coefficient (list): Coefficients of the primitives (real part). Dimensions=prim_num.
+        coefficient_imag (list): Coefficients of the primitives (imaginary part). Dimensions=prim_num.
+        prim_factor (list): Normalization coefficients for the primitives. Dimensions=prim_num.
+    """
     def __init__(self,
-                nucleus_index=[],
-                shell_ang_mom=[],
-                shell_ang_mom_turbo_notation=[],
-                shell_factor=[],
-                shell_index=[],
-                exponent=[],
-                coefficient=[],
-                coefficient_imag=[],
-                prim_factor=[],
+                nucleus_index:list=[],
+                shell_ang_mom:list=[],
+                shell_ang_mom_turbo_notation:list=[],
+                shell_factor:list=[],
+                shell_index:list=[],
+                exponent:list=[],
+                coefficient:list=[],
+                coefficient_imag:list=[],
+                prim_factor:list=[],
     ):
 
         self.nucleus_index = nucleus_index
@@ -79,14 +103,43 @@ class Basis_sets:
         else:
             return True
 
+    def real_to_complex(self):
+        """
+            Convert the basis set from real to complex (i.e., initializing the imaginary part with 0.0.)
 
-    def get_largest_angmom(self, nucleus_index):
+        """
+        if len(self.coefficient_imag) != 0:
+            logger.warning('the basis set is already complex.')
+        else:
+            self.coefficient_imag = [0.0] * len(self.coefficient)
+
+    def get_largest_angmom(self, nucleus_index:int) -> int:
+        """
+            get the largest angular momentam of an atom
+
+            Args:
+                nucleus_index (int): nuclear index
+
+            Return:
+                int: maximum angular momentum of the specified nuclear index
+
+        """
         shell_index_list = [i for i, x in enumerate(self.nucleus_index) if x == nucleus_index]
         shell_ang_mom_list = [self.shell_ang_mom[i] for i in shell_index_list]
         return np.max(shell_ang_mom_list)
 
-    def cut_exponents(self, thr_exp=None, thr_angmom=None, nucleus_index=None, method="larger"):
-        # method = larger, smaller, equil
+    def cut_orbitals(self, thr_exp:Union[None, float]=None, thr_angmom:Union[None,int]=None, nucleus_index:int=None, method:str="larger")->None:
+        """
+            cut orbitals in basis set accodring to a criterion
+
+            Args:
+                thr_exp (None or float): threshold of exponent to be cut
+                thr_angmom (None of int): threshold of angular momentum to be cut
+                nucleus_index (None or int): specify a target nuclear index, if None, all the nuclei are targets.
+                method (str): criterion for cutting orbitals, larger, smaller, equil, or larger-angmom
+
+        """
+        # method =
 
         logger.debug("--Before cut--")
         logger.debug(self.nucleus_index)
@@ -109,6 +162,8 @@ class Basis_sets:
             logger.error("type(nucleus_index) seems wrong.")
             raise NotImplementerErorr
 
+        logger.debug(nucleus_index)
+
         cut_prim_index=[]
         for nuc in nucleus_index:
             shell_index_list = [i for i, x in enumerate(self.nucleus_index) if x == nuc]
@@ -127,14 +182,15 @@ class Basis_sets:
                         if self.exponent[prim_index] == thr_exp:
                             cut_prim_index.append(prim_index)
                     elif method=="larger-angmom":
-                        if self.shell_ang_mom[prim_index] >= thr_angmom:
+                        if self.shell_ang_mom[self.shell_index[prim_index]] >= thr_angmom:
                             cut_prim_index.append(prim_index)
                     else:
                         logger.error(f"Not implemented method={method}")
                         raise NotImplementerErorr
 
         for prim_index in reversed(cut_prim_index):
-            self.remove_primitive_basis(prim_index=prim_index)
+            logger.debug(cut_prim_index)
+            self.remove_primitive_orbital(prim_index=prim_index)
 
         logger.debug("--After cut--")
         logger.debug(self.nucleus_index)
@@ -147,25 +203,43 @@ class Basis_sets:
         logger.debug(self.coefficient_imag)
         logger.debug(self.prim_factor)
 
-    def remove_primitive_basis(self, prim_index):
-        logger.debug(f"prim_index={prim_index} will be removed.")
+    def remove_primitive_orbital(self, prim_index:int)->None:
+        """
+            remove a primive orbital from the basis set
+
+            Args:
+                prim_index (int): primitive index of the target orbital to be removed.
+
+        """
+        logger.debug(f"prim_index={prim_index} will be removed!!")
 
         logger.debug("--Before remove basis--")
         logger.debug(self.nucleus_index)
         logger.debug(self.shell_ang_mom)
         logger.debug(self.shell_ang_mom_turbo_notation)
         logger.debug(self.shell_factor)
+
         logger.debug(self.shell_index)
         logger.debug(self.exponent)
         logger.debug(self.coefficient)
         logger.debug(self.coefficient_imag)
         logger.debug(self.prim_factor)
 
-        #self.nucleus_index = nucleus_index
-        #self.shell_ang_mom = shell_ang_mom
-        #self.shell_ang_mom_turbo_notation = shell_ang_mom_turbo_notation
-        #self.shell_factor = shell_factor
-        #self.shell_index = shell_index
+        num_nucleus_index_b_cut = len(self.nucleus_index)
+        num_shell_ang_mom_b_cut = len(self.shell_ang_mom)
+        num_shell_ang_mom_turbo_notation_b_cut = len(self.shell_ang_mom_turbo_notation)
+        num_shell_factor_b_cut = len(self.shell_factor)
+        assert num_nucleus_index_b_cut == num_shell_ang_mom_b_cut
+        assert num_nucleus_index_b_cut == num_shell_ang_mom_turbo_notation_b_cut
+        assert num_nucleus_index_b_cut == num_shell_factor_b_cut
+
+        num_shell_index_b_cut = len(self.shell_index)
+        num_exponent_b_cut = len(self.exponent)
+        num_coefficient_b_cut = len(self.coefficient)
+        num_prim_factor_b_cut = len(self.prim_factor)
+        assert num_shell_index_b_cut == num_exponent_b_cut
+        assert num_shell_index_b_cut == num_coefficient_b_cut
+        assert num_shell_index_b_cut == num_prim_factor_b_cut
 
         self.exponent.pop(prim_index)
         self.coefficient.pop(prim_index)
@@ -176,9 +250,13 @@ class Basis_sets:
         shell_index=self.shell_index.pop(prim_index)
 
         if shell_index in self.shell_index:
-            logger.debug("Removed a primitive basis in a contracted shell")
+            flag_remove_primitive_basis=False
+            logger.debug("Removing a primitive basis in a contracted shell.")
+            logger.debug("Thus, the number of shells won't change.")
         else:
-            logger.debug("Removed a primitive shell")
+            flag_remove_primitive_basis = True
+            logger.debug("Removing a primitive shell.")
+            logger.debug("Thus, the number of shells will change by -1.")
 
             self.nucleus_index.pop(shell_index)
             self.shell_ang_mom.pop(shell_index)
@@ -199,7 +277,46 @@ class Basis_sets:
         logger.debug(self.coefficient_imag)
         logger.debug(self.prim_factor)
 
+        num_nucleus_index_a_cut = len(self.nucleus_index)
+        num_shell_ang_mom_a_cut = len(self.shell_ang_mom)
+        num_shell_ang_mom_turbo_notation_a_cut = len(self.shell_ang_mom_turbo_notation)
+        num_shell_factor_a_cut = len(self.shell_factor)
+        assert num_nucleus_index_a_cut == num_shell_ang_mom_a_cut
+        assert num_nucleus_index_a_cut == num_shell_ang_mom_turbo_notation_a_cut
+        assert num_nucleus_index_a_cut == num_shell_factor_a_cut
+
+        num_shell_index_a_cut = len(self.shell_index)
+        num_exponent_a_cut = len(self.exponent)
+        num_coefficient_a_cut = len(self.coefficient)
+        num_prim_factor_a_cut = len(self.prim_factor)
+        assert num_shell_index_a_cut == num_exponent_a_cut
+        assert num_shell_index_a_cut == num_coefficient_a_cut
+        assert num_shell_index_a_cut == num_prim_factor_a_cut
+
+        # check !!!!
+        assert num_shell_index_a_cut == num_shell_index_b_cut - 1
+        assert num_exponent_a_cut == num_exponent_b_cut - 1
+        assert num_coefficient_a_cut == num_coefficient_b_cut - 1
+        assert num_prim_factor_a_cut == num_prim_factor_b_cut - 1
+
+        if flag_remove_primitive_basis:
+            assert num_nucleus_index_a_cut == num_nucleus_index_b_cut - 1
+            assert num_shell_ang_mom_a_cut == num_shell_ang_mom_b_cut - 1
+            assert num_shell_ang_mom_turbo_notation_a_cut == num_shell_ang_mom_turbo_notation_b_cut - 1
+            assert num_shell_factor_a_cut == num_shell_factor_b_cut - 1
+        else:
+            assert num_nucleus_index_a_cut == num_nucleus_index_b_cut
+            assert num_shell_ang_mom_a_cut == num_shell_ang_mom_b_cut
+            assert num_shell_ang_mom_turbo_notation_a_cut == num_shell_ang_mom_turbo_notation_b_cut
+            assert num_shell_factor_a_cut == num_shell_factor_b_cut
+
+        logger.debug("All assertions are OK.")
+
     def contracted_to_uncontracted(self):
+        """
+            Convert the stored basis set to uncontracted one.
+
+        """
         logger.info("Conversion of basis sets, contracted -> uncontracted")
         logger.debug("--Before conversion--")
         logger.debug(self.nucleus_index)
@@ -294,7 +411,17 @@ class Basis_sets:
         logger.debug(self.prim_factor)
 
     @classmethod
-    def parse_basis_sets_from_gamess_format_files(cls, files=[]):
+    def parse_basis_sets_from_gamess_format_files(cls, files:list=[]): # -> cls
+        """
+            parse basis sets from GAMESS format files
+
+            Args:
+                files (list): GAMESS basis set file names
+
+            Return:
+                Basis_sets: parsed basis sets
+
+        """
         texts=[]
         for file in files:
             with open(file, 'r') as f:
@@ -305,7 +432,17 @@ class Basis_sets:
         return cls.parse_basis_sets_from_texts(texts=texts, format="gamess")
 
     @classmethod
-    def parse_basis_sets_from_eCEPP_format_files(cls, files=[]):
+    def parse_basis_sets_from_eCEPP_format_files(cls, files:list=[]): # -> cls
+        """
+            parse basis sets from eCECPP format files
+
+            Args:
+                files (list): eCEPP basis set file names
+
+            Return:
+                Basis_sets: parsed basis sets.
+
+        """
         texts=[]
         for file in files:
             with open(file, 'r') as f:
@@ -316,7 +453,18 @@ class Basis_sets:
         return cls.parse_basis_sets_from_texts(texts=texts, format="eCEPP")
 
     @classmethod
-    def parse_basis_sets_from_texts(cls, texts=[], format="gamess"):
+    def parse_basis_sets_from_texts(cls, texts:list=[], format:str="gamess"): # -> cls
+        """
+            parse basis sets from texts (gamess or eCEPP)
+
+            Args:
+                files (list): a list of basis sets with the text format specified with "format"
+                format (str): format of the texts: "gamess" and "ccECP" are currently implemented.
+
+            Return:
+                Basis_sets: parsed basis sets.
+
+        """
         nucleus_index = []
         shell_ang_mom = []
         shell_ang_mom_turbo_notation = []
@@ -375,7 +523,18 @@ class Basis_sets:
         )
 
 class Basis_set:
+    """
 
+    This class holds information about basis set for one atom. The convention of the variables are the same as in the TREXIO module.
+    See the TREXIO documentation [https://github.com/TREX-CoE/trexio] in the detail.
+
+    Attributes:
+        shell_ang_mom (list): One-to-one correspondence between shells and angular momenta. Dimensions=shell_num.
+        shell_index (list): One-to-one correspondence between primitives and shell index. Dimensions=prim_num.
+        exponent (list): Exponents of the primitives. Dimensions=prim_num.
+        coefficient (list): Coefficients of the primitives (real part). Dimensions=prim_num.
+        coefficient_imag (list): Coefficients of the primitives (imaginary part). Dimensions=prim_num.
+    """
     def __init__(self,
                  shell_ang_mom = [],
                  shell_index = [],
@@ -416,21 +575,51 @@ class Basis_set:
             return True
 
     @classmethod
-    def parse_basis_set_info_from_gamess_format_file(cls, file):
+    def parse_basis_set_info_from_gamess_format_file(cls, file:str): # -> cls
+        """
+            parse basis set from GAMESS format file
+
+            Args:
+                file (str): GAMESS basis set file name
+
+            Return:
+                Basis_set: parsed basis set
+
+        """
         with open(file, 'r') as f:
             text = f.readlines()
         text="".join(text)
         return cls.parse_basis_set_info_from_gamess_format_text(text=text)
 
     @classmethod
-    def parse_basis_set_info_from_eCEPP_format_file(cls, file):
+    def parse_basis_set_info_from_eCEPP_format_file(cls, file:str): # -> cls
+        """
+            parse basis set from eCEPP format file
+
+            Args:
+                file (str): eCEPP basis set file name
+
+            Return:
+                Basis_set: parsed basis set
+
+        """
         with open(file, 'r') as f:
             text = f.readlines()
         text="".join(text)
         return cls.parse_basis_set_info_from_eCEPP_format_text(text=text)
 
     @classmethod
-    def parse_basis_set_info_from_eCEPP_format_text(cls, text):
+    def parse_basis_set_info_from_eCEPP_format_text(cls, text:str): # -> cls
+        """
+            parse basis set from eCEPP format text
+
+            Args:
+                text (str): eCEPP basis set text
+
+            Return:
+                Basis_set: parsed basis set
+
+        """
         shell_ang_mom=[]
         shell_index=[]
         exponent_list=[]
@@ -474,7 +663,17 @@ class Basis_set:
                    )
 
     @classmethod
-    def parse_basis_set_info_from_gamess_format_text(cls, text):
+    def parse_basis_set_info_from_gamess_format_text(cls, text:str): # -> cls
+        """
+            parse basis set from GAMESS format text
+
+            Args:
+                text (str): GAMESS basis set text
+
+            Return:
+                Basis_set: parsed basis set
+
+        """
         shell_ang_mom=[]
         shell_index=[]
         exponent_list=[]
@@ -558,7 +757,14 @@ class Basis_set:
                    coefficient_imag_list = coefficient_imag_list
                    )
 
-    def to_text_gamess_format(self):
+    def to_text_gamess_format(self)->str:
+        """
+            convert basis set to GAMESS format text
+
+            Return:
+                str: basis set with the GAMESS format
+
+        """
         text=""
         for yy, ang_mom in enumerate(self.shell_ang_mom):
             t_shell_index=[i for i,x in enumerate(self.shell_index) if x==yy]
@@ -575,8 +781,17 @@ class Basis_set:
 
         return text
 
-    #todo! this class should hold element attribute.
-    def to_text_nwchem_format(self, element):
+    def to_text_nwchem_format(self, element:str)->str:
+        """
+            convert basis set to GAMESS format text
+
+            Args:
+                element(str): element type
+
+            Return:
+                str: basis set with the GAMESS format
+
+        """
         text=""
         for yy, ang_mom in enumerate(self.shell_ang_mom):
             t_shell_index=[i for i,x in enumerate(self.shell_index) if x==yy]
@@ -594,24 +809,47 @@ class Basis_set:
         return text
 
 class Det_Basis_sets(Basis_sets):
+    """
+
+    This class holds information about determinant basis sets.
+
+    Attributes:
+        nucleus_index (list): See basis sets definition.
+        shell_ang_mom (list): See basis sets definition.
+        shell_ang_mom_turbo_notation (list): See basis sets definition.
+        shell_factor (list): See basis sets definition.
+        shell_index (list): See basis sets definition.
+        exponent (list): See basis sets definition.
+        coefficient (list): See basis sets definition.
+        coefficient_imag (list): See basis sets definition.
+        prim_factor (list): See basis sets definition.
+        hyb_nucleus_index (list): for hybrid orbitals.
+        hyb_param_num (list): for hybrid orbitals.
+        hyb_shell_ang_mom (list): for hybrid orbitals.
+        hyb_shell_ang_mom_turbo_notation (list): for hybrid orbitals.
+        hyb_prim_index (list): for hybrid orbitals.
+        hyb_coefficient (list): for hybrid orbitals.
+        hyb_coefficient_imag (list): for hybrid orbitals.
+        number_of_additional_hybrid_orbitals (list): the number of additional hybrid orbitals, used for makefort10.input.
+    """
     def __init__(self,
-                 nucleus_index=[],
-                 shell_ang_mom=[],
-                 shell_ang_mom_turbo_notation=[],
-                 shell_factor=[],
-                 shell_index=[],
-                 exponent=[],
-                 coefficient=[],
-                 coefficient_imag=[],
-                 prim_factor=[],
-                 hyb_nucleus_index=[],
-                 hyb_param_num=[],
-                 hyb_shell_ang_mom=[],
-                 hyb_shell_ang_mom_turbo_notation=[],
-                 hyb_prim_index=[],
-                 hyb_coefficient=[],
-                 hyb_coefficient_imag=[],
-                 number_of_additional_hybrid_orbitals=[]
+                 nucleus_index:list=[],
+                 shell_ang_mom:list=[],
+                 shell_ang_mom_turbo_notation:list=[],
+                 shell_factor:list=[],
+                 shell_index:list=[],
+                 exponent:list=[],
+                 coefficient:list=[],
+                 coefficient_imag:list=[],
+                 prim_factor:list=[],
+                 hyb_nucleus_index:list=[],
+                 hyb_param_num:list=[],
+                 hyb_shell_ang_mom:list=[],
+                 hyb_shell_ang_mom_turbo_notation:list=[],
+                 hyb_prim_index:list=[],
+                 hyb_coefficient:list=[],
+                 hyb_coefficient_imag:list=[],
+                 number_of_additional_hybrid_orbitals:list=[]
                  ):
         super().__init__(nucleus_index=nucleus_index,
                          shell_ang_mom=shell_ang_mom,
@@ -633,6 +871,22 @@ class Det_Basis_sets(Basis_sets):
         self.number_of_additional_hybrid_orbitals = number_of_additional_hybrid_orbitals
 
 class Jas_Basis_sets(Basis_sets):
+    """
+
+    This class holds information about Jastrow basis sets.
+
+    Attributes:
+        nucleus_index (list): See basis sets definition.
+        shell_ang_mom (list): See basis sets definition.
+        shell_ang_mom_turbo_notation (list): See basis sets definition.
+        shell_factor (list): See basis sets definition.
+        shell_index (list): See basis sets definition.
+        exponent (list): See basis sets definition.
+        coefficient (list): See basis sets definition.
+        coefficient_imag (list): See basis sets definition.
+        prim_factor (list): See basis sets definition.
+        number_of_additional_hybrid_orbitals (list): the number of additional hybrid orbitals, used for makefort10.input.
+    """
     def __init__(self,
                  nucleus_index=[],
                  shell_ang_mom=[],
@@ -657,14 +911,6 @@ class Jas_Basis_sets(Basis_sets):
                          )
 
         self.number_of_additional_hybrid_orbitals = number_of_additional_hybrid_orbitals
-"""
-class Hybrid_orbital:
-    ...
-class Atomic_orbital:
-    ...
-class Molecular_orbital:
-    ...
-"""
 
 if __name__ == "__main__":
     logger = getLogger("Turbo-Genius")

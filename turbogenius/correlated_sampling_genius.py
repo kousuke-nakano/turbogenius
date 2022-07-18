@@ -1,6 +1,15 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+Correlated sampling related classes and methods
+
+Todo:
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
 #python modules
 import os, sys
 import shutil
@@ -56,16 +65,16 @@ from turbo_genius_cli import cli, decorate_grpost, header
               )
 @header
 def correlated_sampling(
-            g,r,post,
-            operation,
-            log_level,
-            vmcsteps,
-            bin_block,
-            warmupblocks,
-            num_walkers,
-            maxtime,
-            twist_average
-):
+            g:bool,r:bool,post:bool,
+            operation:bool,
+            log_level:str,
+            vmcsteps:int,
+            bin_block:int,
+            warmupblocks:int,
+            num_walkers:int,
+            maxtime:int,
+            twist_average:bool
+)->bool:
     pkl_name="correlated_sampling_genius_cli.pkl"
     root_dir=os.getcwd()
     pkl_file=os.path.join(root_dir, pkl_name)
@@ -112,17 +121,31 @@ def correlated_sampling(
             readforward_genius.check_results()
 
 class Correlated_sampling_genius(GeniusIO):
+    """
 
+    This class is a wrapper of pyturbo LRDMC class
+
+    Attributes:
+         in_fort10 (str): fort.10 WF file
+         corr_fort10 (str): fort.10 WF file
+         vmcsteps (int): total number of MCMC steps.
+         bin_block (int): binning length
+         warmupblocks (int): the number of disregarded blocks
+         num_walkers (int): The number of walkers, -1 (default) = the number of MPI processes
+         maxtime (int): Maxtime (sec.)
+         twist_average (bool): Twist average flag, True or False
+         kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
+    """
     def __init__(self,
-                 in_fort10="fort.10_in",
-                 corr_fort10="fort.10_corr",
-                 vmcsteps = 100,
-                 bin_block = 10,
-                 warmupblocks = 2,
-                 num_walkers=-1,  # default -1 -> num of MPI process.
-                 maxtime=172800,
-                 twist_average=False,
-                 kpoints=[1,1,1,0,0,0],
+                 in_fort10:str="fort.10_in",
+                 corr_fort10:str="fort.10_corr",
+                 vmcsteps:int = 100,
+                 bin_block:int = 10,
+                 warmupblocks:int = 2,
+                 num_walkers:int=-1,  # default -1 -> num of MPI process.
+                 maxtime:int=172800,
+                 twist_average:bool=False,
+                 kpoints:list=[1,1,1,0,0,0],
                  ):
 
         self.in_fort10 = in_fort10
@@ -187,17 +210,41 @@ class Correlated_sampling_genius(GeniusIO):
         self.readforward.set_parameter(parameter="initial_bin", value=warmupblocks, namelist="&corrfun")
         self.readforward.set_parameter(parameter="correlated_samp", value='.true.', namelist="&corrfun")
 
-    def run_all(self, input_name="datasvmc.input", vmc_output_name="out_vmc", readforward_output_name="out_readforward"):
+    def run_all(self, input_name:str="datasvmc.input", vmc_output_name:str="out_vmc", readforward_output_name:str="out_readforward")->None:
+        """
+            Generate input files and run the command.
+
+            Args:
+                input_name (str): input file name
+                vmc_output_name (str): vmc output file name
+                readforward_output_name (str): readforward output file name
+
+        """
         self.vmc.generate_input(input_name=input_name)
         self.vmc.run(input_name=input_name, output_name=vmc_output_name)
         self.readforward.generate_input(input_name=input_name)
         self.readforward.run(input_name=input_name, output_name=readforward_output_name)
 
-    def generate_input(self, input_name="datasvmc.input"):
+    def generate_input(self, input_name:str="datasvmc.input")->None:
+        """
+            Generate input file.
+
+            Args:
+                input_name (str): input file name
+
+        """
         self.vmc.generate_input(input_name=input_name)
         self.readforward.generate_input(input_name="readforward.input")
 
-    def run(self, input_name="datasvmc.input", vmc_output_name="out_vmc", readforward_output_name="out_readforward"):
+    def run(self, input_name:str="datasvmc.input", vmc_output_name:str="out_vmc", readforward_output_name:str="out_readforward")->None:
+        """
+            Run the command.
+
+            Args:
+                input_name (str): input file name
+                vmc_output_name (str): vmc output file name
+                readforward_output_name (str): readforward output file name
+        """
         self.vmc.run(input_name=input_name, output_name=vmc_output_name)
         flags=self.vmc.check_results(output_names=[vmc_output_name])
         assert all(flags)
@@ -205,7 +252,16 @@ class Correlated_sampling_genius(GeniusIO):
         flags=self.readforward.check_results(output_names=[readforward_output_name])
         assert all(flags)
 
-    def check_results(self, vmc_output_names=["out_vmc"], readforward_output_names=["out_readforward"]):
+    def check_results(self, vmc_output_names:list=["out_vmc"], readforward_output_names:list=["out_readforward"])->bool:
+        """
+            Check the result.
+
+            Args:
+                vmc_output_names (list): a list of output file names
+                readforward_output_names (list): a list of output file names
+            Returns:
+                bool: True if all the runs were successful, False if an error is detected in the files.
+        """
         return self.readforward.check_results(output_names=readforward_output_names) + self.vmc.check_results(output_names=vmc_output_names)
 
 if __name__ == "__main__":

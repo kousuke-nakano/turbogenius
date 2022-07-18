@@ -26,8 +26,6 @@ os.chdir(vmc_test_dir)
 vmc_genius=VMC_genius(
                      fort10="fort.10",
                      vmcsteps=600,
-                     bin_block=10,
-                     warmupblocks=10,
                      num_walkers=40,
                      twist_average=False,
                      force_calc_flag=True
@@ -35,6 +33,6 @@ vmc_genius=VMC_genius(
 
 vmc_genius.generate_input()
 vmc_genius.run()
-vmc_genius.compute_energy_and_forces()
+vmc_genius.compute_energy_and_forces(bin_block=10, warmupblocks=10)
 logger.info(vmc_genius.energy)
 logger.info(vmc_genius.energy_error)

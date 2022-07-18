@@ -1,6 +1,12 @@
 #!usr/bin/env python
 # coding: utf-8
 
+"""
+
+TurboGenius command line interface
+
+"""
+
 import sys, os
 import click
 

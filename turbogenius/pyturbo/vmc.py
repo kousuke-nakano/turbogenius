@@ -1,6 +1,18 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+pyturbo: vmc related classes and methods
+
+Todo:
+    * docstrings are not completed.
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+    * implementing __str__ method.
+    * implementing sanity_check method.
+
+"""
+
 #python modules
 import os
 import sys
@@ -127,24 +139,9 @@ class VMC(FortranIO):
 
         return ave_time_1_generation # sec.
 
-    def get_energy(self, init=10, bin=10, num_proc=1):
-        force_compute_flag=False
-        if file_check_flag("pip0.d"):
-            with open("pip0.d") as f:
-                pip0=f.read()
-            if os.stat("pip0.d").st_size == 0:
-                force_compute_flag=True
-            elif "ERROR" in pip0:
-                force_compute_flag = True
-            else:
-                force_compute_flag = False
-        else: # if pip0.d does not exist. always computed.
-            force_compute_flag=True
-
-        if force_compute_flag:
-            self.compute_energy_and_forces(init=init, bin=bin, num_proc=num_proc)
-
-        if self.twist_average:
+    @staticmethod
+    def read_energy(twist_average=False):
+        if twist_average:
             line = get_line_from_file(file="pip0.d", line_no=0).split()
             energy = float(line[3])
             error = float(line[5])
@@ -152,24 +149,50 @@ class VMC(FortranIO):
             line = get_line_from_file(file="pip0.d", line_no=1).split()
             energy = float(line[2])
             error = float(line[3])
+        return energy, error
+
+    def get_energy(self, init=10, bin=10, num_proc=1, rerun=False):
+        force_compute_flag=False
+        if rerun:
+            force_compute_flag=True
+        else:
+            if file_check_flag("pip0.d"):
+                with open("pip0.d") as f:
+                    pip0=f.read()
+                if os.stat("pip0.d").st_size == 0:
+                    force_compute_flag=True
+                elif "ERROR" in pip0:
+                    force_compute_flag = True
+                else:
+                    force_compute_flag = False
+            else: # if pip0.d does not exist. always computed.
+                force_compute_flag=True
+
+        if force_compute_flag:
+            self.compute_energy_and_forces(init=init, bin=bin, num_proc=num_proc)
+
+        energy, erorr = self.read_energy(twist_average=self.twist_average)
+
         logger.debug("energy={}, error={}".format(energy, error))
         return energy, error
 
-    def get_forces(self, init=10, bin=10, num_proc=1):
+    def get_forces(self, init=10, bin=10, num_proc=1, rerun=False):
 
         force_compute_flag=False
-
-        if file_check_flag("forces_vmc.dat"):
-            with open("forces_vmc.dat") as f:
-                fff=f.read()
-            if os.stat("forces_vmc.dat").st_size == 0:
-                force_compute_flag=True
-            elif "ERROR" in fff:
-                force_compute_flag = True
-            else:
-                force_compute_flag = False
-        else: # if forces_vmc.dat' does not exist. always computed.
+        if rerun:
             force_compute_flag=True
+        else:
+            if file_check_flag("forces_vmc.dat"):
+                with open("forces_vmc.dat") as f:
+                    fff=f.read()
+                if os.stat("forces_vmc.dat").st_size == 0:
+                    force_compute_flag=True
+                elif "ERROR" in fff:
+                    force_compute_flag = True
+                else:
+                    force_compute_flag = False
+            else: # if forces_vmc.dat' does not exist. always computed.
+                force_compute_flag=True
 
         if force_compute_flag:
             self.compute_energy_and_forces(init=init, bin=bin, num_proc=num_proc)

@@ -1,7 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# module informationpyscf_to_trexio
+"""
+
+converter: TREXIO to TurboRVB WF (fort.10)
+
+Todo:
+    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
+
+"""
+
+# module information pyscf_to_trexio
 __author__ = "Kosuke Nakano"
 __copyright__ = "Copyright 2022, Kosuke Nakano"
 __version__ = "1.0.0"
@@ -40,13 +49,24 @@ from pyturbo.utils.utility import return_atomic_number
 from utils_workflows.env import turbo_genius_root, turbo_genius_tmp_dir
 from trexio_wrapper import Trexio_wrapper_r
 
-def trexio_to_turborvb_wf(trexio_file,
+def trexio_to_turborvb_wf(trexio_file:str,
                           jas_basis_sets=Jas_Basis_sets(),
-                          max_occ_conv=0, # maximum occ used for the conv, not used with mo_num
-                          mo_num_conv=-1, # num mo used for the conv, not used with max occ
-                          cleanup=True):
+                          max_occ_conv:int=0,
+                          mo_num_conv:int=-1,
+                          cleanup:bool=True
+                          )->None:
+    """
+        Convert trexio file to TurboRVB WF file (fort.10)
 
-    os.environ["DYLD_LIBRARY_PATH"]=os.environ["LIBRARY_PATH"]
+        Args:
+            trexio_file (str): TREXIO file name
+            jas_basis_sets (Jas_basis_sets): Jastrow basis sets added to the TREXIO WF.
+            max_occ_conv (int): maximum occ used for the conv, not used with mo_num
+            mo_num_conv (int): num mo used for the conv, not used with max occ
+            cleanup (bool): clean up temporary files
+
+    """
+    #os.environ["DYLD_LIBRARY_PATH"]=os.environ["LIBRARY_PATH"]
     
     # prefix and file names
     logger.info(f"Input TREXIO file = {trexio_file}")
@@ -104,6 +124,7 @@ def trexio_to_turborvb_wf(trexio_file,
                         positions=coords_r
                         )
         complex_flag=trexio_r.complex_flag
+
     else: # open system
         structure=Structure(
                         atomic_numbers=atomic_number_list,
@@ -453,7 +474,7 @@ def trexio_to_turborvb_wf(trexio_file,
                     reorder_l_list = [6] * 13
 
             else:
-                logger.error(f" Angular momentum={ang_mom} is not implemented!!!")
+                logger.error(f" Angular momentum={ang_mom} is not implemented in TurboRVB!!!")
                 raise NotImplementedError
                 
             basis_index_list = [n for n, v in enumerate(basis_shell_index) if v == shell_index]
@@ -804,9 +825,9 @@ def main():
                 for nuc, element in enumerate(element_symbols):
                     #thr_exp = 8 * return_atomic_number(element) ** 2
                     thr_exp = 4 * return_atomic_number(element) # not 8*Z**2 but 4*Z
-                    jas_basis_sets.cut_exponents(thr_exp=thr_exp, nucleus_index=nuc, method="larger")
+                    jas_basis_sets.cut_orbitals(thr_exp=thr_exp, nucleus_index=nuc, method="larger")
                     thr_angmom = jas_basis_sets.get_largest_angmom(nucleus_index=nuc)
-                    jas_basis_sets.cut_exponents(thr_angmom=thr_angmom, nucleus_index=nuc, method="larger-angmom")
+                    jas_basis_sets.cut_orbitals(thr_angmom=thr_angmom, nucleus_index=nuc, method="larger-angmom")
 
         # jastrow is None
         else:

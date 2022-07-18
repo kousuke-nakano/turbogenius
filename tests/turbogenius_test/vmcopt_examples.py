@@ -26,7 +26,6 @@ os.chdir(vmcopt_test_dir)
 vmcopt_genius=VMCopt_genius(
             fort10="fort.10",
             vmcoptsteps=500,
-            optwarmupsteps=400,
             steps=10,
             bin_block=1,
             warmupblocks=0,
@@ -47,4 +46,4 @@ vmcopt_genius=VMCopt_genius(
 vmcopt_genius.generate_input()
 vmcopt_genius.run()
 vmcopt_genius.get_energy()
-vmcopt_genius.average()
+vmcopt_genius.average(optwarmupsteps=400)

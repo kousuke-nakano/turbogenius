@@ -1,6 +1,15 @@
 #!python
 # -*- coding: utf-8 -*-
 
+"""
+
+pyturbo: downloader, for downloading basis set and pseudo potential information from www.
+
+Todo:
+    * docstrings are not completed.
+
+"""
+
 #python modules
 import os
 import sys
@@ -37,7 +46,6 @@ from env import pyturbo_data_dir, pyturbo_root
 #Logger
 from logging import config, getLogger, StreamHandler, Formatter
 logger = getLogger('pyturbo').getChild(__name__)
-#logger = getLogger(__name__)
 
 class ccECP:
     C_URL = "https://github.com/QMCPACK/pseudopotentiallibrary.git"
@@ -171,9 +179,10 @@ class BFD:
             os.makedirs(self.basis_sets_output_dir, exist_ok=True)
         if self.ecp_output_dir is not None:
             os.makedirs(self.ecp_output_dir, exist_ok=True)
-        element_list.remove("X")
+        if "X" in element_list: element_list.remove("X")
         with tqdm(titertools.product(element_list, basis_list)) as pbar:
             for i, (e,b) in enumerate(pbar):
+                logger.debug(f"[BFD] e={e:s} b={b:s}")
                 if not ((os.path.isfile(os.path.join(self.ecp_output_dir, f"{e}_BFD.pseudo")) or os.path.isfile(os.path.join(self.ecp_output_dir, f"{e}_BFD.NaN")))
                          and (os.path.isfile(os.path.join(self.basis_sets_output_dir, f"{e}_{b}.basis")) or os.path.isfile(os.path.join(self.basis_sets_output_dir, f"{e}_{b}.NaN")))):
                     pbar.set_description(f"[BFD] e={e:s} b={b:s}")

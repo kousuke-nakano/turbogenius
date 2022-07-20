@@ -25,8 +25,6 @@ setup(
         'console_scripts': [
             'turbogenius = turbogenius.turbo_genius_cli:cli',
             'trexio-to-turborvb = turbogenius.trexio_to_turborvb:main',
-            'pyscf-run = turbogenius.pyscf_trexio.pyscf_wrapper.pyscf_wrapper:cli',
-            'pyscf-to-trexio = turbogenius.pyscf_trexio.pyscf_to_trexio:cli'
             ]
     },
     packages=find_packages(),

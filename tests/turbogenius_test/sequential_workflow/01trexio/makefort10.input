@@ -1,0 +1,69 @@
+&system
+    posunits='bohr'
+    natoms=2
+    ntyp=1
+    complexfort10=.false.
+    pbcfort10=.false.
+    yes_pfaff=.false.
+    phase(1)=0.0
+    phase(2)=0.0
+    phase(3)=0.0
+    phasedo(1)=0.0
+    phasedo(2)=0.0
+    phasedo(3)=0.0
+/
+
+&electrons
+    orbtype='normal'
+    jorbtype='normal'
+    twobody=-6
+    filling='diagonal'
+    yes_crystal=.false.
+    yes_crystalj=.false.
+    no_4body_jas=.true.
+    neldiff=0
+    !onebodypar=1.0
+    twobodypar(1)=1.0
+    !twobodypar=1.0
+    nel=2
+/
+
+&symmetries
+    nosym=.false.
+    eqatoms=.true.
+    rot_det=.true.
+    symmagp=.true.
+/
+
+ATOMIC_POSITIONS 
+ 1.00000000  1.01000000  0.00000000000000  0.00000000000000  -0.69919866608907
+ 1.00000000  1.01000000  0.00000000000000  0.00000000000000  0.69919866608907
+/
+
+ATOM_1.01
+&shells
+ nshelldet=6
+ nshelljas=4
+/
+  1   16   300
+  1    23.843185    10.212443     4.374164     1.873529     0.802465     0.343709     0.147217     0.063055     0.004115     0.010464     0.028011     0.075886     0.182106     0.348521     0.378231     0.116424
+  1   1   16
+  1   0.091791000000
+  1   1   16
+  1   0.287637000000
+  3   1   36
+  1   0.393954000000
+  3   1   36
+  1   1.462694000000
+  5   1   37
+  1   1.065841000000
+# Parameters atomic Jastrow wf 
+  1   1   16
+  1   1.873529000000
+  1   1   16
+  1   0.343709000000
+  1   1   16
+  1   0.139013000000
+  3   1   36
+  1   0.740212000000
+

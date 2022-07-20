@@ -171,7 +171,7 @@ class VMC(FortranIO):
         if force_compute_flag:
             self.compute_energy_and_forces(init=init, bin=bin, num_proc=num_proc)
 
-        energy, erorr = self.read_energy(twist_average=self.twist_average)
+        energy, error = self.read_energy(twist_average=self.twist_average)
 
         logger.debug("energy={}, error={}".format(energy, error))
         return energy, error

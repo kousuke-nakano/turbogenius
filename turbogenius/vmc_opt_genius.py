@@ -489,7 +489,7 @@ class VMCopt_genius(GeniusIO):
             Average parameters of fort.10
 
             Args:
-                optwarmupblocks (int): the number of disregarded optimization steps
+                optwarmupsteps (int): the number of disregarded optimization steps
                 input_name (str): the input file used in the latest calculation
                 output_names (list): a list of output file names
                 graph_plot (bool): Flag for plotting a graph

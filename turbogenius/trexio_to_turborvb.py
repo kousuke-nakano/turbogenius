@@ -53,6 +53,7 @@ def trexio_to_turborvb_wf(trexio_file:str,
                           jas_basis_sets=Jas_Basis_sets(),
                           max_occ_conv:int=0,
                           mo_num_conv:int=-1,
+                          only_mol:bool=True,
                           cleanup:bool=True
                           )->None:
     """
@@ -63,6 +64,7 @@ def trexio_to_turborvb_wf(trexio_file:str,
             jas_basis_sets (Jas_basis_sets): Jastrow basis sets added to the TREXIO WF.
             max_occ_conv (int): maximum occ used for the conv, not used with mo_num
             mo_num_conv (int): num mo used for the conv, not used with max occ
+            only_mol (bool): if True, only moleculer orbitals option = True in convertfort10mol
             cleanup (bool): clean up temporary files
 
     """
@@ -314,7 +316,10 @@ def trexio_to_turborvb_wf(trexio_file:str,
 
     # in_convertfort10mol class
     convertfort10mol = Convertfort10mol.parse_from_default_namelist()
-    convertfort10mol.set_parameter("only_molecular", '.true.', "&control")
+    if only_mol:
+        convertfort10mol.set_parameter("only_molecular", '.true.', "&control")
+    else:
+        convertfort10mol.set_parameter("only_molecular", '.false.', "&control")
     convertfort10mol.set_parameter("nmol", mo_num_use - (num_ele_up - num_ele_dn), "&molec_info")
     convertfort10mol.set_parameter("nmolmax", num_ele_dn, "&molec_info")
     convertfort10mol.generate_input()

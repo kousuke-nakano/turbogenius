@@ -274,8 +274,8 @@ class Makefort10_genius(GeniusIO):
             database_setup(database="BSE")
         else:
             logger.info("Pseudo potential calculation.")
-            database_setup(database=pseudo_potential)
-            database_setup(database="BSE") # for jastrow
+            database_setup(database=pseudo_potential) # for Determinant
+            database_setup(database="BSE") # for Jastrow
 
         def database_founder(data_sets_list, element, data_choice, prefix="basis_set"):
             if len(data_sets_list) == 0:

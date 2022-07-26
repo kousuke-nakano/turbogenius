@@ -57,15 +57,13 @@ def database_setup(database:str="", sleep_time:float=1.5, force:bool=False)->Non
         else:
             database_is_exist = False
     elif database=="ccECP": # pseudo potential
-        loader=ccECP(basis_sets_output_dir=basis_sets_output_dir,
-                   pseudo_potential_output_dir=pseudo_potential_output_dir)
-        if os.path.isfile(os.path.join(basis_sets_output_dir, "completed")) and os.path.isdir(os.path.join(pseudo_potential_output_dir, "completed")):
+        loader=ccECP(basis_sets_output_dir=basis_sets_output_dir, pseudo_potential_output_dir=pseudo_potential_output_dir)
+        if os.path.isfile(os.path.join(basis_sets_output_dir, "completed")) and os.path.isfile(os.path.join(pseudo_potential_output_dir, "completed")):
             database_is_exist = True
         else:
             database_is_exist = False
     elif database=="BSE": # all-electron
-        loader=BSE(basis_sets_output_dir=basis_sets_output_dir,
-                   pseudo_potential_output_dir=pseudo_potential_output_dir)
+        loader=BSE(basis_sets_output_dir=basis_sets_output_dir, pseudo_potential_output_dir=pseudo_potential_output_dir)
         if os.path.isfile(os.path.join(basis_sets_output_dir, "completed")):
             database_is_exist=True
         else:
@@ -79,7 +77,7 @@ def database_setup(database:str="", sleep_time:float=1.5, force:bool=False)->Non
         os.makedirs(pseudo_potential_output_dir, exist_ok=True)
         logger.info("Turbo-Genius database has not been downloaded yet.")
         logger.info("Downloading all the data from the web.")
-        logger.info(f"Basis sets and PPs are downloaded to {turbo_genius_tmp_dir}")
+        logger.info(f"Basis sets and PPs will be downloaded to {turbo_genius_tmp_dir}")
         loader.all_to_file(sleep_time=sleep_time)
         with open(os.path.join(basis_sets_output_dir, "completed"), "w") as f:
             f.write("completed")

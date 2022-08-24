@@ -309,10 +309,13 @@ class Makefort10_genius(GeniusIO):
                     logger.info(f"The chosen {prefix} is found, {os.path.basename(data_set_found)}")
                     return data_set_found, data_choice
 
+        # note! element_symbols depends on the number of supercell size!!!
+        element_symbols_supercell = structure.element_symbols * self.supercell[0] * self.supercell[1] * self.supercell[2]
+
         # det. basis set!
         if isinstance(det_basis_set, str):
             det_basis_files = []; det_basis_choice = {}
-            for element in structure.element_symbols:
+            for element in element_symbols_supercell:
                 if pseudo_potential is None: # all-electron
                     det_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", "BSE", f"{element}_{det_basis_set}*.basis"))
                     det_basis_chosen, det_basis_choice = database_founder(data_sets_list=det_basis_sets_list, element=element, data_choice=det_basis_choice, prefix="basis_set")
@@ -332,7 +335,7 @@ class Makefort10_genius(GeniusIO):
         # jas. basis set
         if isinstance(jas_basis_set, str):
             jas_basis_files = []; jas_basis_choice = {}
-            for element in structure.element_symbols:
+            for element in element_symbols_supercell:
                 if pseudo_potential is None: # all-electron
                     jas_basis_sets_list=glob.glob(os.path.join(turbo_genius_tmp_dir, "basis_set", "BSE", f"{element}_{jas_basis_set}*.basis"))
                     jas_basis_chosen, jas_basis_choice = database_founder(data_sets_list=jas_basis_sets_list, element=element, data_choice=jas_basis_choice, prefix="basis_set")
@@ -357,14 +360,14 @@ class Makefort10_genius(GeniusIO):
         # pseudo potential
         if pseudo_potential is None: # all-electron
             pp_files = []; pp_choice = {}
-            for element in structure.element_symbols:
+            for element in element_symbols_supercell:
                 pp_files.append(None)
             pseudo_potentials = Pseudopotentials.parse_pseudopotential_from_gamess_format_files(pp_files)
 
         else:
             if isinstance(pseudo_potential, str):
                 pp_files = []; pp_choice = {}
-                for element in structure.element_symbols:
+                for element in element_symbols_supercell:
                     if pseudo_potential is None: # all-electron
                         pp_chosen=None
                     else: # pseudo potential calculation
@@ -394,13 +397,13 @@ class Makefort10_genius(GeniusIO):
         if det_cut_basis_option:
             logger.info("cutbasis for Det. part.")
             # cut basis, det_basis, according to Andrea Zen's criteria, exponents > 8 * Z^2
-            for nuc, element in enumerate(structure.element_symbols):
+            for nuc, element in enumerate(element_symbols_supercell):
                 thr_exp= 8 * return_atomic_number(element) ** 2
                 det_basis_sets.cut_orbitals(thr_exp=thr_exp, nucleus_index=nuc, method="larger")
         if jas_cut_basis_option:
             logger.info("cutbasis for Jas. part.")
             # cut basis, jas_basis, according to max criteria, exponents > max (det part)
-            for nuc, element in enumerate(structure.element_symbols):
+            for nuc, element in enumerate(element_symbols_supercell):
                 # to be refactored!! Is this appropriate for the Jastrow part??
                 thr_exp= 4 * return_atomic_number(element) # not 8*Z**2 but 4*Z
                 jas_basis_sets.cut_orbitals(thr_exp=thr_exp, nucleus_index=nuc, method="larger")

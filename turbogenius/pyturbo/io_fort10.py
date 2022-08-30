@@ -4,7 +4,7 @@
 """
 
 pyturbo: io_fort10 related classes and methods
-
+Reading!!
 Todo:
     * docstrings are not completed.
     * refactoring assert sentences. The assert should not be used for any on-the-fly check.
@@ -104,11 +104,9 @@ class IO_fort10:
         self.f10jasbasissets = F10jasbasissets(fort10=self.fort10, shell_jas=self.f10header.shell_jas,
                                                start_keyword=self.f10jasbasis_start_keyword, end_keyword=self.f10jasbasis_end_keyword)
         logger.debug("f10jasbasissets")
-        self.f10detocc = F10occ(fort10=self.fort10, shell_multiplicity=self.f10detbasissets.shell_multiplicity,
-                                start_keyword=self.f10detocc_start_keyword, end_keyword=self.f10detocc_end_keyword)
+        self.f10detocc = F10occ(fort10=self.fort10, start_keyword=self.f10detocc_start_keyword, end_keyword=self.f10detocc_end_keyword)
         logger.debug("f10detocc")
-        self.f10jasocc = F10occ(fort10=self.fort10, shell_multiplicity=self.f10jasbasissets.shell_multiplicity,
-                                start_keyword=self.f10jasocc_start_keyword, end_keyword=self.f10jasocc_end_keyword)
+        self.f10jasocc = F10occ(fort10=self.fort10, start_keyword=self.f10jasocc_start_keyword, end_keyword=self.f10jasocc_end_keyword)
         logger.debug("f10jasocc")
         self.f10detmatrix = F10detmat(fort10=self.fort10, detmat=self.f10header.det_mat_nonzero, complex_flag=self.f10header.complex_flag,
                                       start_keyword=self.f10detmat_start_keyword, end_keyword=self.f10jasmat_start_keyword)
@@ -1133,13 +1131,12 @@ class F10jasbasissets():
     def end_lineno(self):
         return pygrep_lineno(self.fort10, self.end_keyword) - 1
 class F10occ():
-    def __init__(self, fort10, shell_multiplicity, start_keyword, end_keyword):
+    def __init__(self, fort10, start_keyword, end_keyword):
         logger.debug("F10occ starts")
         self.start_keyword = start_keyword
         self.end_keyword = end_keyword
         self.fort10 = fort10
         self.read_flag = False
-        self.shell_multiplicity = shell_multiplicity
         logger.debug("F10occ ends")
 
         # Values()
@@ -1151,7 +1148,7 @@ class F10occ():
             lines=[pygetline(filename=self.fort10, lineno=lineno, clearcache=False) for lineno in range(self.start_lineno, self.end_lineno+1)]
             linecache.clearcache()  # a manual clearcache is better to avoid unexpected behaviour of pygetline
             #print(lines)
-            assert len(lines) == abs(np.sum(self.shell_multiplicity))
+            #assert len(lines) == abs(np.sum(self.shell_multiplicity))
             lineno = self.start_lineno
             p = []
             for line in lines:
@@ -1159,7 +1156,7 @@ class F10occ():
                     p.append(Value(value=value, lineno=lineno, index=i, file=self.fort10))
                 lineno+=1
 
-            for num in range(abs(np.sum(self.shell_multiplicity))):
+            for num in range(len(lines)):
                 p[num].type(int); occ = p[num]
                 self.__occupation.append(occ)
 

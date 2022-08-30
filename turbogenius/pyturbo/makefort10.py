@@ -105,13 +105,11 @@ class Makefort10(FortranIO):
                     #if z_core == 0 and (atomic_number == 1 or atomic_number == 2): # hydrogen and helium cases!!
                     if z_core == 0: # PPs that do not remove any electron
                         shift = dummy_atomic_number_shift
-                        self.namelist.set_parameter('.true.', 'nopseudo', '&electrons')
                     else:
                         shift = 0.0
                 else:
                     shift = shift
-                    if z_core == 0: # PPs that do not remove any electron
-                        self.namelist.set_parameter('.true.', 'nopseudo', '&electrons')
+
             else:
                 # all-electron
                 valence_electron = atomic_number

@@ -101,8 +101,9 @@ class Makefort10(FortranIO):
                 # PP case
                 z_core = self.pseudo_potentials.z_core[num]
                 valence_electron = atomic_number - z_core
-                if basis_sets_unique_element: # only hydrogen and helium cases
-                    if z_core == 0 and (atomic_number == 1 or atomic_number == 2): # hydrogen and helium cases!!
+                if basis_sets_unique_element: # NOT only hydrogen and helium cases!! e.g., for Li, Be, etc...
+                    #if z_core == 0 and (atomic_number == 1 or atomic_number == 2): # hydrogen and helium cases!!
+                    if z_core == 0: # PP cases that do not remove any electron
                         shift = dummy_atomic_number_shift
                     else:
                         shift = 0.0

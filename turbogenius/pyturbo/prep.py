@@ -204,7 +204,7 @@ class Prep(FortranIO):
         #occ
         typedft=namelist.get_parameter(parameter="typedft")
         optocc=namelist.get_parameter(parameter="optocc")
-        io_fort10 = IO_fort10(fort10=in_fort10)
+        #io_fort10 = IO_fort10(fort10=in_fort10) # not needed!!
         if optocc == 0:
             if typedft==1: # lda
                 nelocc = io_fort10.f10header.nelup

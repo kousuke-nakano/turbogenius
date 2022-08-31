@@ -150,7 +150,7 @@ class IO_fort10:
         shell_index=self.f10detbasissets.shell_index
         if len(shell_index) != len(list(set(shell_index))):
             return True
-        else: # all-electron
+        else:
             return False
 
 class F10header():

@@ -200,13 +200,15 @@ class DFT_genius(GeniusIO):
         self.twist_average = twist_average
         self.kpoints = kpoints
 
-        self.io_fort10 = IO_fort10(self.fort10)
+        io_fort10 = IO_fort10(self.fort10)
+        #self.io_fort10 = IO_fort10(self.fort10)
+        # this should not be an attribute!! because fort.10 is sometimes very large.
 
-        if self.io_fort10.f10structure.pbc_flag:
+        if io_fort10.f10structure.pbc_flag:
             # for crystals, Lx, Ly, and Lz are cells
-            self.Lx=self.io_fort10.f10structure.norm_vec_a
-            self.Ly=self.io_fort10.f10structure.norm_vec_b
-            self.Lz=self.io_fort10.f10structure.norm_vec_c
+            self.Lx=io_fort10.f10structure.norm_vec_a
+            self.Ly=io_fort10.f10structure.norm_vec_b
+            self.Lz=io_fort10.f10structure.norm_vec_c
             logger.info("Lbox is the norms of the lattice vectors")
             logger.info(f"Lx={self.Lx}, Ly={self.Ly}, Lz={self.Lz}")
             self.ax=self.grid_a
@@ -217,7 +219,7 @@ class DFT_genius(GeniusIO):
             self.nz = int(self.Lz/self.az)
         else:
             # +- 7.5 bohr from the edges.
-            pos = self.io_fort10.f10structure.positions
+            pos = io_fort10.f10structure.positions
             self.Lx = np.max(pos[:, 0]) - np.min(pos[:, 0]) + self.lbox_a
             self.Ly = np.max(pos[:, 1]) - np.min(pos[:, 1]) + self.lbox_b
             self.Lz = np.max(pos[:, 2]) - np.min(pos[:, 2]) + self.lbox_c
@@ -236,7 +238,7 @@ class DFT_genius(GeniusIO):
         self.prep.set_parameter(parameter="maxtime", value=maxtime, namelist="&simulation")
 
         # set L_box
-        if self.io_fort10.f10structure.pbc_flag:
+        if io_fort10.f10structure.pbc_flag:
             self.prep.set_parameter(parameter="nx", value=self.nx, namelist="&molecul")
             self.prep.set_parameter(parameter="ny", value=self.ny, namelist="&molecul")
             self.prep.set_parameter(parameter="nz", value=self.nz, namelist="&molecul")
@@ -254,7 +256,7 @@ class DFT_genius(GeniusIO):
         ## &dft part
 
         #contraction
-        if self.io_fort10.det_contraction_flag:
+        if io_fort10.det_contraction_flag:
             self.prep.set_parameter(parameter="contracted_on", value=".true.", namelist="&dft")
         else:
             self.prep.set_parameter(parameter="contracted_on", value=".false.", namelist="&dft")
@@ -273,17 +275,17 @@ class DFT_genius(GeniusIO):
         if self.smearing == 0.0:
             self.prep.set_parameter(parameter="optocc", value=0, namelist="&dft")
             if self.xc == 'lda':
-                nelocc=self.io_fort10.f10header.nelup
-                nelocc_list=[2 for _ in range(self.io_fort10.f10header.neldn)] + [1 for _ in range(self.io_fort10.f10header.nelup - self.io_fort10.f10header.neldn)]
+                nelocc=io_fort10.f10header.nelup
+                nelocc_list=[2 for _ in range(io_fort10.f10header.neldn)] + [1 for _ in range(io_fort10.f10header.nelup - io_fort10.f10header.neldn)]
 
                 self.prep.set_parameter(parameter="nelocc", value=nelocc, namelist="&dft")
                 self.prep.nelocc_list=nelocc_list
 
             else:
-                nelocc = self.io_fort10.f10header.nelup
-                neloccdn = self.io_fort10.f10header.neldn
-                nelocc_list=[1 for _ in range(self.io_fort10.f10header.nelup)]
-                neloccdn_list=[1 for _ in range(self.io_fort10.f10header.neldn)]
+                nelocc = io_fort10.f10header.nelup
+                neloccdn = io_fort10.f10header.neldn
+                nelocc_list=[1 for _ in range(io_fort10.f10header.nelup)]
+                neloccdn_list=[1 for _ in range(io_fort10.f10header.neldn)]
                 self.prep.set_parameter(parameter="nelocc", value=nelocc, namelist="&dft")
                 self.prep.nelocc_list=nelocc_list
 
@@ -306,7 +308,7 @@ class DFT_genius(GeniusIO):
             self.prep.set_parameter(parameter="nys", value=self.nys, namelist="&dft")
             self.prep.set_parameter(parameter="nzs", value=self.nzs, namelist="&dft")
 
-            assert len(self.magnetic_moment_list) == self.io_fort10.f10header.natom
+            assert len(self.magnetic_moment_list) == io_fort10.f10header.natom
 
             self.prep.magnetic_moments_3d_array=self.get_mangetic_moments_3d_array()
 
@@ -400,7 +402,10 @@ class DFT_genius(GeniusIO):
                 numpy.array: numpy array containing the Magnetic moments according to the TurboRVB format.
 
         """
-        if self.io_fort10.f10structure.ortho_flag:
+
+        io_fort10 = IO_fort10(self.fort10)
+
+        if io_fort10.f10structure.ortho_flag:
             logger.error("Sorry, set magnetic moment is not implemented for a non-orthorhombic case.")
             raise NotImplementedError
 
@@ -411,16 +416,16 @@ class DFT_genius(GeniusIO):
         Lz, Ly, Lx = self.Lz, self.Ly, self.Lx
         mangnetic_moments_3d_array = np.zeros((nzs, nys, nxs))
 
-        print(self.io_fort10.f10structure.positions)
-        natom = self.io_fort10.f10header.natom
-        x_coord = self.io_fort10.f10structure.positions[:, 0]
-        y_coord = self.io_fort10.f10structure.positions[:, 1]
-        z_coord = self.io_fort10.f10structure.positions[:, 2]
+        #print(io_fort10.f10structure.positions)
+        natom = io_fort10.f10header.natom
+        x_coord = io_fort10.f10structure.positions[:, 0]
+        y_coord = io_fort10.f10structure.positions[:, 1]
+        z_coord = io_fort10.f10structure.positions[:, 2]
         logger.debug(x_coord)
         logger.debug(y_coord)
         logger.debug(z_coord)
 
-        if self.io_fort10.f10structure.pbc_flag:
+        if io_fort10.f10structure.pbc_flag:
             # periodic case!! -> the origin is always 0.5,0.5,0.5
             x_shift= 1.0/2.0 * Lx
             y_shift= 1.0/2.0 * Ly
@@ -480,7 +485,7 @@ class DFT_genius(GeniusIO):
                         logger.debug(y_coord_shifted)
                         logger.debug(z_coord_shifted)
 
-                        if self.io_fort10.f10structure.pbc_flag:
+                        if io_fort10.f10structure.pbc_flag:
                             while x_coord_shifted < -1.0 / 2.0 * Lx:
                                 x_coord_shifted += Lx
                             while 1.0 / 2.0 * Lx < x_coord_shifted:

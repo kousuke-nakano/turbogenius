@@ -194,6 +194,8 @@ class Prep(FortranIO):
 
         #fort.10
         io_fort10 = IO_fort10(fort10=in_fort10)
+        # ! right! we should keep io_fort10 "local".
+        # It should not be an attrobute because it could be very large..
 
         #contraction
         if io_fort10.det_contraction_flag:

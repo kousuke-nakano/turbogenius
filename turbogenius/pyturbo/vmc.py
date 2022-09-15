@@ -218,12 +218,15 @@ class VMC(FortranIO):
                 force_element_error_bar = float(force_dat[num_force].split()[7])
             else:  # gamma point
                 # since the number of intervals depends on compiler...
-                start_index = force_dat.index([s for s in force_dat if re.match('.*Force component.*', s)][0])
-                end_index = force_dat.index([s for s in force_dat if re.match('.*<OH>.*-.*<O><H>.*', s)][0])
-                interval = end_index - start_index + 1
+                #start_index = force_dat.index([s for s in force_dat if re.match('.*Force component.*', s)][0])
+                #end_index = force_dat.index([s for s in force_dat if re.match('.*<OH>.*-.*<O><H>.*', s)][0])
+                #interval = end_index - start_index + 1
+                #force_element = float(force_dat[1 + interval * num_force].split()[2])
+                #force_element_error_bar = float(force_dat[1 + interval * num_force].split()[3])
 
-                force_element = float(force_dat[1 + interval * num_force].split()[2])
-                force_element_error_bar = float(force_dat[1 + interval * num_force].split()[3])
+                force_element_list = [s for s in force_dat if re.match('.*Force.*=.*', s)]
+                force_element = float(force_element_list[num_force].split()[2])
+                force_element_error_bar = float(force_element_list[num_force].split()[3])
 
             # multiplied according to the symmetry
             # note! They are "correlated", we shoulud divide the error bar by force_constraints_d["num_constraints"]

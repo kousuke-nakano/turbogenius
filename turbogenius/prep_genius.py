@@ -182,6 +182,7 @@ class DFT_genius(GeniusIO):
                  lbox:list=[15.0, 15.0, 15.0],
                  smearing:float=0.0,
                  maxtime:int=172800,
+                 memlarge:bool=False,
                  h_field:float=0.0,
                  magnetic_moment_list:list=[],
                  xc:str='lda', # lda or lsda
@@ -270,7 +271,11 @@ class DFT_genius(GeniusIO):
         else:
             logger.error(f"self.xc ={self.xc} is not implemented in TurboRVB.")
             raise NotImplementedErorr
-
+        # memory
+        if memlarge:
+            self.prep.set_parameter(parameter="memlarge", value='.true.', namelist="&dft")
+        else:
+            self.prep.set_parameter(parameter="memlarge", value='.false.', namelist="&dft")
         # smearing!
         if self.smearing == 0.0:
             self.prep.set_parameter(parameter="optocc", value=0, namelist="&dft")

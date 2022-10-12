@@ -175,6 +175,8 @@ class BFD:
             self.ecp_output_dir = pseudo_potential_output_dir
 
     def to_file(self, element_list, basis_list, sleep_time=1.5):
+        if self.basis_sets_output_dir is None and self.ecp_output_dir is None:
+            return
         if self.basis_sets_output_dir is not None:
             os.makedirs(self.basis_sets_output_dir, exist_ok=True)
         if self.ecp_output_dir is not None:
@@ -182,9 +184,35 @@ class BFD:
         if "X" in element_list: element_list.remove("X")
         with tqdm(titertools.product(element_list, basis_list)) as pbar:
             for i, (e,b) in enumerate(pbar):
+                logger.debug(f"b={b:s}")
                 logger.debug(f"[BFD] e={e:s} b={b:s}")
-                if not ((os.path.isfile(os.path.join(self.ecp_output_dir, f"{e}_BFD.pseudo")) or os.path.isfile(os.path.join(self.ecp_output_dir, f"{e}_BFD.NaN")))
-                         and (os.path.isfile(os.path.join(self.basis_sets_output_dir, f"{e}_{b}.basis")) or os.path.isfile(os.path.join(self.basis_sets_output_dir, f"{e}_{b}.NaN")))):
+
+                # check already downloaded or not.
+                if self.basis_sets_output_dir is not None:
+                    if self.ecp_output_dir is not None:
+                        flag_downloaded = (
+                                (os.path.isfile(os.path.join(self.ecp_output_dir, f"{e}_BFD.pseudo")) or
+                                 os.path.isfile(os.path.join(self.ecp_output_dir, f"{e}_BFD.NaN"))) and
+                                (os.path.isfile(os.path.join(self.basis_sets_output_dir, f"{e}_{b}.basis")) or
+                                 os.path.isfile(os.path.join(self.basis_sets_output_dir, f"{e}_{b}.NaN")))
+                        )
+                    else:
+                        flag_downloaded = (
+                                (os.path.isfile(os.path.join(self.basis_sets_output_dir, f"{e}_{b}.basis")) or
+                                 os.path.isfile(os.path.join(self.basis_sets_output_dir, f"{e}_{b}.NaN")))
+                        )
+                else:
+                    if self.ecp_output_dir is not None:
+                        flag_downloaded = (
+                                (os.path.isfile(os.path.join(self.ecp_output_dir, f"{e}_BFD.pseudo")) or
+                                 os.path.isfile(os.path.join(self.ecp_output_dir, f"{e}_BFD.NaN")))
+                        )
+
+                    else:
+                        raise ValueError
+
+                if not flag_downloaded:
+                    logger.debug(f"b={b:s}")
                     pbar.set_description(f"[BFD] e={e:s} b={b:s}")
                     time.sleep(sleep_time)
                     logger.debug(self.U.format(b = b, e = e))

@@ -12,11 +12,7 @@ Todo:
 
 #python modules
 import os, sys
-import shutil
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
 import click
 import pickle
 
@@ -169,7 +165,9 @@ class DFT_genius(GeniusIO):
          grid_size (list):  3 floats, grid sizes [x,y,z]
          lbox (list):  3 floats, Box sizes [x,y,z] (angstrom)
          smearing (float): smearing parameter (Ha)
-         maxtime (int): maximun time (sec.)
+         maxtime (int): maximum time (sec.)
+         memlarge (bool): use more memory to speed up
+         maxit (int): maximum iterations
          h_field (float): magnetic field putting on each grid.
          magnetic_moment_list (list): magnetic moment list, for all atoms.
          xc (str): Exchange correlation functionals, lda or lsda
@@ -183,6 +181,7 @@ class DFT_genius(GeniusIO):
                  smearing:float=0.0,
                  maxtime:int=172800,
                  memlarge:bool=False,
+                 maxit:int=50,
                  h_field:float=0.0,
                  magnetic_moment_list:list=[],
                  xc:str='lda', # lda or lsda
@@ -195,6 +194,8 @@ class DFT_genius(GeniusIO):
         self.lbox_a, self.lbox_b, self.lbox_c = lbox
         self.smearing = smearing
         self.maxtime = maxtime
+        self.memlarge = memlarge
+        self.maxit = maxit
         self.h_field = h_field
         self.magnetic_moment_list=magnetic_moment_list
         self.xc = xc
@@ -271,11 +272,16 @@ class DFT_genius(GeniusIO):
         else:
             logger.error(f"self.xc ={self.xc} is not implemented in TurboRVB.")
             raise NotImplementedErorr
+
         # memory
-        if memlarge:
+        if self.memlarge:
             self.prep.set_parameter(parameter="memlarge", value='.true.', namelist="&dft")
         else:
             self.prep.set_parameter(parameter="memlarge", value='.false.', namelist="&dft")
+
+        # maxit
+        self.prep.set_parameter(parameter="maxit", value=self.maxit, namelist="&dft")
+
         # smearing!
         if self.smearing == 0.0:
             self.prep.set_parameter(parameter="optocc", value=0, namelist="&dft")

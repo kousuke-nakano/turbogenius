@@ -12,18 +12,12 @@ Todo:
 
 #python modules
 import os, sys
-import shutil
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
 import click
 import pickle
 
 #pyturbo modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from pyturbo.lrdmc import LRDMC
-from pyturbo.io_fort10 import IO_fort10
 
 #turbo-genius modules
 from utils_workflows.env import turbo_genius_root

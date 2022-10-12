@@ -605,6 +605,44 @@ class Pseudopotential:
 
         return text
 
+
+def main():
+    # parser.add_argument
+    import argparse
+
+    parser = argparse.ArgumentParser(description='This program is a python-based script for converting a TREXIO file to a TurboRVB Wavefunction file')
+    parser.add_argument('trexio_file', help='Name of TREXIO file')
+    args = parser.parse_args()
+
+    logger = getLogger('pyturbo').getChild(__name__)
+    logger.setLevel(args.loglevel)
+    stream_handler = StreamHandler()
+    stream_handler.setLevel(args.loglevel)
+    if args.loglevel in {'DEBUG'}:
+        handler_format = Formatter('%(name)s - %(levelname)s - %(lineno)d - %(message)s')
+    else:
+        handler_format = Formatter('%(message)s')
+    stream_handler.setFormatter(handler_format)
+    logger.addHandler(stream_handler)
+
+    logger.info("    ")
+    logger.info("Program   : TREXIO-TurboRVB converter")
+    logger.info("Author    : 2022 Kosuke Nakano (SISSA/JAIST)")
+    logger.info("E-mail    : kousuke_1123@icloud.com")
+    logger.info("Website   : https://www.kosuke-nakano-research.info")
+    logger.info("License   : MIT lisence")
+    logger.info("    ")
+    logger.info("Please cite the following paper when publishing your work(s).")
+    logger.info("    ")
+    logger.info("TurboRVB:")
+    logger.info("    K. Nakano et al. J. Chem. Phys., 152, 204121 (2020)")
+    logger.info("Turbo-Genius:")
+    logger.info("    K. Nakano et al. in preparation.")
+    logger.info("TREXIO:")
+    logger.info("    TREX project, in preparation.")
+    logger.info("    ")
+
+
 if __name__ == "__main__":
     from utils.env import pyturbo_root # works only with install -e mode.
     logger = getLogger("pyturbo")
@@ -615,6 +653,8 @@ if __name__ == "__main__":
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 
+    main()
+    sys.exit()
     # moved to examples
 
     ## basis set downloads

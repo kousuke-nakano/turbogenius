@@ -23,8 +23,6 @@ from typing import Union
 
 #pyturbo modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from pyturbo.io_fort10 import IO_fort10
-from pyturbo.utils.downloader import ccECP, BSE, BFD
 from pyturbo.utils.utility import return_atomic_number
 from pyturbo.makefort10 import Makefort10
 from pyturbo.structure import Structure

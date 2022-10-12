@@ -24,7 +24,7 @@ from namelist import Namelist
 from fortranIO import FortranIO
 from io_fort10 import IO_fort10
 from utils.env import turbo_qmc_run_command, turbo_forcefn_run_command, turbo_forcefn_kpoints_run_command
-from utils.env import pyturbo_root, pyturbo_data_dir
+from utils.env import pyturbo_data_dir
 from utils.utility import file_check, file_check_flag, get_line_from_file, remove_file
 from utils.execute import run
 

@@ -31,9 +31,6 @@ import glob
 from logging import config, getLogger, StreamHandler, Formatter
 logger = getLogger('Turbo-Genius').getChild(__name__)
 
-# import trexio - python wrapper
-import trexio
-
 # import pyturbo modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from pyturbo.structure import Structure, Cell

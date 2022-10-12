@@ -1,16 +1,12 @@
 #python
 # -*- coding: utf-8 -*-
-
 """
-
-pyturbo: io_fort10 related classes and methods
-Reading!!
+pyturbo: io_fort10 related classes and methods, why??
 Todo:
     * docstrings are not completed.
     * refactoring assert sentences. The assert should not be used for any on-the-fly check.
     * implementing __str__ method.
     * implementing sanity_check method.
-
 """
 
 # python modules
@@ -57,6 +53,18 @@ class Value:
         return self.__file
 
 class IO_fort10:
+    """
+    This class is a wrapper for python fort.10 file
+
+    Input:
+        fort.10 (str): the name of fort.10 WF file
+
+    Attributes:
+         fort.10 (str): the name of fort.10 WF file
+         f10header (F10header): F10header instance
+         ...
+    """
+
     f10structure_start_keyword = "Ion coordinates"
     f10structure_end_keyword = "Constraints for forces"
     f10forceconstraint_start_keyword = "Constraints for forces"

@@ -11,11 +11,6 @@ Todo:
 
 #python modules
 import os, sys
-import shutil
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
 import click
 
 #pyturbo modules
@@ -403,7 +398,7 @@ class LRDMCopt_genius(GeniusIO):
         """
         self.lrdmcopt.plot_energy_and_devmax(output_names=output_names, interactive=interactive)
 
-    def average(self, optwarmupsteps:int=10, graph_plot:bool=False, input_name:str="datasfn_opt.input", output_name:str="out_fn_opt")->None:
+    def average(self, optwarmupsteps:int=10, graph_plot:bool=False, input_name:str="datasfn_opt.input", output_names:list=["out_fn_opt"])->None:
         """
             Average parameters of fort.10
 
@@ -413,7 +408,7 @@ class LRDMCopt_genius(GeniusIO):
                 output_names (list): a list of output file names
                 graph_plot (bool): Flag for plotting a graph
         """
-        flags = self.lrdmcopt.check_results(output_names=[output_name])
+        flags = self.lrdmcopt.check_results(output_names=output_names)
         assert all(flags)
         self.lrdmcopt.average_optimized_parameters(equil_steps=optwarmupsteps, input_file_used=input_name, graph_plot=graph_plot)
 

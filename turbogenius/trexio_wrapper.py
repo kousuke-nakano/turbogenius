@@ -12,8 +12,6 @@ Todo:
 
 # import python modules
 import os,sys
-import shutil
-import argparse
 
 # logger
 from logging import config, getLogger, StreamHandler, Formatter

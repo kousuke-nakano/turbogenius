@@ -9,7 +9,7 @@ import subprocess
 
 # set logger
 from logging import config, getLogger, StreamHandler, Formatter
-logger = getLogger('pyturbo').getChild(__name__)
+logger = getLogger('turbogenius').getChild(__name__)
 
 # pyturbo module
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

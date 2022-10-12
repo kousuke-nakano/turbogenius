@@ -92,7 +92,7 @@ One can manage any job of `TurboRVB` on python scripts. There are one-to-one cor
 - `pip install -e .` or `pip install .`
 
 # Examples
-Examples are in the `tests` directory.
+Examples are in the `examples` directory.
 
 # Documentation
 There is a Read the Docs in the `docs` directory, but still in progress.

@@ -63,19 +63,12 @@ def copy_file(from_file,to_file):
     except shutil.SameFileError:
         pass
 def file_check(file):
-    try:
-        with open(file, 'r') as f:
-            pass
-
-    except FileNotFoundError:
+    if not os.path.exists(file):
         raise FileNotFoundError(f"{file} is not found.")
 def file_check_flag(file):
-    try:
-        with open(file, 'r') as f:
-            pass
+    if os.path.exists(file):
         return True
-
-    except FileNotFoundError:
+    else:
         return False
 def get_line_from_file(file, line_no):
     with open(file, 'r') as f:

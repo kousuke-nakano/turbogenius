@@ -24,7 +24,6 @@ logger = getLogger('Turbo-Genius').getChild(__name__)
 
 #pyturbo modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from namelist import Namelist
 
 # GeniusIO abstract class
 class GeniusIO(ABC):

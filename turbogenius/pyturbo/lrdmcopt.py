@@ -29,7 +29,7 @@ from fortranIO import FortranIO
 from io_fort10 import IO_fort10
 from utils.env import pyturbo_data_dir, turborvb_bin_root
 from utils.env import turbo_qmc_run_command
-from utils.utility import file_check, file_check_flag, get_line_from_file, remove_file
+from utils.utility import file_check, file_check_flag, remove_file
 from utils.utility import remove_new_parameter_lines_in_fort10
 from utils.execute import run
 

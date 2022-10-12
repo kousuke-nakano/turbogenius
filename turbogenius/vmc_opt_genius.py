@@ -28,7 +28,7 @@ from pyturbo.io_fort10 import IO_fort10
 #turbo-genius modules
 from utils_workflows.env import turbo_genius_root
 from utils_workflows.utility import get_optimizer_flags
-from tools_genius import copy_jastrow
+from tools_genius import copy_jastrow, copy_jastrow_twist
 from geniusIO import GeniusIO
 
 #Logger
@@ -514,6 +514,9 @@ class VMCopt_genius(GeniusIO):
         self.vmcopt.average_optimized_parameters(equil_steps=optwarmupsteps, input_file_used=input_name, graph_plot=graph_plot)
 
         if twist_average_copyjas:
+            copy_jastrow_twist()
+
+            """
             logger.info("Additional commands are needed for averaging Jas. mat. with k average")
             logger.info("cp fort.10 turborvb.scratch/fort.10;")
             logger.info("cp fort.10 turborvb.scratch/fort.10_new;")
@@ -527,8 +530,9 @@ class VMCopt_genius(GeniusIO):
             shutil.copy("kp_info.dat", os.path.join("turborvb.scratch", "kp_info.dat"))
             shutil.copy("parminimized.d", os.path.join("turborvb.scratch", "parminimized.d"))
             os.chdir("turborvb.scratch")
-            copy_jastrow(args="kpoints")
+            copy_jastrow(twist_flag=True)
             os.chdir(current_dir)
+            """
 
     def get_energy(self, output_names:list=["out_min"])->list:
         """

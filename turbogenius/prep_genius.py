@@ -172,6 +172,7 @@ class DFT_genius(GeniusIO):
          magnetic_moment_list (list): magnetic moment list, for all atoms.
          xc (str): Exchange correlation functionals, lda or lsda
          twist_average (bool): Twist average flag, True or False.
+         independent_kpoints (bool): Independent kpoint calculation, True or False
          kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
     """
     def __init__(self,
@@ -186,6 +187,7 @@ class DFT_genius(GeniusIO):
                  magnetic_moment_list:list=[],
                  xc:str='lda', # lda or lsda
                  twist_average:bool=False,
+                 independent_kpoints:bool=False,
                  kpoints:list=[1,1,1,0,0,0]
                  ):
 
@@ -200,6 +202,7 @@ class DFT_genius(GeniusIO):
         self.magnetic_moment_list=magnetic_moment_list
         self.xc = xc
         self.twist_average = twist_average
+        self.independent_kpoints = independent_kpoints
         self.kpoints = kpoints
 
         io_fort10 = IO_fort10(self.fort10)
@@ -271,7 +274,7 @@ class DFT_genius(GeniusIO):
             self.prep.set_parameter(parameter="typedft", value=4, namelist="&dft")
         else:
             logger.error(f"self.xc ={self.xc} is not implemented in TurboRVB.")
-            raise NotImplementedErorr
+            raise NotImplemented
 
         # memory
         if self.memlarge:
@@ -325,6 +328,12 @@ class DFT_genius(GeniusIO):
 
         # kpoints
         if self.twist_average: # not 0 (= not False)!!
+
+            if self.independent_kpoints: # True case, independent k calculation, i.e., decoupled_run = True, in Turbo.
+                self.prep.set_parameter(parameter="decoupled_run", value=".true.", namelist="&parameters")
+            else:
+                self.prep.set_parameter(parameter="decoupled_run", value=".false.", namelist="&parameters") #default value
+
             if self.twist_average == 1: # True case, Monkhorst-Pack algorithm
                 assert len(self.kpoints) == 6
                 nkx, nky, nkz, kx, ky, kz = self.kpoints
@@ -355,7 +364,7 @@ class DFT_genius(GeniusIO):
 
             else:
                 logger.error(f"twist_average = {self.twist_average} is not implemented.")
-                raise NotImeplementedError
+                raise NotImplemented
 
         self.energy=None
 

@@ -10,5 +10,6 @@ rm -rf makefort10
 rm -rf prep
 rm -rf pseudo_potentials
 rm -rf pseudo_potentials_
+rm -rf structures
 rm -rf vmc
 rm -rf vmcopt

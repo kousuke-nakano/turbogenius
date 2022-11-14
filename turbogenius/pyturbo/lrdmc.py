@@ -105,7 +105,7 @@ class LRDMC(FortranIO):
             error = float(line[3])
         return energy, error
 
-    def get_energy(self, init=10, correct=10, bin=10, num_proc=1, rerun=False):
+    def get_energy(self, init=10, correct=10, bin=10, num_proc=-1, rerun=False):
         force_compute_flag=False
         if rerun:
             force_compute_flag=True
@@ -141,7 +141,7 @@ class LRDMC(FortranIO):
             error = float(line[3])
         return energy, error
 
-    def get_forces(self, init=10, correct=10, bin=10, num_proc=1, rerun=False):
+    def get_forces(self, init=10, correct=10, bin=10, num_proc=-1, rerun=False):
 
         force_compute_flag=False
         if rerun:
@@ -216,8 +216,12 @@ class LRDMC(FortranIO):
         # unit (Ha/au)
         return force_matrix, force_matrix_error_bar
 
-    def compute_energy_and_forces(self, init=10, correct=10, bin=10, pulay=1, num_proc=1):
+    def compute_energy_and_forces(self, init=10, correct=10, bin=10, pulay=1, num_proc=-1):
         if self.twist_average:
+            if num_proc == -1:
+                logger.warning(f"num_proc is -1. The maximum possible cpus are used for computing energies and forces.")
+                logger.warning(f"num_proc is set to {os.cpu_count()}, which is obtained by os.cpu_count()")
+                num_proc=os.cpu_count()
             cmd = "{:s} {:d} {:d} {:d} {:d} {:d}".format(
                 turbo_forcefn_kpoints_run_command,
                 bin,

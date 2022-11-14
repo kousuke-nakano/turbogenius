@@ -25,7 +25,7 @@ from namelist import Namelist
 from fortranIO import FortranIO
 from io_fort10 import IO_fort10
 from utils.env import pyturbo_root, pyturbo_data_dir
-from utils.env import turbo_qmc_run_command, turbo_forcevmc_run_command, turbo_forcevmc_kpoints_run_command
+from utils.env import turbo_qmc_run_command, turbo_forcevmc_run_command, turbo_forcevmc_kpoints_run_command, turbo_forcevmc_kpoints_para_run_command
 from utils.utility import file_check, file_check_flag, get_line_from_file, remove_file
 from utils.execute import run
 
@@ -260,9 +260,13 @@ class VMC(FortranIO):
                 logger.warning(f"num_proc is -1. The maximum possible cpus are used for computing energies and forces.")
                 logger.warning(f"num_proc is set to {os.cpu_count()}, which is obtained by os.cpu_count()")
                 num_proc=os.cpu_count()
-
+            if num_proc > 1:
+                command = turbo_forcevmc_kpoints_para_run_command
+                command = turbo_forcevmc_kpoints_run_command # for the time being!!! because paperoga does not have sufficient memory.
+            else:
+                command=turbo_forcevmc_kpoints_run_command
             cmd = "{:s} {:d} {:d} {:d} {:d}".format(
-                turbo_forcevmc_kpoints_run_command,
+                command,
                 bin,
                 init * -1,
                 pulay,

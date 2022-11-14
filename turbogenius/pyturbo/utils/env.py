@@ -76,6 +76,10 @@ if "TURBOFORCEVMC_KPOINTS_RUN_COMMAND" in os.environ:
     turbo_forcevmc_kpoints_run_command = os.environ["TURBOFORCEVMC_KPOINTS_RUN_COMMAND"]
 else:
     turbo_forcevmc_kpoints_run_command = "forcevmc_kpoints.sh"
+if "TURBOFORCEVMC_KPOINTS_PARA_RUN_COMMAND" in os.environ:
+    turbo_forcevmc_kpoints_para_run_command = os.environ["TURBOFORCEVMC_KPOINTS_PARA_RUN_COMMAND"]
+else:
+    turbo_forcevmc_kpoints_para_run_command = "forcevmc_kpoints_parallel.sh"
 if "TURBOFORCEFN_RUN_COMMAND" in os.environ:
     turbo_forcefn_run_command = os.environ["TURBOFORCEFN_RUN_COMMAND"]
 else:
@@ -84,6 +88,10 @@ if "TURBOFORCEFN_KPOINTS_RUN_COMMAND" in os.environ:
     turbo_forcefn_kpoints_run_command = os.environ["TURBOFORCEFN_KPOINTS_RUN_COMMAND"]
 else:
     turbo_forcefn_kpoints_run_command = "forcefn_kpoints.sh"
+if "TURBOFORCEFN_KPOINTS_PARA_RUN_COMMAND" in os.environ:
+    turbo_forcefn_kpoints_para_run_command = os.environ["TURBOFORCEFN_KPOINTS_PARA_RUN_COMMAND"]
+else:
+    turbo_forcefn_kpoints_para_run_command = "forcefn_kpoints_parallel.sh"
 if "TURBOCOPYJAS_RUN_COMMAND" in os.environ:
     turbo_copyjas_command = os.environ["TURBOCOPYJAS_RUN_COMMAND"]
 else:

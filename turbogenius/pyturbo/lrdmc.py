@@ -224,7 +224,7 @@ class LRDMC(FortranIO):
                 num_proc=os.cpu_count()
             cmd = "{:s} {:d} {:d} {:d} {:d} {:d}".format(
                 turbo_forcefn_kpoints_run_command,
-                bin,
+                bin * -1,
                 correct,
                 init,
                 pulay,
@@ -233,7 +233,7 @@ class LRDMC(FortranIO):
         else:  # twist_flag is False:
             cmd = "{:s} {:d} {:d} {:d} {:d}".format(
                 turbo_forcefn_run_command,
-                bin,
+                bin * -1,
                 correct,
                 init,
                 pulay

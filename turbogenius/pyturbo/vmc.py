@@ -263,7 +263,7 @@ class VMC(FortranIO):
 
             cmd = "{:s} {:d} {:d} {:d} {:d}".format(
                 turbo_forcevmc_kpoints_run_command,
-                bin,
+                bin * -1,
                 init,
                 pulay,
                 num_proc
@@ -271,7 +271,7 @@ class VMC(FortranIO):
         else:  # twist_flag is False:
             cmd = "{:s} {:d} {:d} {:d}".format(
                 turbo_forcevmc_run_command,
-                bin,
+                bin * -1,
                 init,
                 pulay
             )

@@ -263,16 +263,16 @@ class VMC(FortranIO):
 
             cmd = "{:s} {:d} {:d} {:d} {:d}".format(
                 turbo_forcevmc_kpoints_run_command,
-                bin * -1,
-                init,
+                bin,
+                init * -1,
                 pulay,
                 num_proc
             )
         else:  # twist_flag is False:
             cmd = "{:s} {:d} {:d} {:d}".format(
                 turbo_forcevmc_run_command,
-                bin * -1,
-                init,
+                bin,
+                init * -1,
                 pulay
             )
         logger.info(f"cmd={cmd}")

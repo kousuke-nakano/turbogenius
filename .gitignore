@@ -6,8 +6,6 @@ archived/
 *.egg-info/
 
 # temporary
-workflow_*.py
-workflows_examples/
 docs/
 
 # do not include test results

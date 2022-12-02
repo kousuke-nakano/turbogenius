@@ -217,7 +217,7 @@ class Makefort10_genius(GeniusIO):
          det_contracted_flag (bool): if True determinant basis set is contracted, if False determinant basis set is uncontracted.
          jas_contracted_flag (bool): if True Jastrow basis set is contracted, if False Jastrow basis set is uncontracted.
          all_electron_jas_basis_set (bool): if True Jastrow basis set is read from the specified all-electron basis, if False, pseudo potential ones.
-         pseudo_potential (str or None): if None, all-electron calculations, if "str", the corresponding PP is read from the database.
+         pseudo_potential (str, list or None): if None, all-electron calculations, if "str", the corresponding PP is read from the database.
          det_cut_basis_option (bool): if True, determinant basis set is cut according to the Andrea Zen's procedure.
          jas_cut_basis_option (bool): if True, Jastrow basis set is cut according to the Andrea Zen's procedure.
          jastrow_type (int): One- and Two- Jastrow type specified.
@@ -270,10 +270,14 @@ class Makefort10_genius(GeniusIO):
         if pseudo_potential is None:
             logger.info("All-electron calculation")
             database_setup(database="BSE")
-        else:
+        elif isinstance(pseudo_potential, str):
             logger.info("Pseudo potential calculation.")
             database_setup(database=pseudo_potential) # for Determinant
             database_setup(database="BSE") # for Jastrow
+        elif isinstance(pseudo_potential, list):
+            logger.info("Pseudo potential calculation. PPs are given")
+        else:
+            raise ValueError
 
         def database_founder(data_sets_list, element, data_choice, prefix="basis_set"):
             if len(data_sets_list) == 0:
@@ -326,6 +330,7 @@ class Makefort10_genius(GeniusIO):
             det_basis_sets = Det_Basis_sets.parse_basis_sets_from_gamess_format_files(files=det_basis_files)
 
         elif isinstance(det_basis_set, list):
+            logger.info("Basis sets for the det. parts are given")
             det_basis_sets = Det_Basis_sets.parse_basis_sets_from_texts(texts=det_basis_set, format="gamess")
 
         else:
@@ -351,6 +356,7 @@ class Makefort10_genius(GeniusIO):
             jas_basis_sets = Jas_Basis_sets.parse_basis_sets_from_gamess_format_files(files=jas_basis_files)
 
         elif isinstance(jas_basis_set, list):
+            logger.info("Basis sets for the Jastrow parts are given")
             jas_basis_sets = Jas_Basis_sets.parse_basis_sets_from_texts(texts=jas_basis_set, format="gamess")
 
         else:

@@ -161,6 +161,20 @@ class IO_fort10:
         else:
             return False
 
+    def normalize_detmat_sym(self):
+        logger.info("Normalizing the determinant matrix")
+        logger.info("A -> A / max(A)")
+
+        # determinant matrix which will be normalized.
+        if self.f10detmatrix.complex_flag:
+            logger.warning("normalize_detmat_sym supports only real cases")
+        else:
+            max_A=np.max(self.f10detmatrix.coeff_real)
+            if max_A!=0.0:
+                logger.debug(self.f10detmatrix.coeff_real)
+                logger.debug(self.f10detmatrix.coeff_real/max_A)
+                self.f10detmatrix.coeff_real = self.f10detmatrix.coeff_real/max_A
+
 class F10header():
     def __init__(self, fort10):
         self.start_keyword = "Nelup"

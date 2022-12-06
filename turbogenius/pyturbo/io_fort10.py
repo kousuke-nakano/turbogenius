@@ -169,11 +169,13 @@ class IO_fort10:
         if self.f10detmatrix.complex_flag:
             logger.warning("normalize_detmat_sym supports only real cases")
         else:
-            max_A=np.max(self.f10detmatrix.coeff_real)
+            max_A=np.max(np.abs(self.f10detmatrix.coeff_real))
             if max_A!=0.0:
                 logger.debug(self.f10detmatrix.coeff_real)
                 logger.debug(self.f10detmatrix.coeff_real/max_A)
-                self.f10detmatrix.coeff_real = self.f10detmatrix.coeff_real/max_A
+                normalized_coeff_real=self.f10detmatrix.coeff_real/max_A
+                logger.debug(normalized_coeff_real)
+                self.f10detmatrix.coeff_real = normalized_coeff_real
 
 class F10header():
     def __init__(self, fort10):

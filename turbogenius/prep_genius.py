@@ -184,7 +184,7 @@ class DFT_genius(GeniusIO):
                  maxtime:int=172800,
                  memlarge:bool=False,
                  maxit:int=50,
-                 epsdft:flaot=1.0e-5,
+                 epsdft:float=1.0e-5,
                  h_field:float=0.0,
                  magnetic_moment_list:list=[],
                  xc:str='lda', # lda or lsda

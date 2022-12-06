@@ -168,6 +168,7 @@ class DFT_genius(GeniusIO):
          maxtime (int): maximum time (sec.)
          memlarge (bool): use more memory to speed up
          maxit (int): maximum iterations
+         epsdft (float): Tolerance in the convergence of total energy
          h_field (float): magnetic field putting on each grid.
          magnetic_moment_list (list): magnetic moment list, for all atoms.
          xc (str): Exchange correlation functionals, lda or lsda
@@ -183,6 +184,7 @@ class DFT_genius(GeniusIO):
                  maxtime:int=172800,
                  memlarge:bool=False,
                  maxit:int=50,
+                 epsdft:flaot=1.0e-5,
                  h_field:float=0.0,
                  magnetic_moment_list:list=[],
                  xc:str='lda', # lda or lsda
@@ -198,6 +200,7 @@ class DFT_genius(GeniusIO):
         self.maxtime = maxtime
         self.memlarge = memlarge
         self.maxit = maxit
+        self.epsdft = epsdft
         self.h_field = h_field
         self.magnetic_moment_list=magnetic_moment_list
         self.xc = xc
@@ -284,6 +287,9 @@ class DFT_genius(GeniusIO):
 
         # maxit
         self.prep.set_parameter(parameter="maxit", value=self.maxit, namelist="&dft")
+
+        # dft convergence thr
+        self.prep.set_parameter(parameter="epsdft", value=self.epsdft, namelist="&dft")
 
         # smearing!
         if self.smearing == 0.0:

@@ -255,8 +255,8 @@ def pysed_replace(file, value, lineno, index, inplace=False):
         ]
     elif re.match(r".*csh.*", sys_env["SHELL"]) or re.match(r".*tsch.*", sys_env["SHELL"]):
         cmds = [
-            f"set line=`{sed} -n {lineno}p {file}`",
-            f"set mod_line=`echo $line |  {awk} '{{FS=\" \";OFS=\" \"}}{{${index+1}={value}}}1'`",
+            f"line=`{sed} -n {lineno}p {file}`",
+            f"mod_line=`echo $line |  {awk} '{{FS=\" \";OFS=\" \"}}{{${index+1}={value}}}1'`",
         ]
 
     if inplace:
@@ -271,15 +271,17 @@ def pysed_replace(file, value, lineno, index, inplace=False):
     ]
 
     """
+    #"""
     # without IOs
     cmds += [
         f"{sed} -i \"{lineno}d\" {file}",
         f"{sed} -i \"{lineno}i \\ $mod_line\" {file}"
     ]
+    #"""
 
     cmd="; ".join(cmds)
+    logger.debug(cmd)
     subprocess.check_call(cmd, shell=True, env=sys_env)
-
 
 def pysed_replace_lines(file, lineno_list, value_list, index_list, inplace=False, cmd_chunk_num=100):
 
@@ -319,11 +321,11 @@ def pysed_replace_lines(file, lineno_list, value_list, index_list, inplace=False
                 # index+1 # because, grep starts from 1, but python starts from 0
         elif re.match(r".*csh.*", sys_env["SHELL"]) or re.match(r".*tsch.*", sys_env["SHELL"]):
             cmds += [
-                f"set line=`{sed} -n {lineno}p {file}`"
+                f"line=`{sed} -n {lineno}p {file}`"
             ]
             for value, index in zip(value_list_l, index_list_l):
                 cmds += [
-                    f"set line=`echo $line |  {awk} '{{FS=\" \";OFS=\" \"}}{{${index+1}={value}}}1'`"
+                    f"line=`echo $line |  {awk} '{{FS=\" \";OFS=\" \"}}{{${index+1}={value}}}1'`"
                 ]
                 # index+1 # because, grep starts from 1, but python starts from 0
 

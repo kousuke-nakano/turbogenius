@@ -173,7 +173,6 @@ class DFT_genius(GeniusIO):
          magnetic_moment_list (list): magnetic moment list, for all atoms.
          xc (str): Exchange correlation functionals, lda or lsda
          twist_average (bool): Twist average flag, True or False.
-         twist_up_dn_opposite_signs (bool): valid in case of twist_average=True. Add phases with the opposite signs for k-up and k-dn.
          independent_kpoints (bool): Independent kpoint calculation, True or False
          kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
     """
@@ -190,7 +189,6 @@ class DFT_genius(GeniusIO):
                  magnetic_moment_list:list=[],
                  xc:str='lda', # lda or lsda
                  twist_average:bool=False,
-                 twist_up_dn_opposite_signs:bool=True,
                  independent_kpoints:bool=False,
                  kpoints:list=[1,1,1,0,0,0]
                  ):
@@ -207,7 +205,6 @@ class DFT_genius(GeniusIO):
         self.magnetic_moment_list=magnetic_moment_list
         self.xc = xc
         self.twist_average = twist_average
-        self.twist_up_dn_opposite_signs = twist_up_dn_opposite_signs
         self.independent_kpoints = independent_kpoints
         self.kpoints = kpoints
 
@@ -356,10 +353,14 @@ class DFT_genius(GeniusIO):
                 self.prep.set_parameter(parameter="k2", value=ky, namelist="&kpoints")
                 self.prep.set_parameter(parameter="k3", value=kz, namelist="&kpoints")
                 self.prep.set_parameter(parameter="skip_equivalence", value='.true.', namelist="&kpoints")
+                """ comment on 9th Dec. double_kpgrid does not play any role with kp_type=1. See kpoints.f90
+                    if one wants to use the same phases (up, dn), one should set finite phase to fort.10.
+                    TurboRVB automatically detects and sets 'opposite_phase' .true.
                 if self.twist_up_dn_opposite_signs:
                     self.prep.set_parameter(parameter="double_kpgrid", value='.true.', namelist="&kpoints")
                 else:
                     self.prep.set_parameter(parameter="double_kpgrid", value='.false.', namelist="&kpoints")
+                """
             elif self.twist_average == 2: # k-points are set from the user
                 assert len(self.kpoints) == 2
                 kpoints_up, kpoints_dn = self.kpoints

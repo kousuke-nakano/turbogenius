@@ -294,6 +294,8 @@ class DFT_genius(GeniusIO):
         # smearing!
         if self.smearing == 0.0:
             self.prep.set_parameter(parameter="optocc", value=0, namelist="&dft")
+            self.prep.set_parameter(parameter="epsshell", value=self.smearing, namelist="&dft")
+            
             if self.xc == 'lda':
                 nelocc=io_fort10.f10header.nelup
                 nelocc_list=[2 for _ in range(io_fort10.f10header.neldn)] + [1 for _ in range(io_fort10.f10header.nelup - io_fort10.f10header.neldn)]

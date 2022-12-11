@@ -314,7 +314,7 @@ class DFT_genius(GeniusIO):
 
         else:
             self.prep.set_parameter(parameter="optocc", value=1, namelist="&dft")
-            self.prep.set_parameter(parameter="epsdft", value=self.smearing, namelist="&dft")
+            self.prep.set_parameter(parameter="epsshell", value=self.smearing, namelist="&dft")
 
         if self.h_field != 0.0:
             self.nxs = int(self.nx / 10)

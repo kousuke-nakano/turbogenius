@@ -84,7 +84,7 @@ class Prep(FortranIO):
         self.namelist.set_parameter(parameter="yes_kpoints", value=".true.", namelist="&parameters")
         self.namelist.set_parameter(parameter="yeswrite10", value=".true.", namelist="&optimization")
         self.namelist.set_parameter(parameter="kp_type", value=2, namelist="&kpoints")
-        self.namelist.set_parameter(parameter="nk1", value=len(kpoints_up) + len(kpoints_dn), namelist="&kpoints")
+        self.namelist.set_parameter(parameter="nk1", value=len(kpoints_up), namelist="&kpoints")
     @property
     def magnetic_moments_3d_array(self):
         return self.__magnetic_moments_3d_array

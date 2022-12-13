@@ -242,7 +242,8 @@ class DFT_genius(GeniusIO):
             logger.info(f"nx={self.nx}, ny={self.ny}, nz={self.nz}")
 
         # self prep class!!
-        self.prep=Prep.parse_from_default_namelist(in_fort10=fort10)
+        self.prep=Prep.parse_from_default_namelist(in_fort10=fort10, twist_average=self.twist_average)
+        
         self.prep.set_parameter(parameter="maxtime", value=maxtime, namelist="&simulation")
 
         # set L_box
@@ -295,7 +296,7 @@ class DFT_genius(GeniusIO):
         if self.smearing == 0.0:
             self.prep.set_parameter(parameter="optocc", value=0, namelist="&dft")
             self.prep.set_parameter(parameter="epsshell", value=self.smearing, namelist="&dft")
-            
+
             if self.xc == 'lda':
                 nelocc=io_fort10.f10header.nelup
                 nelocc_list=[2 for _ in range(io_fort10.f10header.neldn)] + [1 for _ in range(io_fort10.f10header.nelup - io_fort10.f10header.neldn)]

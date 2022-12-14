@@ -224,6 +224,7 @@ class Makefort10_genius(GeniusIO):
          complex (bool): if True, the WF is complex, if False, the WF is real.
          phase_up (list): 3-float numbers for the up-phase [x, y, z].
          phase_dn (list): 3-float numbers for the dn-phase [x, y, z].
+         same_phase_up_dn (bool): forced phase up == phase dn (valid only for gamma point.) it is automatically detected for other points.
          neldiff (int): The number of difference between up and dn electrons.
     """
     def __init__(self,
@@ -241,6 +242,7 @@ class Makefort10_genius(GeniusIO):
                  complex:bool=False,
                  phase_up:list=[0.0, 0.0, 0.0],
                  phase_dn:list=[0.0, 0.0, 0.0],
+                 same_phase_up_dn:bool=False,
                  neldiff:int=0
                  ):
 
@@ -256,6 +258,7 @@ class Makefort10_genius(GeniusIO):
         self.complex = complex
         self.phase_up = phase_up
         self.phase_dn = phase_dn
+        self.same_phase_up_dn = same_phase_up_dn
 
         # makefort10 class
         structure = Structure.parse_structure_from_file(file=structure_file)
@@ -417,8 +420,38 @@ class Makefort10_genius(GeniusIO):
         else:
             pass
 
-        assert len(self.phase_up) == 3
-        assert len(self.phase_dn) == 3
+        # check input related to phases
+        if not len(self.phase_up) == 3:
+            logger.error(f"len(self.phase_up) should be 3.")
+            raise ValueError
+        if not len(self.phase_dn) == 3:
+            logger.error(f"len(self.phase_up) should be 3.")
+            raise ValueError
+
+        # check if opposite or same
+        if np.array(self.phase_up) == np.array(self.phase_dn):
+            if np.array(self.phase_up) == np.array([0,0,0]):
+                logger.info("phases up and dn are Gamma points")
+                if self.same_phase_up_dn:
+                    logger.warning(f"same_phase_up_dn has been set True.")
+                    logger.warning(f"forcesymm option will be activated.")
+                    namelist.set_parameter(parameter="forcesymm", value='.true.', namelist="&symmetries")
+                else:
+                    namelist.set_parameter(parameter="forcesymm", value='.false.', namelist="&symmetries")
+
+            else:
+                logger.info(f"phase up == phase dn")
+                logger.warning(f"forcesymm option will be activated.")
+                namelist.set_parameter(parameter="forcesymm", value='.true.', namelist="&symmetries")
+
+        elif np.array(self.phase_up) == -1 * np.array(self.phase_dn):
+            logger.info(f"phase up == -1 * phase dn")
+            logger.warning(f"forcesymm option will be deactivated.")
+            namelist.set_parameter(parameter="forcesymm", value='.false.', namelist="&symmetries")
+
+        else:
+            logger.error(f"phase up is not equal to +1 * phase up and -1 * phase dn")
+            raise ValueError
 
         namelist.set_parameter(parameter="phase(1)", value=self.phase_up[0], namelist="&system")
         namelist.set_parameter(parameter="phase(2)", value=self.phase_up[1], namelist="&system")

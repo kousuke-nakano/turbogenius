@@ -250,9 +250,30 @@ def trexio_to_turborvb_wf(trexio_file:str,
                                                 neldiff = num_ele_up - num_ele_dn,
                                                 nel = num_ele_up + num_ele_dn)
 
-    assert len(phase_up) == 3
-    assert len(phase_dn) == 3
-    
+    # check input related to phases
+    if not len(phase_up) == 3:
+        logger.error(f"len(phase_up) should be 3.")
+        raise ValueError
+    if not len(phase_dn) == 3:
+        logger.error(f"len(phase_up) should be 3.")
+        raise ValueError
+
+    # check if opposite or same
+    if np.array(phase_up) == np.array(phase_dn):
+        logger.info(f"phase up == phase dn or at gamma points")
+        logger.warning(f"forcesymm is true even for gamma points. The option to deactivate this will be implemented in the future.")
+        logger.warning(f"forcesymm option will be activated.")
+        namelist.set_parameter(parameter="forcesymm", value='.true.', namelist="&symmetries")
+
+    elif np.array(phase_up) == -1 * np.array(phase_dn):
+        logger.info(f"phase up == -1 * phase dn")
+        logger.warning(f"forcesymm option will be deactivated.")
+        namelist.set_parameter(parameter="forcesymm", value='.false.', namelist="&symmetries")
+
+    else:
+        logger.error(f"phase up is not equal to +1 * phase up and -1 * phase dn")
+        raise ValueError
+
     # phase-up and phase-dn
     namelist.set_parameter(parameter="phase(1)", value=phase_up[0], namelist="&system")
     namelist.set_parameter(parameter="phase(2)", value=phase_up[1], namelist="&system")

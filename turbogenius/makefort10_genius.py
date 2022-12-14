@@ -429,8 +429,8 @@ class Makefort10_genius(GeniusIO):
             raise ValueError
 
         # check if opposite or same
-        if np.array(self.phase_up) == np.array(self.phase_dn):
-            if np.array(self.phase_up) == np.array([0,0,0]):
+        if all(np.array(self.phase_up) == np.array(self.phase_dn)):
+            if all(np.array(self.phase_up) == np.array([0,0,0])):
                 logger.info("phases up and dn are Gamma points")
                 if self.same_phase_up_dn:
                     logger.warning(f"same_phase_up_dn has been set True.")
@@ -444,7 +444,7 @@ class Makefort10_genius(GeniusIO):
                 logger.warning(f"forcesymm option will be activated.")
                 namelist.set_parameter(parameter="forcesymm", value='.true.', namelist="&symmetries")
 
-        elif np.array(self.phase_up) == -1 * np.array(self.phase_dn):
+        elif all(np.array(self.phase_up) == -1 * np.array(self.phase_dn)):
             logger.info(f"phase up == -1 * phase dn")
             logger.warning(f"forcesymm option will be deactivated.")
             namelist.set_parameter(parameter="forcesymm", value='.false.', namelist="&symmetries")

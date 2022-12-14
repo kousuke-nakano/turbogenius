@@ -259,13 +259,13 @@ def trexio_to_turborvb_wf(trexio_file:str,
         raise ValueError
 
     # check if opposite or same
-    if np.array(phase_up) == np.array(phase_dn):
+    if all(np.array(phase_up) == np.array(phase_dn)):
         logger.info(f"phase up == phase dn or at gamma points")
         logger.warning(f"forcesymm is true even for gamma points. The option to deactivate this will be implemented in the future.")
         logger.warning(f"forcesymm option will be activated.")
         namelist.set_parameter(parameter="forcesymm", value='.true.', namelist="&symmetries")
 
-    elif np.array(phase_up) == -1 * np.array(phase_dn):
+    elif all(np.array(phase_up) == -1 * np.array(phase_dn)):
         logger.info(f"phase up == -1 * phase dn")
         logger.warning(f"forcesymm option will be deactivated.")
         namelist.set_parameter(parameter="forcesymm", value='.false.', namelist="&symmetries")

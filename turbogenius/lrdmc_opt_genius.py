@@ -303,22 +303,25 @@ class LRDMCopt_genius(GeniusIO):
         self.lrdmcopt.set_parameter(parameter="typereg", value=typereg, namelist="&dmclrdmc")
         self.lrdmcopt.set_parameter(parameter="npow", value=npow, namelist="&dmclrdmc")
 
+        #pseudo integration
+        self.lrdmcopt.set_parameter(parameter="npsamax", value=3, namelist="&pseudo")
+
         # kpoints
         if self.twist_average: # not 0 (= not False)!!
             if self.twist_average == 1: # True case, Monkhorst-Pack algorithm
                 assert len(self.kpoints) == 6
                 nkx, nky, nkz, kx, ky, kz = self.kpoints
-                self.vmcopt.set_parameter(parameter="yes_kpoints", value=".true.", namelist="&parameters")
-                #self.vmcopt.set_parameter(parameter="yeswrite10", value=".true.", namelist="&optimization")
-                self.vmcopt.set_parameter(parameter="kp_type", value=1, namelist="&kpoints")
-                self.vmcopt.set_parameter(parameter="nk1", value=nkx, namelist="&kpoints")
-                self.vmcopt.set_parameter(parameter="nk2", value=nky, namelist="&kpoints")
-                self.vmcopt.set_parameter(parameter="nk3", value=nkz, namelist="&kpoints")
-                self.vmcopt.set_parameter(parameter="k1", value=kx, namelist="&kpoints")
-                self.vmcopt.set_parameter(parameter="k2", value=ky, namelist="&kpoints")
-                self.vmcopt.set_parameter(parameter="k3", value=kz, namelist="&kpoints")
-                self.vmcopt.set_parameter(parameter="skip_equivalence", value='.true.', namelist="&kpoints")
-                self.vmcopt.set_parameter(parameter="double_kpgrid", value='.true.', namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="yes_kpoints", value=".true.", namelist="&parameters")
+                #self.lrdmcopt.set_parameter(parameter="yeswrite10", value=".true.", namelist="&optimization")
+                self.lrdmcopt.set_parameter(parameter="kp_type", value=1, namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="nk1", value=nkx, namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="nk2", value=nky, namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="nk3", value=nkz, namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="k1", value=kx, namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="k2", value=ky, namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="k3", value=kz, namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="skip_equivalence", value='.true.', namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="double_kpgrid", value='.true.', namelist="&kpoints")
             elif self.twist_average == 2: # k-points are set from the user
                 assert len(self.kpoints) == 2
                 kpoints_up, kpoints_dn = self.kpoints
@@ -326,12 +329,12 @@ class LRDMCopt_genius(GeniusIO):
                 for kup, kdn in zip(kpoints_up, kpoints_dn):
                     assert len(kup) == 4 # kx, ky, kz, wkp for up
                     assert len(kdn) == 4 # kx, ky, kz, wkp for dn
-                self.vmcopt.set_parameter(parameter="yes_kpoints", value=".true.", namelist="&parameters")
-                #self.vmcopt.set_parameter(parameter="yeswrite10", value=".true.", namelist="&optimization")
-                self.vmcopt.set_parameter(parameter="kp_type", value=2, namelist="&kpoints")
-                self.vmcopt.set_parameter(parameter="nk1", value=len(kpoints_up), namelist="&kpoints")
-                self.vmcopt.set_parameter(parameter="double_kpgrid", value='.true.', namelist="&kpoints")
-                self.vmcopt.manual_kpoints=self.kpoints
+                self.lrdmcopt.set_parameter(parameter="yes_kpoints", value=".true.", namelist="&parameters")
+                #self.lrdmcopt.set_parameter(parameter="yeswrite10", value=".true.", namelist="&optimization")
+                self.lrdmcopt.set_parameter(parameter="kp_type", value=2, namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="nk1", value=len(kpoints_up), namelist="&kpoints")
+                self.lrdmcopt.set_parameter(parameter="double_kpgrid", value='.true.', namelist="&kpoints")
+                self.lrdmcopt.manual_kpoints=self.kpoints
 
             else:
                 logger.error(f"twist_average = {self.twist_average} is not implemented.")

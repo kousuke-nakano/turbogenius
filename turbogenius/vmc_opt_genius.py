@@ -344,6 +344,11 @@ class VMCopt_genius(GeniusIO):
         self.vmcopt.set_parameter(parameter="ngen", value=vmcoptsteps*steps, namelist="&simulation")
         self.vmcopt.set_parameter(parameter="maxtime", value=maxtime, namelist="&simulation")
         if num_walkers!=-1: self.vmcopt.set_parameter(parameter="nw", value=num_walkers, namelist="&simulation")
+
+        #pseudo integration
+        self.vmcopt.set_parameter(parameter="npsamax", value=3, namelist="&pseudo")
+
+        #vmc optimization
         self.vmcopt.set_parameter(parameter="nweight", value=steps, namelist="&optimization")
         self.vmcopt.set_parameter(parameter="nbinr", value=bin_block, namelist="&optimization")
         self.vmcopt.set_parameter(parameter="iboot", value=warmupblocks, namelist="&optimization")

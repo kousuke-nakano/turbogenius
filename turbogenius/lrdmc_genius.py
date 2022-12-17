@@ -196,6 +196,16 @@ class LRDMC_genius(GeniusIO):
         self.lrdmc.set_parameter(parameter="typereg", value=typereg, namelist="&dmclrdmc")
         self.lrdmc.set_parameter(parameter="npow", value=npow, namelist="&dmclrdmc")
 
+        # Do you want to compute forces?
+        if not self.force_calc_flag:
+            pass
+        else:
+            self.lrdmc.set_parameter(parameter="ieskin", value=1, namelist="&parameters")
+            # to do / other parameters!
+
+        #pseudo integration
+        self.lrdmc.set_parameter(parameter="npsamax", value=3, namelist="&pseudo")
+
         # kpoints
         if self.twist_average: # not 0 (= not False)!!
             if self.twist_average == 1: # True case, Monkhorst-Pack algorithm

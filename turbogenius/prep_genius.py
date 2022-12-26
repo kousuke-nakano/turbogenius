@@ -263,7 +263,7 @@ class DFT_genius(GeniusIO):
             self.prep.set_parameter(parameter="nz", value=self.nz, namelist="&molecul")
 
         #pseudo integration
-        self.prep.set_parameter(parameter="npsamax", value=3, namelist="&pseudo")
+        self.prep.set_parameter(parameter="npsamax", value=4, namelist="&pseudo")
 
         ## &dft part
 

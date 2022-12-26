@@ -178,7 +178,7 @@ class VMC_genius(GeniusIO):
         self.forces_error=None #np.array([[]])  # 3 * natom matrix
 
         #pseudo integration
-        self.vmc.set_parameter(parameter="npsamax", value=3, namelist="&pseudo")
+        self.vmc.set_parameter(parameter="npsamax", value=4, namelist="&pseudo")
 
         # should be dicussed with Sandro.
         # Do you want to compute forces? if not, it is better to switch epscut=0.0 off.

@@ -304,7 +304,7 @@ class LRDMCopt_genius(GeniusIO):
         self.lrdmcopt.set_parameter(parameter="npow", value=npow, namelist="&dmclrdmc")
 
         #pseudo integration
-        self.lrdmcopt.set_parameter(parameter="npsamax", value=3, namelist="&pseudo")
+        self.lrdmcopt.set_parameter(parameter="npsamax", value=4, namelist="&pseudo")
 
         # kpoints
         if self.twist_average: # not 0 (= not False)!!

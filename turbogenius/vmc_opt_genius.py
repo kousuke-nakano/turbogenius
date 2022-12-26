@@ -346,7 +346,7 @@ class VMCopt_genius(GeniusIO):
         if num_walkers!=-1: self.vmcopt.set_parameter(parameter="nw", value=num_walkers, namelist="&simulation")
 
         #pseudo integration
-        self.vmcopt.set_parameter(parameter="npsamax", value=3, namelist="&pseudo")
+        self.vmcopt.set_parameter(parameter="npsamax", value=4, namelist="&pseudo")
 
         #vmc optimization
         self.vmcopt.set_parameter(parameter="nweight", value=steps, namelist="&optimization")

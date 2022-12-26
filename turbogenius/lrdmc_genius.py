@@ -204,7 +204,7 @@ class LRDMC_genius(GeniusIO):
             # to do / other parameters!
 
         #pseudo integration
-        self.lrdmc.set_parameter(parameter="npsamax", value=3, namelist="&pseudo")
+        self.lrdmc.set_parameter(parameter="npsamax", value=4, namelist="&pseudo")
 
         # kpoints
         if self.twist_average: # not 0 (= not False)!!

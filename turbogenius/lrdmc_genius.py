@@ -201,7 +201,10 @@ class LRDMC_genius(GeniusIO):
             pass
         else:
             self.lrdmc.set_parameter(parameter="ieskin", value=1, namelist="&parameters")
-            # to do / other parameters!
+            # to be arguments of the class
+            self.lrdmc.set_parameter(parameter="parcutg", value=0, namelist="&dmclrdmc")
+            self.lrdmc.set_parameter(parameter="true_wagner", value=1, namelist="&dmclrdmc")
+            self.lrdmc.set_parameter(parameter="cutweight", value=-1.0e-4, namelist="&dmclrdmc")
 
         #pseudo integration
         self.lrdmc.set_parameter(parameter="npsamax", value=4, namelist="&pseudo")

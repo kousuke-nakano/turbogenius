@@ -303,6 +303,12 @@ class LRDMCopt_genius(GeniusIO):
         self.lrdmcopt.set_parameter(parameter="typereg", value=typereg, namelist="&dmclrdmc")
         self.lrdmcopt.set_parameter(parameter="npow", value=npow, namelist="&dmclrdmc")
 
+        # regularization
+        # to be arguments of the class
+        self.lrdmcopt.set_parameter(parameter="parcutg", value=0, namelist="&dmclrdmc")
+        self.lrdmcopt.set_parameter(parameter="true_wagner", value=1, namelist="&dmclrdmc")
+        self.lrdmcopt.set_parameter(parameter="cutweight", value=-1.0e-4, namelist="&dmclrdmc")
+
         #pseudo integration
         self.lrdmcopt.set_parameter(parameter="npsamax", value=4, namelist="&pseudo")
 

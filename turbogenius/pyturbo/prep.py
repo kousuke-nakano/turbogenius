@@ -14,21 +14,20 @@ Todo:
 """
 
 # python modules
-import os, sys
+import os
 import re
 import numpy as np
 
 # pyturbo modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from namelist import Namelist
-from fortranIO import FortranIO
-from utils.env import pyturbo_data_dir
-from utils.env import turbo_prep_run_command
-from utils.utility import file_check
-from utils.execute import run
-from io_fort10 import IO_fort10
+from turbogenius.pyturbo.namelist import Namelist
+from turbogenius.pyturbo.fortranIO import FortranIO
+from turbogenius.pyturbo.utils.env import pyturbo_data_dir
+from turbogenius.pyturbo.utils.env import turbo_prep_run_command
+from turbogenius.pyturbo.utils.utility import file_check
+from turbogenius.pyturbo.utils.execute import run
+from turbogenius.pyturbo.io_fort10 import IO_fort10
 
-from logging import config, getLogger, StreamHandler, Formatter
+from logging import getLogger, StreamHandler, Formatter
 
 logger = getLogger("pyturbo").getChild(__name__)
 
@@ -164,15 +163,15 @@ class Prep(FortranIO):
                 logger.error("No suitable position for KPOINT is found")
                 raise ValueError
             # write dn
-            lines.insert(insert_lineno, f"\n")
+            lines.insert(insert_lineno, "\n")
             for kx, ky, kz, wk in reversed(kpoints_dn):
                 lines.insert(insert_lineno, f"{kx} {ky} {kz} {wk}\n")
-            lines.insert(insert_lineno, f"\n")
+            lines.insert(insert_lineno, "\n")
             # write up
             for kx, ky, kz, wk in reversed(kpoints_up):
                 lines.insert(insert_lineno, f"{kx} {ky} {kz} {wk}\n")
-            lines.insert(insert_lineno, f"KPOINTS\n")
-            lines.insert(insert_lineno, f"\n")
+            lines.insert(insert_lineno, "KPOINTS\n")
+            lines.insert(insert_lineno, "\n")
             # saved
             with open(input_name, "w") as f:
                 f.writelines(lines)
@@ -192,7 +191,7 @@ class Prep(FortranIO):
         if len(self.magnetic_moments_3d_array) != 0:
             # write magnetic fields
             logger.info(
-                f"Writing magnetic moments at the end of prep.input file ... \n"
+                "Writing magnetic moments at the end of prep.input file ... \n"
             )
             with open(input_name, "a") as f:
                 f.write("\n")
@@ -202,7 +201,7 @@ class Prep(FortranIO):
                         f, self.magnetic_moments_3d_array[z_index, :, :], "%d"
                     )
                     f.write("\n")
-            logger.info(f"Magnetic moments written. \n")
+            logger.info("Magnetic moments written. \n")
         logger.info(f"{input_name} has been generated. \n")
 
     def run(self, input_name="prep.input", output_name="out_prep"):
@@ -265,8 +264,8 @@ class Prep(FortranIO):
                     parameter="nelocc", value=nelocc, namelist="&dft"
                 )
             elif typedft == 4:  # 4
-                nelocc = self.io_fort10.f10header.nelup
-                neloccdn = self.io_fort10.f10header.neldn
+                nelocc = io_fort10.f10header.nelup
+                neloccdn = io_fort10.f10header.neldn
                 namelist.set_parameter(
                     parameter="nelocc", value=nelocc, namelist="&dft"
                 )

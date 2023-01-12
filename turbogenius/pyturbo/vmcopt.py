@@ -14,7 +14,7 @@ Todo:
 """
 
 # python modules
-import os, sys
+import os
 import shutil
 import re
 import numpy as np
@@ -23,26 +23,28 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 # Logger
-from logging import config, getLogger, StreamHandler, Formatter
+from logging import getLogger, StreamHandler, Formatter
 
-logger = getLogger("pyturbo").getChild(__name__)
-# logger = getLogger(__name__)
 
 # turbo-genius modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from namelist import Namelist
-from fortranIO import FortranIO
-from io_fort10 import IO_fort10
-from utils.env import pyturbo_root, pyturbo_data_dir
-from utils.env import turbo_qmc_run_command, turborvb_bin_root
-from utils.utility import (
+from turbogenius.pyturbo.namelist import Namelist
+from turbogenius.pyturbo.fortranIO import FortranIO
+from turbogenius.pyturbo.io_fort10 import IO_fort10
+from turbogenius.pyturbo.utils.env import pyturbo_data_dir
+from turbogenius.pyturbo.utils.env import (
+    turbo_qmc_run_command,
+    turborvb_bin_root,
+)
+from turbogenius.pyturbo.utils.utility import (
     file_check,
     file_check_flag,
-    get_line_from_file,
     remove_new_parameter_lines_in_fort10,
     remove_file,
 )
-from utils.execute import run
+from turbogenius.pyturbo.utils.execute import run
+
+
+logger = getLogger("pyturbo").getChild(__name__)
 
 
 class VMCopt(FortranIO):
@@ -127,15 +129,15 @@ class VMCopt(FortranIO):
                 logger.error("No suitable position for KPOINT is found")
                 raise ValueError
             # write dn
-            lines.insert(insert_lineno, f"\n")
+            lines.insert(insert_lineno, "\n")
             for kx, ky, kz, wk in reversed(kpoints_dn):
                 lines.insert(insert_lineno, f"{kx} {ky} {kz} {wk}\n")
-            lines.insert(insert_lineno, f"\n")
+            lines.insert(insert_lineno, "\n")
             # write up
             for kx, ky, kz, wk in reversed(kpoints_up):
                 lines.insert(insert_lineno, f"{kx} {ky} {kz} {wk}\n")
-            lines.insert(insert_lineno, f"KPOINTS\n")
-            lines.insert(insert_lineno, f"\n")
+            lines.insert(insert_lineno, "KPOINTS\n")
+            lines.insert(insert_lineno, "\n")
             # saved
             with open(input_name, "w") as f:
                 f.writelines(lines)

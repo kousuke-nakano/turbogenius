@@ -14,17 +14,13 @@ Todo:
 """
 
 # python modules
-import os, sys
 from abc import ABC, abstractmethod
 
 # set logger
-from logging import config, getLogger, StreamHandler, Formatter
+from logging import getLogger
 
 logger = getLogger("pyturbo").getChild(__name__)
 
-# pyturbo modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from namelist import Namelist
 
 # fortranIO abstract class
 class FortranIO(ABC):

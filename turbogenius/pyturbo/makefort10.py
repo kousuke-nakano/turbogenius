@@ -14,28 +14,29 @@ Todo:
 """
 
 # python modules
-import os, sys
+import os
 import re
 import numpy as np
 from decimal import Decimal
 
 # set logger
-from logging import config, getLogger, StreamHandler, Formatter
-
-logger = getLogger("pyturbo").getChild(__name__)
+from logging import getLogger, StreamHandler, Formatter
 
 # pyturbo modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from utils.env import pyturbo_data_dir
-from utils.env import turbo_makefort10_run_command
-from utils.utility import file_check, file_check_flag
-from utils.utility import return_num_twobody_and_flag_onebody
-from structure import Structure
-from namelist import Namelist
-from fortranIO import FortranIO
-from pseudopotentials import Pseudopotentials
-from basis_set import Jas_Basis_sets, Det_Basis_sets
-from utils.execute import run
+from turbogenius.pyturbo.utils.env import pyturbo_data_dir
+from turbogenius.pyturbo.utils.env import turbo_makefort10_run_command
+from turbogenius.pyturbo.utils.utility import file_check, file_check_flag
+from turbogenius.pyturbo.utils.utility import (
+    return_num_twobody_and_flag_onebody,
+)
+from turbogenius.pyturbo.structure import Structure
+from turbogenius.pyturbo.namelist import Namelist
+from turbogenius.pyturbo.fortranIO import FortranIO
+from turbogenius.pyturbo.pseudopotentials import Pseudopotentials
+from turbogenius.pyturbo.basis_set import Jas_Basis_sets, Det_Basis_sets
+from turbogenius.pyturbo.utils.execute import run
+
+logger = getLogger("pyturbo").getChild(__name__)
 
 
 class Makefort10(FortranIO):
@@ -228,7 +229,7 @@ class Makefort10(FortranIO):
                 output.append(f" ndet_hyb={ndet_hyb}\n")
             if njas_hyb != 0:
                 output.append(f" njas_hyb={njas_hyb}\n")
-            output.append(f"/\n")
+            output.append("/\n")
 
             for k, basis_sets in enumerate(
                 (self.det_basis_sets, self.jas_basis_sets)
@@ -427,7 +428,7 @@ class Makefort10(FortranIO):
         namelist.set_parameter("posunits", "bohr", "&system")
 
         # PBC case
-        if structure.pbc_flag == True:
+        if structure.pbc_flag:
 
             # non-orthorhombic cell
             if structure.tilted_flag:
@@ -477,7 +478,8 @@ class Makefort10(FortranIO):
 
         # Open system
         else:
-            assert complex_flag == False
+            if complex_flag:
+                raise ValueError
             namelist.set_parameter("pbcfort10", ".false.", "&system")
             namelist.set_parameter("yes_crystal", ".false.", "&electrons")
             namelist.set_parameter("yes_crystalj", ".false.", "&electrons")

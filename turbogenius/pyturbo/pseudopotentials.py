@@ -14,26 +14,23 @@ Todo:
 """
 
 # python modules
-import os, sys
+import os
 import re
-import subprocess
 
 # turbo-genius modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from utils.env import pyturbo_tmp_dir, turborvb_bin_root
-from utils.utility import (
+from turbogenius.pyturbo.utils.env import pyturbo_tmp_dir, turborvb_bin_root
+from turbogenius.pyturbo.utils.utility import (
     pygetline,
     pygrep_lineno,
     return_element_symbol,
     return_orbchr,
 )
-from utils.execute import run
+from turbogenius.pyturbo.utils.execute import run
 
 # Logger
-from logging import config, getLogger, StreamHandler, Formatter
+from logging import getLogger, StreamHandler, Formatter
 
 logger = getLogger("pyturbo").getChild(__name__)
-# logger = getLogger(__name__)
 
 
 class Pseudopotentials:
@@ -731,8 +728,6 @@ def main():
 
 
 if __name__ == "__main__":
-    from utils.env import pyturbo_root  # works only with install -e mode.
-
     logger = getLogger("pyturbo")
     logger.setLevel("DEBUG")
     stream_handler = StreamHandler()
@@ -744,9 +739,9 @@ if __name__ == "__main__":
     logger.addHandler(stream_handler)
 
     main()
-    sys.exit()
-    # moved to examples
 
+    # moved to examples
+    """
     ## basis set downloads
     pseudopotentials_test_dir = os.path.join(
         pyturbo_root, "tests", "pseudopotentials"
@@ -759,3 +754,4 @@ if __name__ == "__main__":
         )
     )
     pseudopotentials.set_cutoffs()
+    """

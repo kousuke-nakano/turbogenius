@@ -12,26 +12,24 @@ Todo:
 
 
 # python modules
-import os, sys
+import os
 import re
 import numpy as np
 from typing import Union
 
 # logger set
-from logging import config, getLogger, StreamHandler, Formatter
-
-logger = getLogger("pyturbo").getChild(__name__)
+from logging import getLogger, StreamHandler, Formatter
 
 # pyturbo modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from utils.utility import (
+from turbogenius.pyturbo.utils.utility import (
     return_ang_mom,
     turbo_prim_orb_type_num,
     turbo_cont_orb_type_num,
     return_orbchr,
 )
-from utils.env import pyturbo_root
-from utils.downloader import BSE, BFD, ccECP
+from turbogenius.pyturbo.utils.env import pyturbo_root
+
+logger = getLogger("pyturbo").getChild(__name__)
 
 
 class Basis_sets:
@@ -185,7 +183,7 @@ class Basis_sets:
             pass
         else:
             logger.error("type(nucleus_index) seems wrong.")
-            raise NotImplementerErorr
+            raise NotImplementedError
 
         logger.debug(nucleus_index)
 
@@ -218,7 +216,7 @@ class Basis_sets:
                             cut_prim_index.append(prim_index)
                     else:
                         logger.error(f"Not implemented method={method}")
-                        raise NotImplementerErorr
+                        raise NotImplementedError
 
         for prim_index in reversed(cut_prim_index):
             logger.debug(cut_prim_index)

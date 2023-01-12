@@ -14,7 +14,6 @@ Todo:
 """
 
 # python modules
-import os, sys
 import math
 import numpy as np
 from numpy import linalg as LA
@@ -25,13 +24,13 @@ from ase.visualize import view
 from ase.io import write, read
 
 # set logger
-from logging import config, getLogger, StreamHandler, Formatter
-
-logger = getLogger("pyturbo").getChild(__name__)
+from logging import getLogger, StreamHandler, Formatter
 
 # turbogenius module
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from utils.units import Angstrom
+from turbogenius.pyturbo.utils.units import Angstrom
+
+
+logger = getLogger("pyturbo").getChild(__name__)
 
 
 class Cell:
@@ -57,7 +56,7 @@ class Cell:
         else:
             self.__pbc_flag = True
 
-        if self.__pbc_flag == False:
+        if not self.__pbc_flag:
             self.__cos_alpha = np.nan
             self.__cos_beta = np.nan
             self.__cos_gamma = np.nan

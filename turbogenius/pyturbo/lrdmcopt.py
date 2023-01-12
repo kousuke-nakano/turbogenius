@@ -14,7 +14,7 @@ Todo:
 """
 
 # python modules
-import os, sys
+import os
 import shutil
 import re
 import numpy as np
@@ -23,21 +23,25 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 # turbo-genius modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from namelist import Namelist
-from fortranIO import FortranIO
-from io_fort10 import IO_fort10
-from utils.env import pyturbo_data_dir, turborvb_bin_root
-from utils.env import turbo_qmc_run_command
-from utils.utility import file_check, file_check_flag, remove_file
-from utils.utility import remove_new_parameter_lines_in_fort10
-from utils.execute import run
+from turbogenius.pyturbo.namelist import Namelist
+from turbogenius.pyturbo.fortranIO import FortranIO
+from turbogenius.pyturbo.io_fort10 import IO_fort10
+from turbogenius.pyturbo.utils.env import pyturbo_data_dir, turborvb_bin_root
+from turbogenius.pyturbo.utils.env import turbo_qmc_run_command
+from turbogenius.pyturbo.utils.utility import (
+    file_check,
+    file_check_flag,
+    remove_file,
+)
+from turbogenius.pyturbo.utils.utility import (
+    remove_new_parameter_lines_in_fort10,
+)
+from turbogenius.pyturbo.utils.execute import run
 
 # Logger
-from logging import config, getLogger, StreamHandler, Formatter
+from logging import getLogger, StreamHandler, Formatter
 
 logger = getLogger("pyturbo").getChild(__name__)
-# logger = getLogger(__name__)
 
 
 class LRDMCopt(FortranIO):

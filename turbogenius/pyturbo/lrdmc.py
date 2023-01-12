@@ -15,35 +15,33 @@ Todo:
 """
 
 # python modules
-import os, sys
+import os
 import re
 import numpy as np
 
+# Logger
+from logging import getLogger, StreamHandler, Formatter
+
 # turbo-genius modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from namelist import Namelist
-from fortranIO import FortranIO
-from io_fort10 import IO_fort10
-from utils.env import (
+from turbogenius.pyturbo.namelist import Namelist
+from turbogenius.pyturbo.fortranIO import FortranIO
+from turbogenius.pyturbo.io_fort10 import IO_fort10
+from turbogenius.pyturbo.utils.env import (
     turbo_qmc_run_command,
     turbo_forcefn_run_command,
     turbo_forcefn_kpoints_run_command,
     turbo_forcefn_kpoints_para_run_command,
 )
-from utils.env import pyturbo_data_dir
-from utils.utility import (
+from turbogenius.pyturbo.utils.env import pyturbo_data_dir
+from turbogenius.pyturbo.utils.utility import (
     file_check,
     file_check_flag,
     get_line_from_file,
     remove_file,
 )
-from utils.execute import run
-
-# Logger
-from logging import config, getLogger, StreamHandler, Formatter
+from turbogenius.pyturbo.utils.execute import run
 
 logger = getLogger("pyturbo").getChild(__name__)
-# logger = getLogger(__name__)
 
 
 class LRDMC(FortranIO):
@@ -124,16 +122,6 @@ class LRDMC(FortranIO):
         )
 
         return ave_time_1_generation  # sec.
-
-    @staticmethod
-    def read_energy(twist_average=False):
-        line = get_line_from_file(file="pip0_fn.d", line_no=1).split()
-        energy = float(line[2])
-        if twist_average:
-            error = float(line[4])
-        else:
-            error = float(line[3])
-        return energy, error
 
     def get_energy(
         self, init=10, correct=10, bin=10, num_proc=-1, rerun=False
@@ -292,7 +280,7 @@ class LRDMC(FortranIO):
         if self.twist_average:
             if num_proc == -1:
                 logger.warning(
-                    f"num_proc is -1. The maximum possible cpus are used for computing energies and forces."
+                    "num_proc is -1. The maximum possible cpus are used for computing energies and forces."
                 )
                 logger.warning(
                     f"num_proc is set to {os.cpu_count()}, which is obtained by os.cpu_count()"

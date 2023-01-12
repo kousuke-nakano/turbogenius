@@ -14,18 +14,14 @@ Todo:
 """
 
 # python modules
-import os, sys
 import re
 from collections import OrderedDict
 
 # turbo-genius modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from utils.utility import get_str_variable_type_auto
-from utils.env import pyturbo_data_dir
+from turbogenius.pyturbo.utils.utility import get_str_variable_type_auto
 
 # set logger
-from logging import config, getLogger, StreamHandler, Formatter
+from logging import getLogger, StreamHandler, Formatter
 
 logger = getLogger("pyturbo").getChild(__name__)
 
@@ -90,7 +86,7 @@ class Namelist:
                     output.append(f"    {key}='{value}'\n")
                 else:
                     output.append(f"    {key}={value}\n")
-            output.append(f"/\n\n")
+            output.append("/\n\n")
 
         with open(file_name, "w") as f:
             f.writelines(output)

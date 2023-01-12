@@ -12,21 +12,14 @@ Todo:
 
 """
 
-# python modules
-import os, sys
-import re
-
 # pyturbo modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from namelist import Namelist
-from fortranIO import FortranIO
-from utils.env import turbo_convertfortpfaff_run_command
-from utils.env import pyturbo_data_dir
-from utils.utility import file_check
-from utils.execute import run
-from io_fort10 import IO_fort10
+from turbogenius.pyturbo.fortranIO import FortranIO
+from turbogenius.pyturbo.utils.env import turbo_convertfortpfaff_run_command
+from turbogenius.pyturbo.utils.utility import file_check
+from turbogenius.pyturbo.utils.execute import run
+from turbogenius.pyturbo.io_fort10 import IO_fort10
 
-from logging import config, getLogger, StreamHandler, Formatter
+from logging import getLogger, StreamHandler, Formatter
 
 logger = getLogger("pyturbo").getChild(__name__)
 

@@ -336,7 +336,7 @@ class VMC(FortranIO):
                 num_proc = os.cpu_count()
             if num_proc > 1:
                 command = turbo_forcevmc_kpoints_para_run_command
-                command = turbo_forcevmc_kpoints_run_command  # for the time being!!! because paperoga does not have sufficient memory.
+                #command = turbo_forcevmc_kpoints_run_command  # for the time being!!! because paperoga does not have sufficient memory.
             else:
                 command = turbo_forcevmc_kpoints_run_command
             cmd = "{:s} {:d} {:d} {:d} {:d}".format(

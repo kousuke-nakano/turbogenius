@@ -1102,7 +1102,7 @@ def main():
         trexio_to_turborvb_wf(
             trexio_file=args.trexio_file,
             cleanup=args.cleanup,
-            max_occ_conv=1.0e-3,
+            max_occ_conv=0.0,
             jas_basis_sets=jas_basis_sets,
         )
 

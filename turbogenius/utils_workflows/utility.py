@@ -3,16 +3,11 @@
 
 from __future__ import print_function
 
-# python modules
-import os, sys
-import subprocess
-
 # set logger
-from logging import config, getLogger, StreamHandler, Formatter
-logger = getLogger('pyturbo').getChild(__name__)
+from logging import getLogger
 
-# pyturbo module
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+logger = getLogger("pyturbo").getChild(__name__)
+
 
 def prompt(text, checker):
     """Loop input() *FOREVER* while input is invalid."""
@@ -21,18 +16,19 @@ def prompt(text, checker):
         if checker(output):
             return output
 
+
 def get_nonlocalmoves_setting(nonlocalmoves):
     if nonlocalmoves == "tmove":
-        typereg = 0;
+        typereg = 0
         npow = 0.0
     elif nonlocalmoves == "dla":
-        typereg = 6;
+        typereg = 6
         npow = 1.0
     elif nonlocalmoves == "dlatm":
-        typereg = 6;
+        typereg = 6
         npow = 0.0
     elif nonlocalmoves == "la":
-        typereg = 0;
+        typereg = 0
         npow = 1.0
     else:
         logger.error(f"nonlocalmoves={nonlocalmoves} is not implemented.")
@@ -40,17 +36,18 @@ def get_nonlocalmoves_setting(nonlocalmoves):
 
     return typereg, npow
 
+
 def get_optimizer_flags(
-        optimizer="sr",
-        opt_onebody=True,
-        opt_twobody=True,
-        opt_det_mat=True,
-        opt_jas_mat=True,
-        opt_det_basis_exp=True,
-        opt_jas_basis_exp=True,
-        opt_det_basis_coeff=True,
-        opt_jas_basis_coeff=True,
-        qmc_type="vmc"
+    optimizer="sr",
+    opt_onebody=True,
+    opt_twobody=True,
+    opt_det_mat=True,
+    opt_jas_mat=True,
+    opt_det_basis_exp=True,
+    opt_jas_basis_exp=True,
+    opt_det_basis_coeff=True,
+    opt_jas_basis_coeff=True,
+    qmc_type="vmc",
 ):
     logger.debug(optimizer)
 
@@ -58,29 +55,29 @@ def get_optimizer_flags(
     if opt_onebody or opt_twobody:
         iesd = 1
         if opt_onebody:
-            iesdonebodyoff = '.false.'
+            iesdonebodyoff = ".false."
         else:
-            iesdonebodyoff = '.true.'
+            iesdonebodyoff = ".true."
         if opt_twobody:
-            iesdtwobodyoff = '.false.'
+            iesdtwobodyoff = ".false."
         else:
-            iesdtwobodyoff = '.true.'
+            iesdtwobodyoff = ".true."
     else:
         iesd = 0
-        iesdonebodyoff = '.false.'
-        iesdtwobodyoff = '.false.'
+        iesdonebodyoff = ".false."
+        iesdtwobodyoff = ".false."
 
     # jastrow matrix element optimization
     if opt_jas_mat:
         iesfree = 1
-        twobodyoff = '.false.'
+        twobodyoff = ".false."
     else:
         if opt_onebody:
             iesfree = 1
-            twobodyoff = '.true.'
+            twobodyoff = ".true."
         else:
             iesfree = 0
-            twobodyoff = '.false.'
+            twobodyoff = ".false."
 
     # determinant matrix element optimization
     if opt_det_mat:
@@ -93,24 +90,36 @@ def get_optimizer_flags(
         iesup = 1
         if opt_det_basis_coeff and not opt_det_basis_exp:  # opt only coeff.
             if optimizer == "sr":  # stochastic reconfiguration
-                optimizer_number = return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False)
+                optimizer_number = return_optimizer_number(
+                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                )
             elif optimizer == "lr":  # linear method
-                optimizer_number = return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False)
+                optimizer_number = return_optimizer_number(
+                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                )
             else:
                 raise NotImplementedError
-        else: # opt also exponents
+        else:  # opt also exponents
             if optimizer == "sr":  # stochastic reconfiguration
-                optimizer_number = return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True)
+                optimizer_number = return_optimizer_number(
+                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True
+                )
             elif optimizer == "lr":  # linear method
-                optimizer_number = return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True)
+                optimizer_number = return_optimizer_number(
+                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True
+                )
             else:
                 raise NotImplementedError
     else:
         iesup = 0
         if optimizer == "sr":  # stochastic reconfiguration
-            optimizer_number = return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False)
+            optimizer_number = return_optimizer_number(
+                optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+            )
         elif optimizer == "lr":  # linear method
-            optimizer_number = return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False)
+            optimizer_number = return_optimizer_number(
+                optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+            )
         else:
             raise NotImplementedError
 
@@ -119,56 +128,81 @@ def get_optimizer_flags(
         iesm = 1
         if opt_jas_basis_coeff and not opt_jas_basis_exp:  # opt only coeff.
             if optimizer == "sr":  # stochastic reconfiguration
-                assert optimizer_number == return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False), "There is a conflict!! Not implemented."
+                assert optimizer_number == return_optimizer_number(
+                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                ), "There is a conflict!! Not implemented."
             elif optimizer == "lr":  # linear method
-                assert optimizer_number == return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False), "There is a conflict!! Not implemented."
+                assert optimizer_number == return_optimizer_number(
+                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                ), "There is a conflict!! Not implemented."
             else:
                 raise NotImplementedError
         else:
             if optimizer == "sr":  # stochastic reconfiguration
-                assert optimizer_number == return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True), "There is a conflict!! Not implemented."
+                assert optimizer_number == return_optimizer_number(
+                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True
+                ), "There is a conflict!! Not implemented."
             elif optimizer == "lr":  # linear method
-                assert optimizer_number == return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True), "There is a conflict!! Not implemented."
+                assert optimizer_number == return_optimizer_number(
+                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True
+                ), "There is a conflict!! Not implemented."
             else:
                 raise NotImplementedError
     else:
         iesm = 0
 
         if optimizer == "sr":  # stochastic reconfiguration
-            assert optimizer_number == return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False), "There is a conflict!! Not implemented."
+            assert optimizer_number == return_optimizer_number(
+                optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+            ), "There is a conflict!! Not implemented."
         elif optimizer == "lr":  # linear method
-            assert optimizer_number == return_optimizer_number(optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False), "There is a conflict!! Not implemented."
+            assert optimizer_number == return_optimizer_number(
+                optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+            ), "There is a conflict!! Not implemented."
         else:
             raise NotImplementedError
 
-    return optimizer_number, iesdonebodyoff, iesdtwobodyoff, twobodyoff, iesd, iesfree, iessw, iesup, iesm
+    return (
+        optimizer_number,
+        iesdonebodyoff,
+        iesdtwobodyoff,
+        twobodyoff,
+        iesd,
+        iesfree,
+        iessw,
+        iesup,
+        iesm,
+    )
 
-def return_optimizer_number(optimizer="sr", qmc_type="vmc", opt_exponent=False):
-    if optimizer=="lr":
-        if qmc_type=="vmc":
-            if opt_exponent:
-                optimizer_number=-8
-            else:
-                optimizer_number=-4
-        elif qmc_type=="lrdmc":
-            if opt_exponent:
-                optimizer_number=-28
-            else:
-                optimizer_number=-24
-        else:
-            raise NotImplementedError
 
-    elif optimizer=="sr":
+def return_optimizer_number(
+    optimizer="sr", qmc_type="vmc", opt_exponent=False
+):
+    if optimizer == "lr":
         if qmc_type == "vmc":
             if opt_exponent:
-                optimizer_number=-5
+                optimizer_number = -8
             else:
-                optimizer_number=-9
+                optimizer_number = -4
         elif qmc_type == "lrdmc":
             if opt_exponent:
-                optimizer_number=-25
+                optimizer_number = -28
             else:
-                optimizer_number=-29
+                optimizer_number = -24
+        else:
+            raise NotImplementedError
+
+    elif optimizer == "sr":
+        if qmc_type == "vmc":
+            if opt_exponent:
+                optimizer_number = -5
+            else:
+                optimizer_number = -9
+        elif qmc_type == "lrdmc":
+            if opt_exponent:
+                optimizer_number = -25
+            else:
+                optimizer_number = -29
         else:
             raise NotImplementedError
     else:

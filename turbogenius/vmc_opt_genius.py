@@ -12,12 +12,14 @@ Todo:
 
 # python modules
 import os
+import sys
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
 
 # turbogenius modules
-from turbogenius.pyturbo.vmcopt import VMCopt
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from turbogenius.pyturbo.vmcopt import VMCopt 
 from turbogenius.pyturbo.io_fort10 import IO_fort10
 from turbogenius.utils_workflows.env import turbo_genius_root
 from turbogenius.utils_workflows.utility import get_optimizer_flags

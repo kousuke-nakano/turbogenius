@@ -16,6 +16,9 @@ Todo:
 # python modules
 import os
 import re
+import shutil
+import random
+import string
 
 # turbo-genius modules
 from turbogenius.pyturbo.utils.env import pyturbo_tmp_dir, turborvb_bin_root
@@ -152,11 +155,15 @@ class Pseudopotentials:
         current_dir = os.getcwd()
 
         try:
-            os.chdir(pyturbo_tmp_dir)
+            num_string=15
+            rand_string=''.join(random.choices(string.ascii_letters + string.digits, k=num_string))
+            pyturbo_tmp_rand_dir=os.path.join(pyturbo_tmp_dir, rand_string)
+            os.makedirs(pyturbo_tmp_rand_dir, exist_ok=True)
+            os.chdir(pyturbo_tmp_rand_dir)
             for i, nuclei_i in enumerate(set(self.nucleus_index)):
 
                 file = "pseudo.dat"
-                with open(file, "w") as f:
+                with open(file, "x") as f:
                     output = []
                     output.append("ECP\n")
 
@@ -225,6 +232,7 @@ class Pseudopotentials:
             self.cutoff = new_cutoff
 
         finally:
+            shutil.rmtree(pyturbo_tmp_rand_dir)
             os.chdir(current_dir)
 
     @classmethod

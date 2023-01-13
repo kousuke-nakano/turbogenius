@@ -18,7 +18,6 @@ import sys
 from logging import getLogger, StreamHandler, Formatter
 
 # turbogenius modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from turbogenius.pyturbo.vmcopt import VMCopt 
 from turbogenius.pyturbo.io_fort10 import IO_fort10
 from turbogenius.utils_workflows.env import turbo_genius_root

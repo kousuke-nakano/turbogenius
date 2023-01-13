@@ -28,7 +28,6 @@ import logging
 from logging import getLogger, StreamHandler, Formatter
 
 # pyturbo module
-# sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from turbogenius.pyturbo.utils.utility import (
     pygrep_lineno,
     pysed_replace,

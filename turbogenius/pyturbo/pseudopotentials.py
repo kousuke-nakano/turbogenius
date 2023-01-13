@@ -226,7 +226,11 @@ class Pseudopotentials:
                 logger.info(
                     f"suggested_cutoff for nuculei index = {i} is rc = {suggested_cutoff} Bohr"
                 )
-                # os.remove(file); os.remove(out_pp); os.remove("pseudo.plot")
+                
+                # clean files
+                os.remove(file)
+                os.remove(out_pp)
+                os.remove("pseudo.plot")
 
             logger.info(f"suggested cutoff list {new_cutoff}")
             self.cutoff = new_cutoff

@@ -1,4 +1,6 @@
-import os, glob
+import os
+import sys
+import glob
 
 __all__ = [
     os.path.split(os.path.splitext(file)[0])[1]
@@ -6,3 +8,8 @@ __all__ = [
 ]
 
 from . import *
+
+# The following line is a workaround for the compatibility between
+# the old and new turbogenius versions! (i.e. name spaces in import)
+# It will be removed in the next release.
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))

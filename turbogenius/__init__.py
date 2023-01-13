@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 
 __all__ = [
@@ -9,3 +10,8 @@ __all__ = [
 ]
 from . import *
 from .pyturbo import *
+
+# The following line is a workaround for the compatibility between
+# the old and new turbogenius versions! (i.e. name spaces in import)
+# It will be removed in the next release.
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))

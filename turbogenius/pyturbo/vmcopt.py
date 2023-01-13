@@ -27,8 +27,6 @@ from logging import getLogger, StreamHandler, Formatter
 
 
 # turbo-genius modules
-import sys # it should be deleted in the next release!!
-sys.path.append(os.path.dirname(os.path.abspath(__file__))) # workaround for the continuation from the previous version!
 from turbogenius.pyturbo.namelist import Namelist
 from turbogenius.pyturbo.fortranIO import FortranIO
 from turbogenius.pyturbo.io_fort10 import IO_fort10

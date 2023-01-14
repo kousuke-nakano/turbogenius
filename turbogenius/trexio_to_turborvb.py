@@ -69,7 +69,6 @@ def trexio_to_turborvb_wf(
         mo_num_conv (int): num mo used for the conv, not used with max occ
         only_mol (bool): if True, only moleculer orbitals option = True in convertfort10mol
         cleanup (bool): clean up temporary files
-
     """
     # os.environ["DYLD_LIBRARY_PATH"]=os.environ["LIBRARY_PATH"]
 

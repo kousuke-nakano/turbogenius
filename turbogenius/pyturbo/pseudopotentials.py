@@ -155,9 +155,13 @@ class Pseudopotentials:
         current_dir = os.getcwd()
 
         try:
-            num_string=15
-            rand_string=''.join(random.choices(string.ascii_letters + string.digits, k=num_string))
-            pyturbo_tmp_rand_dir=os.path.join(pyturbo_tmp_dir, rand_string)
+            num_string = 15
+            rand_string = "".join(
+                random.choices(
+                    string.ascii_letters + string.digits, k=num_string
+                )
+            )
+            pyturbo_tmp_rand_dir = os.path.join(pyturbo_tmp_dir, rand_string)
             os.makedirs(pyturbo_tmp_rand_dir, exist_ok=True)
             os.chdir(pyturbo_tmp_rand_dir)
             for i, nuclei_i in enumerate(set(self.nucleus_index)):
@@ -226,7 +230,7 @@ class Pseudopotentials:
                 logger.info(
                     f"suggested_cutoff for nuculei index = {i} is rc = {suggested_cutoff} Bohr"
                 )
-                
+
                 # clean files
                 os.remove(file)
                 os.remove(out_pp)

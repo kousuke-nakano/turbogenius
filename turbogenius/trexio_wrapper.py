@@ -33,10 +33,13 @@ class Trexio_wrapper_r:
     """
 
     def __init__(self, trexio_file):
+
         # prefix and file names
         logger.info(f"TREXIO file = {trexio_file}")
 
-        self.hdf5_filename = trexio_file
+        # read a trexio file
+        self.trexio_file = trexio_file
+        self.hdf5_filename = self.trexio_file
         file_r = trexio.File(
             os.path.join(self.hdf5_filename),
             mode="r",
@@ -111,6 +114,35 @@ class Trexio_wrapper_r:
             self.complex_flag = False
 
         file_r.close()
+
+    """
+    def write_to_turbowf(
+        self,
+        jas_basis_sets=Jas_Basis_sets(),
+        max_occ_conv: int = 0,
+        mo_num_conv: int = -1,
+        only_mol: bool = True,
+        cleanup: bool = True,
+    ) -> None:
+
+        Convert trexio file to TurboRVB WF file (fort.10)
+
+        Args:
+            jas_basis_sets (Jas_basis_sets): Jastrow basis sets added to the TREXIO WF.
+            max_occ_conv (int): maximum occ used for the conv, not used with mo_num
+            mo_num_conv (int): num mo used for the conv, not used with max occ
+            only_mol (bool): if True, only moleculer orbitals option = True in convertfort10mol
+            cleanup (bool): clean up temporary files
+
+        trexio_to_turborvb_wf(
+            trexio_file=self.trexio_file,
+            jas_basis_sets=jas_basis_sets,
+            max_occ_conv=max_occ_conv,
+            mo_num_conv=max_occ_conv,
+            only_mol=only_mol,
+            cleanup=cleanup,
+        )
+    """
 
 
 if __name__ == "__main__":

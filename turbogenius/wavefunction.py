@@ -16,6 +16,7 @@ from __future__ import annotations
 import os
 import shutil
 import numpy as np
+from typing import Union
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -26,26 +27,170 @@ from turbogenius.pyturbo.pseudopotentials import Pseudopotentials
 from turbogenius.pyturbo.makefort10 import Makefort10
 from turbogenius.pyturbo.utils.utility import remove_file
 from turbogenius.utils_workflows.env import turbo_genius_root
+from turbogenius.trexio_to_turborvb import trexio_to_turborvb_wf
+from turbogenius.makefort10_genius import Makefort10_genius
 from turbogenius.convertfort10mol_genius import Convertfort10mol_genius
 from turbogenius.convertfort10_genius import Convertfort10_genius
 from turbogenius.convertpfaff_genius import Convertpfaff_genius
 from turbogenius.tools_genius import copy_jastrow
+from turbogenius.pyturbo.basis_set import Jas_Basis_sets
+
 
 logger = getLogger("Turbo-Genius").getChild(__name__)
 
 
-class Wavefunction(IO_fort10):
+class Wavefunction:
     """
 
-    This class is a child class of pyturbo IO_fort.10 class.
+    This class is for manipulating fort.10 using pyturbo IO_fort.10 class.
 
-    Attributes:
-         fort10 (str): fort.10 WF file
 
     """
 
-    def __init__(self, fort10):
-        super().__init__(fort10=fort10)
+    def __init__(self):
+        self.read_flag = False  # flag for read
+        self.wf_format = None  # turborvb or trexio
+        self.trexio_filename = None
+
+    def read_from_fort10(self, fort10: str) -> None:
+        """
+
+        Read WF from fort.10 file
+
+        Attributes:
+            fort10 (str): name of a WF file (usually fort.10)
+
+        """
+        if fort10 != "fort.10":
+            try:
+                shutil.copy(fort10, "fort.10")
+            except shutil.SameFileError:
+                pass
+
+        self.io_fort10 = IO_fort10(fort10="fort.10")
+        self.read_flag = True
+        self.wf_format = "turborvb"
+        self.trexio_filename = None
+
+    def read_from_trexio(
+        self,
+        trexio_filename: str,
+        jas_basis_sets: Jas_Basis_sets = Jas_Basis_sets(),
+        max_occ_conv: int = 0,
+        mo_num_conv: int = -1,
+        only_mol: bool = True,
+        cleanup: bool = True,
+    ) -> None:
+        """
+        Convert trexio file to TurboRVB WF file (fort.10)
+
+        Args:
+            trexio_file (str): TREXIO file name
+            jas_basis_sets (Jas_basis_sets): Jastrow basis sets added to the TREXIO WF.
+            max_occ_conv (int): maximum occ used for the conv, not used with mo_num
+            mo_num_conv (int): num mo used for the conv, not used with max occ
+            only_mol (bool): if True, only moleculer orbitals option = True in convertfort10mol
+            cleanup (bool): clean up temporary files
+        """
+
+        if os.path.isfile("fort.10"):
+            logger.warning("fort.10 in the current directory is overwritten!")
+
+        trexio_to_turborvb_wf(
+            trexio_file=trexio_filename,
+            jas_basis_sets=jas_basis_sets,
+            max_occ_conv=max_occ_conv,
+            mo_num_conv=mo_num_conv,
+            only_mol=only_mol,
+            cleanup=cleanup,
+        )
+
+        self.io_fort10 = IO_fort10(fort10="fort.10")
+        self.read_flag = True
+        self.wf_format = "trexio"
+        self.trexio_filename = trexio_filename
+
+    def read_from_structure(
+        self,
+        structure_file: str,
+        supercell: list = [1, 1, 1],
+        det_basis_set: Union[str, list] = "cc-pVQZ",
+        jas_basis_set: Union[str, list] = "cc-pVQZ",
+        det_contracted_flag: bool = True,
+        jas_contracted_flag: bool = True,
+        all_electron_jas_basis_set: bool = True,
+        pseudo_potential: Union[str, None] = None,
+        det_cut_basis_option: bool = False,
+        jas_cut_basis_option: bool = False,
+        jastrow_type: int = -6,
+        complex: bool = False,
+        phase_up: list = [0.0, 0.0, 0.0],
+        phase_dn: list = [0.0, 0.0, 0.0],
+        same_phase_up_dn: bool = False,
+        neldiff: int = 0,
+    ):
+        """
+
+        This class is a wrapper of pyturbo makefort10 class
+
+        Attributes:
+            structure_file (str): File name of the input structure, formats suppored by ASE are supported.
+            supercell (list):  3 integers, supercell sizes [x,y,z]
+            det_basis_set (str or list): basis set for the determinant part: e.g., "cc-pVQZ" (str), a list of gamess format basis sets is accepatable.
+            jas_basis_set (str or list): basis set for the Jastrow part: e.g., "cc-pVQZ" (str), a list of gamess format basis sets is accepatable.
+            det_contracted_flag (bool): if True determinant basis set is contracted, if False determinant basis set is uncontracted.
+            jas_contracted_flag (bool): if True Jastrow basis set is contracted, if False Jastrow basis set is uncontracted.
+            all_electron_jas_basis_set (bool): if True Jastrow basis set is read from the specified all-electron basis, if False, pseudo potential ones.
+            pseudo_potential (str, list or None): if None, all-electron calculations, if "str", the corresponding PP is read from the database.
+            det_cut_basis_option (bool): if True, determinant basis set is cut according to the Andrea Zen's procedure.
+            jas_cut_basis_option (bool): if True, Jastrow basis set is cut according to the Andrea Zen's procedure.
+            jastrow_type (int): One- and Two- Jastrow type specified.
+            complex (bool): if True, the WF is complex, if False, the WF is real.
+            phase_up (list): 3-float numbers for the up-phase [x, y, z].
+            phase_dn (list): 3-float numbers for the dn-phase [x, y, z].
+            same_phase_up_dn (bool): forced phase up == phase dn (valid only for gamma point.) it is automatically detected for other points.
+            neldiff (int): The number of difference between up and dn electrons.
+        """
+
+        if os.path.isfile("fort.10"):
+            logger.warning("fort.10 in the current directory is overwritten!")
+
+        makefort10 = Makefort10_genius(
+            structure_file=structure_file,
+            supercell=supercell,
+            det_basis_set=det_basis_set,
+            jas_basis_set=jas_basis_set,
+            det_contracted_flag=det_contracted_flag,
+            jas_contracted_flag=jas_contracted_flag,
+            all_electron_jas_basis_set=all_electron_jas_basis_set,
+            pseudo_potential=pseudo_potential,
+            det_cut_basis_option=det_cut_basis_option,
+            jas_cut_basis_option=jas_cut_basis_option,
+            jastrow_type=jastrow_type,
+            complex=complex,
+            phase_up=phase_up,
+            phase_dn=phase_dn,
+            same_phase_up_dn=same_phase_up_dn,
+            neldiff=neldiff,
+        )
+
+        makefort10.run_all()
+        if os.path.isfile("fort.10"):
+            os.remove("fort.10")
+        shutil.move("fort.10_new", "fort.10")
+
+        self.io_fort10 = IO_fort10(fort10="fort.10")
+        self.read_flag = True
+        self.wf_format = "turborvb"
+        self.trexio_filename = None
+
+        # agp -> sd
+        self.to_sd(grid_size=0.50, clean_flag=True)
+
+        # sd
+        logger.warning(
+            "The generated fort.10 has random MO coefficients!! plz. initialize them by DFT."
+        )
 
     # to pfaffian
     def to_pf(
@@ -67,10 +212,17 @@ class Wavefunction(IO_fort10):
             clean_flag (bool): cleaning temporary files
 
         """
+
+        if not self.read_flag:
+            logger.warning(
+                "WF file is not read yet! Please read a WF file first."
+            )
+            return
+
         # check if the wf is polarized or not.
-        if self.f10header.nelup == self.f10header.neldn:
+        if self.io_fort10.f10header.nelup == self.io_fort10.f10header.neldn:
             logger.info("non-spin polarized case")
-            self.to_agp(
+            self.io_fort10.to_agp(
                 triplet=True,
                 pfaffian_flag=True,
                 grid_size=grid_size,
@@ -79,8 +231,8 @@ class Wavefunction(IO_fort10):
                 clean_flag=clean_flag,
                 only_generate_template=True,
             )
-            shutil.copy(self.fort10, "fort.10_bak")
-            shutil.copy(self.fort10, "fort.10_in")
+            shutil.copy(self.io_fort10.fort10, "fort.10_bak")
+            shutil.copy(self.io_fort10.fort10, "fort.10_in")
             convertpfaff_genius = Convertpfaff_genius(
                 in_fort10="fort.10_in", out_fort10="fort.10_out"
             )
@@ -106,9 +258,9 @@ class Wavefunction(IO_fort10):
 
         else:
             logger.info("spin polarized case")
-            shutil.copy(self.fort10, "fort.10_bak")
-            shutil.copy(self.fort10, "fort.10_in")
-            self.to_agp(
+            shutil.copy(self.io_fort10.fort10, "fort.10_bak")
+            shutil.copy(self.io_fort10.fort10, "fort.10_in")
+            self.io_fort10.to_agp(
                 triplet=True,
                 pfaffian_flag=True,
                 grid_size=grid_size,
@@ -139,6 +291,12 @@ class Wavefunction(IO_fort10):
             clean_flag (bool): cleaning temporary files
 
         """
+        if not self.read_flag:
+            logger.warning(
+                "WF file is not read yet! Please read a WF file first."
+            )
+            return
+
         # mo=Ndn/2
         self.add_MOs(
             add_random_mo=False,
@@ -165,7 +323,13 @@ class Wavefunction(IO_fort10):
             clean_flag (bool): cleaning temporary files
 
         """
-        self.to_agp(
+        if not self.read_flag:
+            logger.warning(
+                "WF file is not read yet! Please read a WF file first."
+            )
+            return
+
+        self.io_fort10.to_agp(
             triplet=False,
             grid_size=grid_size,
             additional_hyb=additional_hyb,
@@ -192,7 +356,13 @@ class Wavefunction(IO_fort10):
             clean_flag (bool): cleaning temporary files
 
         """
-        self.to_agp(
+        if not self.read_flag:
+            logger.warning(
+                "WF file is not read yet! Please read a WF file first."
+            )
+            return
+
+        self.io_fort10.to_agp(
             triplet=True,
             grid_size=grid_size,
             additional_hyb=additional_hyb,
@@ -224,7 +394,13 @@ class Wavefunction(IO_fort10):
             clean_flag (bool): cleaning temporary files
 
         """
-        shutil.copy(self.fort10, "fort.10_in")
+        if not self.read_flag:
+            logger.warning(
+                "WF file is not read yet! Please read a WF file first."
+            )
+            return
+
+        shutil.copy(self.io_fort10.fort10, "fort.10_in")
 
         if pfaffian_flag:
             logger.info("Generating pfaffian ansatz")
@@ -233,10 +409,10 @@ class Wavefunction(IO_fort10):
         # prepare makefort10
         # - to do - add jastrow, etc...
         # makefort10 class
-        structure = self.f10structure.structure
-        jastrow_type = self.f10header.jas_2body
-        twobody_list = self.f10jastwobody.twobody_list
-        onebody_list = self.f10jastwobody.onebody_list
+        structure = self.io_fort10.f10structure.structure
+        jastrow_type = self.io_fort10.f10header.jas_2body
+        twobody_list = self.io_fort10.f10jastwobody.twobody_list
+        onebody_list = self.io_fort10.f10jastwobody.onebody_list
         if triplet:
             logger.info("AGPu anstaz!!")
             logger.info("spin-depenedent jastrow is recommended.")
@@ -273,32 +449,40 @@ class Wavefunction(IO_fort10):
             namelist.set_parameter("symmagp", ".false.", "&symmetries")
         else:  # jagps
             namelist.set_parameter("symmagp", ".true.", "&symmetries")
-        if self.pp_flag:
+        if self.io_fort10.pp_flag:
             pseudo_potentials = Pseudopotentials.parse_pseudopotential_from_turborvb_pseudo_dat(
                 file="pseudo.dat"
             )
             # compute z_core
-            atomic_numbers = self.f10structure.atomic_numbers
-            valence_electrons = self.f10structure.valence_electrons
+            atomic_numbers = self.io_fort10.f10structure.atomic_numbers
+            valence_electrons = self.io_fort10.f10structure.valence_electrons
             z_core = list(
                 np.array(atomic_numbers) - np.array(valence_electrons)
             )
             pseudo_potentials.z_core = z_core
         else:
             pseudo_potentials = Pseudopotentials()
-        det_basis_sets = self.f10detbasissets.det_basis_sets
-        jas_basis_sets = self.f10jasbasissets.jas_basis_sets
+        det_basis_sets = self.io_fort10.f10detbasissets.det_basis_sets
+        jas_basis_sets = self.io_fort10.f10jasbasissets.jas_basis_sets
 
         # add number of hybrid orbitals
         if len(additional_hyb) != 0:
-            assert len(additional_hyb) == self.f10header.natom
+            assert len(additional_hyb) == self.io_fort10.f10header.natom
             det_basis_sets.number_of_additional_hybrid_orbitals = (
                 additional_hyb
             )
 
-        if self.pbc_flag:
-            phase_up_1, phase_up_2, phase_up_3 = self.f10structure.phase_up
-            phase_dn_1, phase_dn_2, phase_dn_3 = self.f10structure.phase_dn
+        if self.io_fort10.pbc_flag:
+            (
+                phase_up_1,
+                phase_up_2,
+                phase_up_3,
+            ) = self.io_fort10.f10structure.phase_up
+            (
+                phase_dn_1,
+                phase_dn_2,
+                phase_dn_3,
+            ) = self.io_fort10.f10structure.phase_dn
             namelist.set_parameter(
                 parameter="phase(1)", value=phase_up_1, namelist="&system"
             )
@@ -318,7 +502,7 @@ class Wavefunction(IO_fort10):
                 parameter="phasedo(3)", value=phase_dn_3, namelist="&system"
             )
 
-        if self.f10header.complex_flag:
+        if self.io_fort10.f10header.complex_flag:
             namelist.set_parameter(
                 parameter="complexfort10", value=".true.", namelist="&system"
             )
@@ -334,7 +518,9 @@ class Wavefunction(IO_fort10):
             )
 
         # neldiff
-        neldiff = self.f10header.nelup - self.f10header.neldn
+        neldiff = (
+            self.io_fort10.f10header.nelup - self.io_fort10.f10header.neldn
+        )
         namelist.set_parameter("neldiff", neldiff, "&electrons")
 
         makefort10 = Makefort10(
@@ -363,7 +549,7 @@ class Wavefunction(IO_fort10):
         convertfort10_genius.run(
             input_name="convertfort10.input", output_name="out_conv"
         )
-        shutil.move(self.fort10, "fort.10_bak")
+        shutil.move(self.io_fort10.fort10, "fort.10_bak")
         shutil.move("fort.10_new", "fort.10")
         shutil.copy("fort.10_in", "fort.10_new")
         copy_jastrow(fort10_to="fort.10", fort10_from="fort.10_new")
@@ -390,7 +576,7 @@ class Wavefunction(IO_fort10):
             clean_flag (bool): cleaning temporary files
 
         """
-        shutil.copy(self.fort10, "fort.10_in")
+        shutil.copy(self.io_fort10.fort10, "fort.10_in")
         convertfort10mol_genius = Convertfort10mol_genius(
             fort10="fort.10_in",
             add_random_mo=add_random_mo,
@@ -411,7 +597,7 @@ class Wavefunction(IO_fort10):
             remove_file("convertfort10.input")
             remove_file("out_conv")
 
-    def write(self, structure_file: str):
+    def write_structure(self, structure_file: str):
         """
         Write a structure file (i.e., convert fort.10 to a structure file, e.g., xyz)
 
@@ -419,8 +605,8 @@ class Wavefunction(IO_fort10):
             structure_file (str): structure file name. all formats supported by ASE are acceptable.
 
         """
-        structure = self.f10structure.structure
-        structure.write(structure_file=structure_file)
+        structure = self.io_fort10.f10structure.structure
+        structure.write(file=structure_file)
 
 
 if __name__ == "__main__":
@@ -437,12 +623,25 @@ if __name__ == "__main__":
     logger.addHandler(stream_handler)
     logger_p.addHandler(stream_handler)
 
-    os.chdir(os.path.join(turbo_genius_root, "tests", "wavefunction"))
+    os.chdir(
+        os.path.join(
+            turbo_genius_root, "tests", "turbogenius_test", "wavefunction_test"
+        )
+    )
 
     # moved to examples
-    wavefunction = Wavefunction(fort10="fort.10_agpu")
-    wavefunction.write(structure_file="test.xyz")
+    wavefunction = Wavefunction()
+    # wavefunction.read_from_fort10(
+    #    fort10=os.path.join("fort10_examples", "fort.10_AcOH")
+    # )
+    # wavefunction.write_structure(structure_file="test.xyz")
+    wavefunction.read_from_structure(structure_file="test.xyz")
+    wavefunction.write_structure(structure_file="test2.xyz")
+    wavefunction.read_from_trexio(
+        trexio_filename=os.path.join("fort10_examples", "methane_trexio.hdf5")
+    )
+
     # wavefunction.add_MOs()
     # wavefunction.to_agp()
     # wavefunction.to_sd()
-    wavefunction.to_pf()
+    # wavefunction.to_pf()

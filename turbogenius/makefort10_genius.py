@@ -52,6 +52,7 @@ class Makefort10_genius(GeniusIO):
          pseudo_potential (str, list or None): if None, all-electron calculations, if "str", the corresponding PP is read from the database.
          det_cut_basis_option (bool): if True, determinant basis set is cut according to the Andrea Zen's procedure.
          jas_cut_basis_option (bool): if True, Jastrow basis set is cut according to the Andrea Zen's procedure.
+         det_exp_to_discard (float): determinant basis set whose exponents smaller than "det_exp_to_discard" are disregarded
          jastrow_type (int): One- and Two- Jastrow type specified.
          complex (bool): if True, the WF is complex, if False, the WF is real.
          phase_up (list): 3-float numbers for the up-phase [x, y, z].
@@ -72,6 +73,7 @@ class Makefort10_genius(GeniusIO):
         pseudo_potential: Union[str, None] = None,
         det_cut_basis_option: bool = False,
         jas_cut_basis_option: bool = False,
+        det_exp_to_discard: float = 0.00,
         jastrow_type: int = -6,
         complex: bool = False,
         phase_up: list = [0.0, 0.0, 0.0],
@@ -88,6 +90,7 @@ class Makefort10_genius(GeniusIO):
         self.pseudo_potential = pseudo_potential
         self.det_cut_basis_option = det_cut_basis_option
         self.jas_cut_basis_option = jas_cut_basis_option
+        self.det_exp_to_discard = det_exp_to_discard
         self.neldiff = neldiff
         self.complex = complex
         self.phase_up = phase_up
@@ -370,6 +373,17 @@ class Makefort10_genius(GeniusIO):
                 det_basis_sets.cut_orbitals(
                     thr_exp=thr_exp, nucleus_index=nuc, method="larger"
                 )
+
+        if self.det_exp_to_discard > 0.0:
+            logger.info(
+                f"Basis in the det. part whose exponents are smaller than {self.det_exp_to_discard} are diregarded."
+            )
+            for nuc, element in enumerate(structure.element_symbols):
+                thr_exp = self.det_exp_to_discard
+                det_basis_sets.cut_orbitals(
+                    thr_exp=thr_exp, nucleus_index=nuc, method="smaller"
+                )
+
         if jas_cut_basis_option:
             logger.info("cutbasis for Jas. part.")
             # cut basis, jas_basis, according to max criteria, exponents > max (det part)

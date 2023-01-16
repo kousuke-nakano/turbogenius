@@ -11,16 +11,18 @@ Todo:
 """
 
 # import python modules
-import os,sys
+import os
 
 # logger
-from logging import config, getLogger, StreamHandler, Formatter
-logger = getLogger('Turbo-Genius').getChild(__name__)
+from logging import getLogger, StreamHandler, Formatter
 
-# import trexio - python wrapper
+# import trexio
 import trexio
 
-class Trexio_wrapper_r():
+logger = getLogger("Turbo-Genius").getChild(__name__)
+
+
+class Trexio_wrapper_r:
     """
 
     This class is a wrapper for the TREXIO program
@@ -29,24 +31,32 @@ class Trexio_wrapper_r():
          trexio_file (str): name of TREXIO file
 
     """
+
     def __init__(self, trexio_file):
+
         # prefix and file names
         logger.info(f"TREXIO file = {trexio_file}")
 
-        self.hdf5_filename=trexio_file
-        file_r = trexio.File(os.path.join(self.hdf5_filename), mode='r', back_end=trexio.TREXIO_HDF5)
+        # read a trexio file
+        self.trexio_file = trexio_file
+        self.hdf5_filename = self.trexio_file
+        file_r = trexio.File(
+            os.path.join(self.hdf5_filename),
+            mode="r",
+            back_end=trexio.TREXIO_HDF5,
+        )
 
         # check if the system is PBC or not.
-        self.periodic=trexio.read_pbc_periodic(file_r)
+        self.periodic = trexio.read_pbc_periodic(file_r)
 
         if self.periodic:
-            logger.info(f"Crystal (Periodic boundary condition)")
-            self.cell_a=trexio.read_cell_a(file_r)
-            self.cell_b=trexio.read_cell_b(file_r)
-            self.cell_c=trexio.read_cell_c(file_r)
-            self.k_point=trexio.read_pbc_k_point(file_r)
+            logger.info("Crystal (Periodic boundary condition)")
+            self.cell_a = trexio.read_cell_a(file_r)
+            self.cell_b = trexio.read_cell_b(file_r)
+            self.cell_c = trexio.read_cell_c(file_r)
+            self.k_point = trexio.read_pbc_k_point(file_r)
         else:
-            logger.info(f"Molecule (Open boundary condition)")
+            logger.info("Molecule (Open boundary condition)")
 
         # read electron num
         self.num_ele_up = trexio.read_electron_up_num(file_r)
@@ -60,63 +70,103 @@ class Trexio_wrapper_r():
         self.coords_r = trexio.read_nucleus_coord(file_r)
 
         # Reading basis sets info
-        self.basis_type=trexio.read_basis_type(file_r)
-        self.basis_shell_num=trexio.read_basis_shell_num(file_r)
-        self.basis_shell_index=trexio.read_basis_shell_index(file_r)
-        self.basis_prim_num=trexio.read_basis_prim_num(file_r)
-        self.basis_nucleus_index=trexio.read_basis_nucleus_index(file_r)
-        self.basis_shell_ang_mom=trexio.read_basis_shell_ang_mom(file_r)
-        self.basis_shell_factor=trexio.read_basis_shell_factor(file_r)
-        self.basis_shell_index=trexio.read_basis_shell_index(file_r)
-        self.basis_exponent=trexio.read_basis_exponent(file_r)
-        self.basis_coefficient=trexio.read_basis_coefficient(file_r)
-        self.basis_prim_factor=trexio.read_basis_prim_factor(file_r)
+        self.basis_type = trexio.read_basis_type(file_r)
+        self.basis_shell_num = trexio.read_basis_shell_num(file_r)
+        self.basis_shell_index = trexio.read_basis_shell_index(file_r)
+        self.basis_prim_num = trexio.read_basis_prim_num(file_r)
+        self.basis_nucleus_index = trexio.read_basis_nucleus_index(file_r)
+        self.basis_shell_ang_mom = trexio.read_basis_shell_ang_mom(file_r)
+        self.basis_shell_factor = trexio.read_basis_shell_factor(file_r)
+        self.basis_shell_index = trexio.read_basis_shell_index(file_r)
+        self.basis_exponent = trexio.read_basis_exponent(file_r)
+        self.basis_coefficient = trexio.read_basis_coefficient(file_r)
+        self.basis_prim_factor = trexio.read_basis_prim_factor(file_r)
 
         # Pseudo potentials info
-        self.ecp_max_ang_mom_plus_1=trexio.read_ecp_max_ang_mom_plus_1(file_r)
-        self.ecp_z_core=trexio.read_ecp_z_core(file_r)
-        self.ecp_num=trexio.read_ecp_num(file_r)
-        self.ecp_ang_mom=trexio.read_ecp_ang_mom(file_r)
-        self.ecp_nucleus_index=trexio.read_ecp_nucleus_index(file_r)
-        self.ecp_exponent=trexio.read_ecp_exponent(file_r)
-        self.ecp_coefficient=trexio.read_ecp_coefficient(file_r)
-        self.ecp_power=trexio.read_ecp_power(file_r)
+        self.ecp_max_ang_mom_plus_1 = trexio.read_ecp_max_ang_mom_plus_1(
+            file_r
+        )
+        self.ecp_z_core = trexio.read_ecp_z_core(file_r)
+        self.ecp_num = trexio.read_ecp_num(file_r)
+        self.ecp_ang_mom = trexio.read_ecp_ang_mom(file_r)
+        self.ecp_nucleus_index = trexio.read_ecp_nucleus_index(file_r)
+        self.ecp_exponent = trexio.read_ecp_exponent(file_r)
+        self.ecp_coefficient = trexio.read_ecp_coefficient(file_r)
+        self.ecp_power = trexio.read_ecp_power(file_r)
 
         # ao info
-        self.ao_cartesian=trexio.read_ao_cartesian(file_r)
-        self.ao_num=trexio.read_ao_num(file_r)
-        self.ao_shell=trexio.read_ao_shell(file_r)
-        self.ao_normalization=trexio.read_ao_normalization(file_r)
+        self.ao_cartesian = trexio.read_ao_cartesian(file_r)
+        self.ao_num = trexio.read_ao_num(file_r)
+        self.ao_shell = trexio.read_ao_shell(file_r)
+        self.ao_normalization = trexio.read_ao_normalization(file_r)
 
         # mo info
-        self.mo_type=trexio.read_mo_type(file_r)
-        self.mo_num=trexio.read_mo_num(file_r)
-        self.mo_occupation=trexio.read_mo_occupation(file_r)
+        self.mo_type = trexio.read_mo_type(file_r)
+        self.mo_num = trexio.read_mo_num(file_r)
+        self.mo_occupation = trexio.read_mo_occupation(file_r)
         self.mo_coefficient = trexio.read_mo_coefficient(file_r)
         if trexio.has_mo_coefficient_im(file_r):
             logger.info("The WF is complex")
             self.mo_coefficient_imag = trexio.read_mo_coefficient_im(file_r)
-            self.complex_flag=True
+            self.complex_flag = True
         else:
             logger.info("The WF is real")
             self.complex_flag = False
 
         file_r.close()
 
+    """
+    def write_to_turbowf(
+        self,
+        jas_basis_sets=Jas_Basis_sets(),
+        max_occ_conv: int = 0,
+        mo_num_conv: int = -1,
+        only_mol: bool = True,
+        cleanup: bool = True,
+    ) -> None:
+
+        Convert trexio file to TurboRVB WF file (fort.10)
+
+        Args:
+            jas_basis_sets (Jas_basis_sets): Jastrow basis sets added to the TREXIO WF.
+            max_occ_conv (int): maximum occ used for the conv, not used with mo_num
+            mo_num_conv (int): num mo used for the conv, not used with max occ
+            only_mol (bool): if True, only moleculer orbitals option = True in convertfort10mol
+            cleanup (bool): clean up temporary files
+
+        trexio_to_turborvb_wf(
+            trexio_file=self.trexio_file,
+            jas_basis_sets=jas_basis_sets,
+            max_occ_conv=max_occ_conv,
+            mo_num_conv=max_occ_conv,
+            only_mol=only_mol,
+            cleanup=cleanup,
+        )
+    """
+
+
 if __name__ == "__main__":
-    logger = getLogger('Turbo-Genius')
+    import sys
+
+    logger = getLogger("Turbo-Genius")
     logger.setLevel("DEBUG")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter('%(name)s - %(levelname)s - %(lineno)d - %(message)s')
+    handler_format = Formatter(
+        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
+    )
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 
     # moved to examples
-    sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
+    sys.path.append(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
+    )
     from utils_workflows.env import turbo_genius_root
 
-    trexio_test_dir = os.path.join(turbo_genius_root, "tests", "trexio_to_turborvb")
+    trexio_test_dir = os.path.join(
+        turbo_genius_root, "tests", "trexio_to_turborvb"
+    )
 
     os.chdir(trexio_test_dir)
 

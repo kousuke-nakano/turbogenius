@@ -14,34 +14,35 @@ ToDo:
 
 """
 
-#python modules
-import os, sys
+# python modules
 from abc import ABC, abstractmethod
 
-#set logger
-from logging import config, getLogger, StreamHandler, Formatter
-logger = getLogger('Turbo-Genius').getChild(__name__)
+# set logger
+from logging import getLogger
 
-#pyturbo modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+logger = getLogger("Turbo-Genius").getChild(__name__)
+
 
 # GeniusIO abstract class
 class GeniusIO(ABC):
-
-    def __init__(self,
-                 ):
+    def __init__(
+        self,
+    ):
         pass
 
-    #abstract methods
+    # abstract methods
     @abstractmethod
     def run_all(self):
         pass
+
     @abstractmethod
     def generate_input(self):
         pass
+
     @abstractmethod
     def run(self):
         pass
+
     @abstractmethod
     def check_results(self):
         pass

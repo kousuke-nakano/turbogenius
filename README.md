@@ -4,6 +4,8 @@
 
 `TurboGenius` is an advanced python wrappers for the SISSA ab-initio quantum Monte Carlo code, `TurboRVB` and also provides useful command-line tools.
 
+![license](https://img.shields.io/github/license/kousuke-nakano/turbogenius) ![release](https://img.shields.io/github/release/kousuke-nakano/turbogenius/all.svg) ![fork](https://img.shields.io/github/forks/kousuke-nakano/turbogenius?style=social) ![stars](https://img.shields.io/github/stars/kousuke-nakano/turbogenius?style=social)
+
 `TurboRVB` software family is now composed of the 4 layered packages:
 
 - `TurboWorkflows` (Workflows for realizing QMC high-throughput calculations)
@@ -106,3 +108,24 @@ and type `make html`. The document is generated in `docs/_build/html`.
 
 # Reference
 K. Nakano et. al in prepareation (2022).
+
+# How to contribute
+
+Work on the development or on a new branch
+
+    git merge <new branch> development # if you work on a new branch.
+    git push origin development
+
+Check the next-version version
+
+    # Confirm the version number via `setuptools-scm`
+    python -m setuptools_scm
+    e.g., 1.1.4.dev28+gceef293.d20221123 -> <next-version> = v1.1.4 or v1.1.4-alpha(for pre-release)
+
+Add and push with the new tag
+
+    # Push with tag
+    git tag <next-version>  # e.g., git tag v1.1.4  # Do not forget "v" before the version number!
+    git push origin development --tags  # or to the new branch
+    
+Send a pull request to the main branch on GitHub. 

@@ -1708,7 +1708,7 @@ class F10detbasissets:
         logger.debug(f"available memory = {available_memory >> 20} MiB")
         logger.debug(f"fort10 size = {size_of_fort10 >> 20} MiB")
 
-        if available_memory * 0.70 > size_of_fort10:
+        if available_memory * 0.90 > size_of_fort10:
             logger.debug("available memory > fort10 size")
             # version with readlines (more memory, but faster)
             with open(self.fort10, "r") as f:
@@ -1716,92 +1716,64 @@ class F10detbasissets:
 
             # """ straightforward, but established way
             tqdm_out = TqdmToLogger(logger, level=logging.INFO)
+
+            # new way!! a big loop (line_no_list) is iterated only once!!
+            line_no_index_list_dict = {line_no: [] for line_no in line_no_list}
+            for i, line_no in enumerate(line_no_list):
+                line_no_index_list_dict[line_no].append(i)
+
             for line_no in tqdm(
                 list(set(line_no_list)),
                 file=tqdm_out,
                 miniters=int(len(list(set(line_no_list))) / 10),
                 maxinterval=1.0e5,
             ):
+                # old way, very slow!! because
+                # a big loop (line_no_list) is iterated twice!!
+                """
                 line_no_index_list = [
                     i for i, x in enumerate(line_no_list) if x == line_no
                 ]
+                """
+                # new way
+                line_no_index_list = line_no_index_list_dict[line_no]
+
                 r_index_list = [index_list[i] for i in line_no_index_list]
+
                 r_new_mo_coeff_list = [
                     w_mo_coeff_list[i] for i in line_no_index_list
                 ]
+
+                if len(r_index_list) != len(set(r_index_list)):
+                    logger.error("Duplicated r_index!! It should not happen.")
+                    raise ValueError
                 line = lines[line_no].split()
+
+                # old way (explicit for loop)
+                """
                 for r_index, r_new_mo_coeff in zip(
                     r_index_list, r_new_mo_coeff_list
                 ):
                     line[r_index] = r_new_mo_coeff
+                """
+                # new way (implicit for loop)
+                line = [
+                    r_new_mo_coeff_list[r_index_list.index(i)]
+                    if i in r_index_list
+                    else l
+                    for i, l in enumerate(line)
+                ]
                 lines[line_no] = " ".join(list(map(str, line))) + "\n"
+
             # """
-
-            """ to do: not succesfull yet. it works, but very slow.
-            lines_new = []
-            ind_min = np.min(line_no_list)
-            ind_max = np.max(line_no_list)
-            lines_new += lines[:ind_min]
-
-            def replace_line(line_no):
-                line_no_index_list = [
-                    i for i, x in enumerate(line_no_list) if x == line_no
-                ]
-                r_index_list = [index_list[i] for i in line_no_index_list]
-                r_new_mo_coeff_list = [
-                    w_mo_coeff_list[i] for i in line_no_index_list
-                ]
-                if len(line_no_index_list) > 0:
-                    line = lines[line_no].split()
-                    for r_index, r_new_mo_coeff in zip(
-                        r_index_list, r_new_mo_coeff_list
-                    ):
-                        line[r_index] = r_new_mo_coeff
-                    return " ".join(list(map(str, line))) + "\n"
-                else:
-                    return lines[line_no]
-
-            @contextlib.contextmanager
-            def tqdm_joblib(total: Optional[int] = None, **kwargs):
-
-                pbar = tqdm(total=total, miniters=1, smoothing=0, **kwargs)
-
-                class TqdmBatchCompletionCallback(
-                    joblib.parallel.BatchCompletionCallBack
-                ):
-                    def __call__(self, *args, **kwargs):
-                        pbar.update(n=self.batch_size)
-                        return super().__call__(*args, **kwargs)
-
-                old_batch_callback = joblib.parallel.BatchCompletionCallBack
-                joblib.parallel.BatchCompletionCallBack = (
-                    TqdmBatchCompletionCallback
-                )
-
-                try:
-                    yield pbar
-                finally:
-                    joblib.parallel.BatchCompletionCallBack = (
-                        old_batch_callback
-                    )
-                    pbar.close()
-
-            logger.warning("mutliprocessing using joblib!!")
-            with tqdm_joblib(len(range(ind_min, ind_max))):
-                lines_new += joblib.Parallel(n_jobs=-1)(
-                    joblib.delayed(replace_line)(i)
-                    for i in range(ind_min, ind_max)
-                )
-            lines_new += lines[ind_max:]
-            lines = lines_new
-            """
 
             with open(self.fort10, "w") as f:
                 f.writelines(lines)
 
         else:
             logger.debug("available memory < fort10 size")
-            # version with readline (less memory, but slower)
+
+            # version with readline (less memory, but super slow!!)
             sed_fort10 = self.fort10 + "_sed_tmp"
             with open(self.fort10, "r") as f:
                 with open(sed_fort10, "w") as fw:

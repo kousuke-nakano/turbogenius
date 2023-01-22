@@ -34,6 +34,7 @@ class LRDMC_genius(GeniusIO):
          fort10 (str): fort.10 WF file
          lrdmcsteps (int): total number of MCMC steps.
          alat (float): Lattice space (Bohr)
+         time_branching: interval between two branching steps. (a.u.)
          etry (float): Trial Energy (Ha)
          num_walkers (int): The number of walkers, -1 (default) = the number of MPI processes
          maxtime (int): Maxtime (sec.)
@@ -48,6 +49,7 @@ class LRDMC_genius(GeniusIO):
         fort10: str = "fort.10",
         lrdmcsteps: int = 100,
         alat: float = -0.20,
+        time_branching: float = 0.10,
         etry: float = 0.0,
         num_walkers: int = -1,  # default -1 -> num of MPI process.
         maxtime: int = 172800,
@@ -88,7 +90,9 @@ class LRDMC_genius(GeniusIO):
         self.lrdmc.set_parameter(
             parameter="alat", value=alat, namelist="&dmclrdmc"
         )
-
+        self.lrdmc.set_parameter(
+            parameter="tbra", value=time_branching, namelist="&dmclrdmc"
+        )
         typereg, npow = get_nonlocalmoves_setting(nonlocalmoves=nonlocalmoves)
         self.lrdmc.set_parameter(
             parameter="typereg", value=typereg, namelist="&dmclrdmc"

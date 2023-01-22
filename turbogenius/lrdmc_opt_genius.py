@@ -45,6 +45,7 @@ class LRDMCopt_genius(GeniusIO):
          learning_rate (float): optimization step size, default values=sr:0.05, lr:0.35
          regularization (float): regularization parameter
          alat (float): Lattice space (Bohr)
+         time_branching (float): interval between two branching steps (a.u.)
          etry (float): Trial Energy (Ha)
          nonlocalmoves (str): Treatment of locality approximation, choose from "tmove", "dla", "dlatm"
          opt_onebody (bool): flag to optimize onebody Jastrow
@@ -61,29 +62,30 @@ class LRDMCopt_genius(GeniusIO):
 
     def __init__(
         self,
-        fort10="fort.10",
-        lrdmcoptsteps=100,
-        steps=10,
-        bin_block=1,
-        warmupblocks=1,
-        num_walkers=-1,  # default -1 -> num of MPI process.
-        maxtime=172800,
-        optimizer="sr",
-        learning_rate=0.02,
-        regularization=0.001,
-        alat=-0.20,
-        etry=0.0,
-        nonlocalmoves="tmove",  # tmove, dla, dlatm
-        opt_onebody=True,
-        opt_twobody=True,
-        opt_det_mat=False,
-        opt_jas_mat=True,
-        opt_det_basis_exp=False,
-        opt_jas_basis_exp=False,
-        opt_det_basis_coeff=False,
-        opt_jas_basis_coeff=False,
-        twist_average=False,
-        kpoints=[1, 1, 1, 0, 0, 0],
+        fort10: str = "fort.10",
+        lrdmcoptsteps: int = 100,
+        steps: int = 10,
+        bin_block: int = 1,
+        warmupblocks: int = 1,
+        num_walkers: int = -1,  # default -1 -> num of MPI process.
+        maxtime: int = 172800,
+        optimizer: str = "sr",
+        learning_rate: float = 0.02,
+        regularization: float = 0.001,
+        alat: float = -0.20,
+        time_branching: float = 0.10,
+        etry: float = 0.0,
+        nonlocalmoves: str = "tmove",  # tmove, dla, dlatm
+        opt_onebody: bool = True,
+        opt_twobody: bool = True,
+        opt_det_mat: bool = False,
+        opt_jas_mat: bool = True,
+        opt_det_basis_exp: bool = False,
+        opt_jas_basis_exp: bool = False,
+        opt_det_basis_coeff: bool = False,
+        opt_jas_basis_coeff: bool = False,
+        twist_average: bool = False,
+        kpoints: list = [1, 1, 1, 0, 0, 0],
     ):
 
         self.fort10 = fort10
@@ -187,6 +189,9 @@ class LRDMCopt_genius(GeniusIO):
         )
         self.lrdmcopt.set_parameter(
             parameter="etry", value=etry, namelist="&dmclrdmc"
+        )
+        self.lrdmcopt.set_parameter(
+            parameter="tbra", value=time_branching, namelist="&dmclrdmc"
         )
 
         typereg, npow = get_nonlocalmoves_setting(nonlocalmoves=nonlocalmoves)

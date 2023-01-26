@@ -1698,6 +1698,9 @@ class F10detbasissets:
             old_mo_coefficient, new_mo_coefficient
         ):
             if len(old_mo_coeff) != len(new_mo_coeff):
+                logger.error(
+                    f"len(old_mo_coeff):{len(old_mo_coeff)} != len(new_mo_coeff):{len(new_mo_coeff)}"
+                )
                 raise ValueError
             line_no_list += [coeff.l for coeff in old_mo_coeff]
             index_list += [coeff.i for coeff in old_mo_coeff]

@@ -164,14 +164,18 @@ def trexio_to_turborvb_wf(
     logger.debug(basis_shell_index)
 
     # Pseudo potentials info
-    ecp_max_ang_mom_plus_1 = trexio_r.ecp_max_ang_mom_plus_1
-    ecp_z_core = trexio_r.ecp_z_core
-    ecp_num = trexio_r.ecp_num
-    ecp_ang_mom = trexio_r.ecp_ang_mom
-    ecp_nucleus_index = trexio_r.ecp_nucleus_index
-    ecp_exponent = trexio_r.ecp_exponent
-    ecp_coefficient = trexio_r.ecp_coefficient
-    ecp_power = trexio_r.ecp_power
+    try:
+        ecp_max_ang_mom_plus_1 = trexio_r.ecp_max_ang_mom_plus_1
+        ecp_z_core = trexio_r.ecp_z_core
+        ecp_num = trexio_r.ecp_num
+        ecp_ang_mom = trexio_r.ecp_ang_mom
+        ecp_nucleus_index = trexio_r.ecp_nucleus_index
+        ecp_exponent = trexio_r.ecp_exponent
+        ecp_coefficient = trexio_r.ecp_coefficient
+        ecp_power = trexio_r.ecp_power
+        has_ecp = True
+    except AttributeError:
+        has_ecp = False
 
     # ao info
     ao_cartesian = trexio_r.ao_cartesian
@@ -193,15 +197,6 @@ def trexio_to_turborvb_wf(
             [complex(i, j) for i, j in zip(mo_real, mo_imag)]
             for mo_real, mo_imag in zip(mo_coefficient, mo_coefficient_imag)
         ]
-
-    logger.debug(ecp_max_ang_mom_plus_1)
-    logger.debug(ecp_z_core)
-    logger.debug(ecp_num)
-    logger.debug(ecp_ang_mom)
-    logger.debug(ecp_nucleus_index)
-    logger.debug(ecp_exponent)
-    logger.debug(ecp_coefficient)
-    logger.debug(ecp_power)
 
     # basis sets
     shell_ang_mom_turbo_notation = []
@@ -234,21 +229,24 @@ def trexio_to_turborvb_wf(
     )
 
     # Pseudopotentials
-    cutoff = [0.0] * len(ecp_z_core)
-    pseudopotentials = Pseudopotentials(
-        max_ang_mom_plus_1=ecp_max_ang_mom_plus_1,
-        z_core=ecp_z_core,
-        cutoff=cutoff,
-        nucleus_index=ecp_nucleus_index,
-        element_list=element_list,
-        ang_mom=ecp_ang_mom,
-        exponent=ecp_exponent,
-        coefficient=ecp_coefficient,
-        power=ecp_power,
-    )
-    pseudopotentials.set_cutoffs()
-    logger.debug(pseudopotentials.cutoff)
-    pseudopotentials.write_pseudopotential_turborvb_file()
+    if has_ecp:
+        cutoff = [0.0] * len(ecp_z_core)
+        pseudopotentials = Pseudopotentials(
+            max_ang_mom_plus_1=ecp_max_ang_mom_plus_1,
+            z_core=ecp_z_core,
+            cutoff=cutoff,
+            nucleus_index=ecp_nucleus_index,
+            element_list=element_list,
+            ang_mom=ecp_ang_mom,
+            exponent=ecp_exponent,
+            coefficient=ecp_coefficient,
+            power=ecp_power,
+        )
+        pseudopotentials.set_cutoffs()
+        logger.debug(pseudopotentials.cutoff)
+        pseudopotentials.write_pseudopotential_turborvb_file()
+    else:
+        pseudopotentials = Pseudopotentials()
 
     # set jastrow_type:
     if jas_basis_sets.shell_num == 0:
@@ -333,7 +331,9 @@ def trexio_to_turborvb_wf(
         pseudo_potentials=pseudopotentials,
         namelist=namelist,
     )
-    makefort10.generate_input("makefort10.input")
+    makefort10.generate_input(
+        input_name="makefort10.input", basis_sets_unique_element=False
+    )
     makefort10.run()
 
     # rename fort.10
@@ -396,9 +396,10 @@ def trexio_to_turborvb_wf(
 
     # check cartesian / spherical flag:
     if ao_cartesian != 0:
-        logger.debug("basis set is represent with cartesian")
+        logger.error("basis set is represent with cartesian")
+        raise NotImplementedError
     else:
-        logger.debug("basis set is represent with spherical")
+        logger.info("basis set is represent with spherical")
 
     mo_coefficient_turbo = []
     mo_exponent_turbo = []

@@ -181,7 +181,7 @@ class Makefort10(FortranIO):
             else:
                 # label = "ATOM_{:f}".format(fake_atomic_number) # :f format does not work.
                 label = "ATOM_{:f}".format(
-                    Decimal(str(fake_atomic_number)).normalize()
+                    Decimal(str(round(fake_atomic_number,8))).normalize()
                 )
             nshelldet = len(
                 [

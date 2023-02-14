@@ -60,15 +60,15 @@ class Pseudopotentials:
         self.coefficient = coefficient
         self.power = power
 
-        logger.debug(self.element_list)
-        logger.debug(self.max_ang_mom_plus_1)
-        logger.debug(self.z_core)
-        logger.debug(self.cutoff)
-        logger.debug(self.nucleus_index)
-        logger.debug(self.ang_mom)
-        logger.debug(self.exponent)
-        logger.debug(self.coefficient)
-        logger.debug(self.power)
+        logger.debug(f"element_list={self.element_list}")
+        logger.debug(f"max_ang_mom_plus_1={self.max_ang_mom_plus_1}")
+        logger.debug(f"z_core={self.z_core}")
+        logger.debug(f"cutoff={self.cutoff}")
+        logger.debug(f"nucleus_index={self.nucleus_index}")
+        logger.debug(f"ang_mom={self.ang_mom}")
+        logger.debug(f"exponent={self.exponent}")
+        logger.debug(f"coefficient={self.coefficient}")
+        logger.debug(f"power={self.power}")
 
         # assertion!!
         assert len(set(self.nucleus_index)) == len(self.max_ang_mom_plus_1)

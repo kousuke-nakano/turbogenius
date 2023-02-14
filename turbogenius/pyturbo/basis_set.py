@@ -73,15 +73,17 @@ class Basis_sets:
         self.coefficient_imag = coefficient_imag
         self.prim_factor = prim_factor
 
-        logger.debug(self.nucleus_index)
-        logger.debug(self.shell_ang_mom)
-        logger.debug(self.shell_ang_mom_turbo_notation)
-        logger.debug(self.shell_factor)
-        logger.debug(self.shell_index)
-        logger.debug(self.exponent)
-        logger.debug(self.coefficient)
-        logger.debug(self.coefficient_imag)
-        logger.debug(self.prim_factor)
+        logger.debug(f"nucleus_index={self.nucleus_index}")
+        logger.debug(f"shell_ang_mom={self.shell_ang_mom}")
+        logger.debug(
+            f"shell_ang_mom_turbo_notation={self.shell_ang_mom_turbo_notation}"
+        )
+        logger.debug(f"shell_factor={self.shell_factor}")
+        logger.debug(f"shell_index={self.shell_index}")
+        logger.debug(f"exponent={self.exponent}")
+        logger.debug(f"coefficient={self.coefficient}")
+        logger.debug(f"coefficient_imag={self.coefficient_imag}")
+        logger.debug(f"prim_factor={self.prim_factor}")
 
         # assertion!!
         assert len(self.exponent) == len(self.coefficient)

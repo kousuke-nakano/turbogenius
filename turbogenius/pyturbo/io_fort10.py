@@ -271,7 +271,7 @@ class IO_fort10:
     # properties!!
     @property
     def pp_flag(self):
-        logger.debug("pseudo_check")
+        # logger.debug("pseudo_check")
         atomic_numbers = self.f10structure.atomic_numbers
         valence_electrons = self.f10structure.valence_electrons
         diff_list = np.array(atomic_numbers) - np.array(valence_electrons)
@@ -500,7 +500,7 @@ class F10header:
                 self.crystal_jastrow_flag = False
             # logger.debug("check3")
 
-            logger.debug("End init of IO_fort10")
+            # logger.debug("End init of IO_fort10")
 
     @property
     def start_lineno(self):
@@ -1009,13 +1009,13 @@ class F10structure:
 
     @property
     def atomic_numbers(self):
-        logger.debug("atomic numbers")
+        # logger.debug("atomic numbers")
         self.read()
         return [i.v for i in self.__atomic_numbers]
 
     @property
     def valence_electrons(self):
-        logger.debug("valence electrons")
+        # logger.debug("valence electrons")
         self.read()
         return [i.v for i in self.__valence_electrons]
 
@@ -1201,9 +1201,9 @@ class F10jastwobody:
             num_twobody, flag_onebody = return_num_twobody_and_flag_onebody(
                 jastrow_type=self.jastrow_type
             )
-            logger.debug(self.jastrow_type)
-            logger.debug(num_twobody)
-            logger.debug(flag_onebody)
+            # logger.debug(self.jastrow_type)
+            # logger.debug(num_twobody)
+            # logger.debug(flag_onebody)
             if num_twobody == 0:
                 # why here the explicit "if" is needed?
                 # because self.__num_param is not always 0!
@@ -1513,7 +1513,7 @@ class F10detbasissets:
                 a.v if a.v is not None else 1.0 for a in self.__coefficient
             ],
             coefficient_imag=[a.v for a in self.__coefficient_imag],
-            prim_factor=[1.0] * len(self.__atom_label),
+            prim_factor=[1.0] * len(self.__exponent),
             # hybrid
             hyb_nucleus_index=[a.v - 1 for a in self.__hyb_atom_label],
             hyb_param_num=[a.v for a in self.__hyb_param_num],

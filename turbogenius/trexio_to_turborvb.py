@@ -474,6 +474,7 @@ def trexio_to_turborvb_wf(
                     ):
                         logger.info(f"mo_occ < {max_occ_conv} is 1-{i + 1}")
                         break
+                mo_num_use = len(mo_used_index)
             else:  # spin-unresticted
                 logger.info(
                     f"mo_occ_thr={max_occ_conv} both for alpha and beta spins."
@@ -496,7 +497,8 @@ def trexio_to_turborvb_wf(
                     i + int(len(mo_occupation) / 2) for i in mo_used_index
                 ]
 
-            mo_num_use = int(len(mo_used_index) / 2)
+                mo_num_use = int(len(mo_used_index) / 2)
+
             mo_coefficient = [mo_coefficient[ppp] for ppp in mo_used_index]
             mo_occupation = [mo_occupation[ppp] for ppp in mo_used_index]
             mo_spin = [mo_spin[ppp] for ppp in mo_used_index]

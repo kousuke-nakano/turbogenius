@@ -106,6 +106,10 @@ class Trexio_wrapper_r:
         self.mo_num = trexio.read_mo_num(file_r)
         self.mo_occupation = trexio.read_mo_occupation(file_r)
         self.mo_coefficient = trexio.read_mo_coefficient(file_r)
+        try:
+            self.mo_spin = trexio.read_mo_spin(file_r)
+        except:  # backward compatibility
+            self.mo_spin = [0 for _ in range(self.mo_num)]
         if trexio.has_mo_coefficient_im(file_r):
             logger.info("The WF is complex")
             self.mo_coefficient_imag = trexio.read_mo_coefficient_im(file_r)

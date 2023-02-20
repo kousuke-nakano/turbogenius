@@ -139,7 +139,6 @@ def trexio_to_turborvb_wf(
         phase_dn = [0.0, 0.0, 0.0]
         complex_flag = trexio_r.complex_flag
 
-    logger.info(complex_flag)
     # view
     # from ase.visualize import view
     # atom=structure.get_ase_atom()
@@ -191,12 +190,88 @@ def trexio_to_turborvb_wf(
     mo_num = trexio_r.mo_num
     mo_coefficient = trexio_r.mo_coefficient
     mo_occupation = trexio_r.mo_occupation
+    mo_spin = trexio_r.mo_spin
     if complex_flag:
         mo_coefficient_imag = trexio_r.mo_coefficient_imag
         mo_coefficient = [
             [complex(i, j) for i, j in zip(mo_real, mo_imag)]
             for mo_real, mo_imag in zip(mo_coefficient, mo_coefficient_imag)
         ]
+    if all([spin == 0 for spin in mo_spin]) or all(
+        [spin == 1 for spin in mo_spin]
+    ):
+        logger.info("MOs are spin-restricted (i.e., alpha==beta).")
+        spin_restricted = True
+    elif all([spin == 0 or spin == 1 for spin in mo_spin]):
+        logger.info("MOs are spin-unrestricted (i.e., alpha!=beta).")
+        spin_restricted = False
+    else:
+        raise ValueError
+
+    # check if the num. of MOs for alpha and beta are the same.
+    if not spin_restricted:
+        if list(mo_spin).count(0) != list(mo_spin).count(1):
+            logger.error(
+                "The number of alpha- and beta-MOs are not consistent!!"
+            )
+            raise ValueError
+
+    # At present, this python script assumes that MOs are [alpha, alpha..... alpha, beta....beta] for
+    # an unrestriced WF. Check it.
+    if not spin_restricted:
+        if not (
+            all([spin == 0 for spin in mo_spin[0 : int(len(mo_spin) / 2)]])
+            and all(
+                [
+                    spin == 1
+                    for spin in mo_spin[int(len(mo_spin) / 2) : len(mo_spin)]
+                ]
+            )
+        ):
+            logger.error(
+                "The MOs ordering is not [alpha, ... alpha, beta, .... beta]"
+            )
+            raise NotImplementedError
+
+    # At present, this python script assumes that the occupation is in the descending order. check it.
+    if spin_restricted:
+        if not all(
+            [
+                mo_occ == mo_occ_sorted
+                for mo_occ, mo_occ_sorted in zip(
+                    mo_occupation, sorted(mo_occupation, reverse=True)
+                )
+            ]
+        ):
+            raise NotImplementedError
+    else:
+        # alpha spin
+        if not all(
+            [
+                mo_occ == mo_occ_sorted
+                for mo_occ, mo_occ_sorted in zip(
+                    mo_occupation[0 : int(len(mo_spin) / 2)],
+                    sorted(
+                        mo_occupation[0 : int(len(mo_spin) / 2)], reverse=True
+                    ),
+                )
+            ]
+        ):
+            raise NotImplementedError
+        # beta spin
+        if not all(
+            [
+                mo_occ == mo_occ_sorted
+                for mo_occ, mo_occ_sorted in zip(
+                    mo_occupation[int(len(mo_spin) / 2) : len(mo_spin)],
+                    sorted(
+                        mo_occupation[int(len(mo_spin) / 2) : len(mo_spin)],
+                        reverse=True,
+                    ),
+                )
+            ]
+        ):
+            raise NotImplementedError
 
     # basis sets
     shell_ang_mom_turbo_notation = []
@@ -314,11 +389,23 @@ def trexio_to_turborvb_wf(
         parameter="phasedo(3)", value=phase_dn[2], namelist="&system"
     )
 
+    # spin-restricted or spin-unrestricted
+    # =>
+    # symmetrized AGP (AGPs) or unsymmetrized AGP (AGPu)
+    if spin_restricted:
+        namelist.set_parameter(
+            parameter="symmagp", value=".true.", namelist="&symmetries"
+        )
+    else:
+        namelist.set_parameter(
+            parameter="symmagp", value=".false.", namelist="&symmetries"
+        )
+
+    # complex or real
     if complex_flag:
         namelist.set_parameter(
             parameter="complexfort10", value=".true.", namelist="&system"
         )
-        # logger.error("complex is not implemented in the converter.")
     else:
         namelist.set_parameter(
             parameter="complexfort10", value=".false.", namelist="&system"
@@ -340,40 +427,104 @@ def trexio_to_turborvb_wf(
     shutil.move("fort.10_new", "fort.10_in")
 
     # here, specify how many MOs are used for the conversion!!
-    if max_occ_conv == 0 and mo_num_conv == -1:  # default
-        logger.info(f"All the MOs ={mo_num} are used for the conversion.")
-        mo_num_use = mo_num
-        mo_coefficient = mo_coefficient
-        mo_occ = mo_occupation
-    elif max_occ_conv != 0 and mo_num_conv != -1:
+
+    # note that the meaning of mo_num is different between ROHF and UHF calculations.
+    # ROHF -> MOs should have the same coeffs. for up and dn. This means that
+    # the unpaired MOs are included ONLY for the up part. (as it should be listed in the
+    # end of the MO list. In other words, the dn-pairs of the unpaired MOs (up) are not included in the
+    # beta part. On the other hand, in UHF cases, the dn-pairs of the unpaired MOs (up)
+    # can be included also in the beta part.
+
+    # Anyway, here "mo_num_use" is the number of occupied, empty, and unpaired MOs for "alpha spin".
+
+    if max_occ_conv != 0 and mo_num_conv != -1:
         logger.error(
             "max_occ_conv and mo_num_conv options cannot be used at the same time."
         )
         raise ValueError
+
+    elif max_occ_conv == 0 and mo_num_conv == -1:  # default
+        if spin_restricted:
+            logger.info(f"All the MOs = {mo_num} are used for the conversion.")
+            mo_num_use = mo_num
+            mo_coefficient = mo_coefficient
+            mo_spin = mo_spin
+        else:
+            logger.info(f"All the MOs = {mo_num} are used for the conversion.")
+            logger.warning("This is an spin-unrestricted WF.")
+            logger.warning(
+                f"Therefore, the num. of MOs used for alpha (beta) is {int(mo_num / 2)}"
+            )
+            mo_num_use = int(mo_num / 2)
+            mo_coefficient = mo_coefficient
+            mo_spin = mo_spin
+
     else:
         if max_occ_conv != 0:
             mo_used_index = []
-            logger.info(f"mo_occ_thr={max_occ_conv}")
-            # logger.info(f"mo_occupation")
-            # logger.info(mo_occupation)
-            for i in range(len(mo_occupation)):
-                mo_used_index.append(i)
-                if i == len(mo_occupation) - 1:
-                    break
-                if (
-                    mo_occupation[i] >= max_occ_conv
-                    and mo_occupation[i + 1] < max_occ_conv
-                ):
-                    logger.info(f"mo_occ < {max_occ_conv} is 1-{i + 1}")
-                    break
-            mo_num_use = len(mo_used_index)
+            if spin_restricted:
+                logger.info(f"mo_occ_thr={max_occ_conv}.")
+                for i in range(len(mo_occupation)):
+                    mo_used_index.append(i)
+                    if i == len(mo_occupation) - 1:
+                        break
+                    if (
+                        mo_occupation[i] >= max_occ_conv
+                        and mo_occupation[i + 1] < max_occ_conv
+                    ):
+                        logger.info(f"mo_occ < {max_occ_conv} is 1-{i + 1}")
+                        break
+            else:  # spin-unresticted
+                logger.info(
+                    f"mo_occ_thr={max_occ_conv} both for alpha and beta spins."
+                )
+                # spin-up (alpha)
+                for i in range(0, int(len(mo_occupation) / 2)):
+                    mo_used_index.append(i)  # alpha spin
+                    if i == int(len(mo_occupation) / 2) - 1:
+                        break
+                    if (
+                        mo_occupation[i] >= max_occ_conv
+                        and mo_occupation[i + 1] < max_occ_conv
+                    ):
+                        logger.info(
+                            f"mo_occ(alpha) < {max_occ_conv} is 1-{i + 1}"
+                        )
+                        break
+                # spin-dn (beta)
+                mo_used_index = mo_used_index + [
+                    i + int(len(mo_occupation) / 2) for i in mo_used_index
+                ]
+
+            mo_num_use = int(len(mo_used_index) / 2)
             mo_coefficient = [mo_coefficient[ppp] for ppp in mo_used_index]
-            mo_occ = [mo_occupation[ppp] for ppp in mo_used_index]
+            mo_occupation = [mo_occupation[ppp] for ppp in mo_used_index]
+            mo_spin = [mo_spin[ppp] for ppp in mo_used_index]
 
         else:  # mo_num_conv != -1:
-            mo_num_use = mo_num_conv
-            mo_coefficient = mo_coefficient[0:mo_num_use]
-            mo_occ = mo_occupation[0:mo_num_use]
+            if spin_restricted:
+                mo_num_use = mo_num_conv
+                mo_coefficient = mo_coefficient[0:mo_num_use]
+                mo_occupation = mo_occupation[0:mo_num_use]
+                mo_spin = mo_spin[0:mo_num_use]
+            else:  # spin-unrestricted
+                mo_num_use = mo_num_conv
+                mo_coefficient = (
+                    mo_coefficient[0:mo_num_use]
+                    + mo_coefficient[
+                        int(mo_num / 2) : int(mo_num / 2) + mo_num_use
+                    ]
+                )
+                mo_occupation = (
+                    mo_occupation[0:mo_num_use]
+                    + mo_occupation[
+                        int(mo_num / 2) : int(mo_num / 2) + mo_num_use
+                    ]
+                )
+                mo_spin = (
+                    mo_spin[0:mo_num_use]
+                    + mo_spin[int(mo_num / 2) : int(mo_num / 2) + mo_num_use]
+                )
 
     # in_convertfort10mol class
     convertfort10mol = Convertfort10mol.parse_from_default_namelist()
@@ -403,444 +554,504 @@ def trexio_to_turborvb_wf(
 
     mo_coefficient_turbo = []
     mo_exponent_turbo = []
-    num = mo_num_use
-    # num=1
-    for mo_i in range(num):
-        logger.debug(f"============{mo_i+1}-th MO================")
-        mo_coefficient_list = []
-        mo_exponent_list = []
-        mo_nucleus_index_list = []
-        mo_l_list = []
-        mo_m_list = []
-        # logger.debug(f"i={i}")
-        # logger.debug(mo_coefficient[i])
-        # logger.debug(ao_shell)
 
-        for ao_i, shell_index in enumerate(ao_shell):
-            logger.debug(f"--ao_i={ao_i}, shell_index={shell_index}--")
-            # for real spherical harmonic notations,
-            # see [https://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics]
+    # Here is the most important part of the trexio_to_turborvb conversion.
+    # 1. Reordering the MOs.
+    # 2. Removing the duplicated exponents. because turbo does not compute them.
 
-            # initialization
-            if ao_i == 0:
-                mo_coefficient_list_for_reordering = []
-                mo_exponent_list_for_reordering = []
-                mo_nucleus_index_list_for_reordering = []
-                current_ang_mom = -1
+    # here one should remember that num := mo_num_use is the num for alpha (or beta) spin.
+    # for spin-restricted conversion, we should repeat this procedure twice.
+    if spin_restricted:
+        mo_i_shift_list = [0]
+    else:
+        mo_i_shift_list = [0, mo_num_use]
 
-            # read ang_mom (i.e., angular momentum of the shell)
-            ang_mom = basis_shell_ang_mom[shell_index]
-            previous_ang_mom = current_ang_mom
-            current_ang_mom = ang_mom
+    for shift_v in mo_i_shift_list:
+        for mo_i in range(mo_num_use):
+            mo_i_shifted = mo_i + shift_v
+            logger.debug(f"============{mo_i_shifted+1}-th MO================")
+            mo_coefficient_list = []
+            mo_exponent_list = []
+            mo_nucleus_index_list = []
+            mo_l_list = []
+            mo_m_list = []
+            # logger.debug(f"i={i}")
+            # logger.debug(mo_coefficient[i])
+            # logger.debug(ao_shell)
 
-            # set multiplicity
-            multiplicity = 2 * ang_mom + 1
-            logger.debug(f"multiplicity = {multiplicity}")
+            for ao_i, shell_index in enumerate(ao_shell):
+                logger.debug(f"--ao_i={ao_i}, shell_index={shell_index}--")
+                # for real spherical harmonic notations,
+                # see [https://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics]
 
-            # check if the buffer is null, when ang_mom changes
-            if previous_ang_mom != current_ang_mom:
-                assert len(mo_coefficient_list_for_reordering) == 0
-                assert len(mo_exponent_list_for_reordering) == 0
+                # initialization
+                if ao_i == 0:
+                    mo_coefficient_list_for_reordering = []
+                    mo_exponent_list_for_reordering = []
+                    mo_nucleus_index_list_for_reordering = []
+                    current_ang_mom = -1
 
-            if current_ang_mom == 0:  # s shell
-                logger.debug("s shell/no permutation is needed.")
-                logger.debug("(trexio  notation): s(m=0)")
-                logger.debug("(makefun notation): s(m=0)")
-                reorder_index = [0]
-                reorder_m_list = [0]
-                reorder_l_list = [0] * 1
+                # read ang_mom (i.e., angular momentum of the shell)
+                ang_mom = basis_shell_ang_mom[shell_index]
+                previous_ang_mom = current_ang_mom
+                current_ang_mom = ang_mom
 
-            elif current_ang_mom == 1:  # p shell
+                # set multiplicity
+                multiplicity = 2 * ang_mom + 1
+                logger.debug(f"multiplicity = {multiplicity}")
 
-                if ao_cartesian != 0:
-                    logger.debug("p shell/no permutation is needed.")
-                    logger.debug(
-                        "(trexio  notation): px(m=+1), py(m=-1), pz(m=0)"
-                    )
-                    logger.debug(
-                        "(makefun notation): px(m=+1), py(m=-1), pz(m=0)"
-                    )
-                    reorder_index = [0, 1, 2]
-                    reorder_m_list = [+1, -1, 0]
-                    reorder_l_list = [1] * 3
-                else:
-                    logger.debug("p shell/permutation is needed.")
-                    logger.debug(
-                        "(trexio  notation): pz(m=0), px(m=+1), py(m=-1)"
-                    )
-                    logger.debug(
-                        "(makefun notation): px(m=+1), py(m=-1), pz(m=0)"
-                    )
-                    reorder_index = [1, 2, 0]
-                    reorder_m_list = [+1, -1, 0]
-                    reorder_l_list = [1] * 3
+                # check if the buffer is null, when ang_mom changes
+                if previous_ang_mom != current_ang_mom:
+                    assert len(mo_coefficient_list_for_reordering) == 0
+                    assert len(mo_exponent_list_for_reordering) == 0
 
-            elif current_ang_mom == 2:  # d shell
+                if current_ang_mom == 0:  # s shell
+                    logger.debug("s shell/no permutation is needed.")
+                    logger.debug("(trexio  notation): s(m=0)")
+                    logger.debug("(makefun notation): s(m=0)")
+                    reorder_index = [0]
+                    reorder_m_list = [0]
+                    reorder_l_list = [0] * 1
 
-                if ao_cartesian != 0:
-                    logger.debug(
-                        "Cartesian notation for d shell is not implemented yet! Sorry."
-                    )
-                    raise NotImplementedError
-                else:
-                    logger.debug("d shell/permutation is needed.")
-                    logger.debug(
-                        "(trexio  notation): dz2(m=0), dzx=(m=+1), dyz(m=-1), dx2-y2(m=+2), dxy(m=-2)"
-                    )
-                    logger.debug(
-                        "(makefun notation): dz2(m=0), dx2-y2(m=+2), dxy(m=-2), dyz(m=-1), dzx=(m=+1)"
-                    )
-                    reorder_index = [0, 3, 4, 2, 1]
-                    reorder_m_list = [0, +2, -2, -1, +1]
-                    reorder_l_list = [2] * 5
+                elif current_ang_mom == 1:  # p shell
 
-            elif current_ang_mom == 3:  # f shell
-
-                if ao_cartesian != 0:
-                    logger.debug(
-                        "Cartesian notation for f shell is not implemented yet! Sorry."
-                    )
-                    raise NotImplementedError
-
-                else:
-                    logger.debug("f shell/no permutation is needed.")
-                    logger.debug(
-                        "(trexio  notation): f3,0(l=0), f3,+1(l=+1), f3,-1(l=-1), f3,+2(l=+2), f3,-2(l=-2), f3,+3(l=+3), f3,-3(l=-3)"
-                    )
-                    logger.debug(
-                        "(makefun notation): f3,0(l=0), f3,+1(l=+1), f3,-1(l=-1), f3,+2(l=+2), f3,-2(l=-2), f3,+3(l=+3), f3,-3(l=-3)"
-                    )
-                    reorder_index = [0, 1, 2, 3, 4, 5, 6]
-                    reorder_m_list = [0, +1, -1, +2, -2, +3, -3]
-                    reorder_l_list = [3] * 7
-
-            elif current_ang_mom == 4:  # g shell
-
-                if ao_cartesian != 0:
-                    logger.debug(
-                        "Cartesian notation for g shell is not implemented yet! Sorry."
-                    )
-                    raise NotImplementedError
-
-                else:
-                    logger.debug("g shell/no permutation is needed.")
-                    logger.debug(
-                        "(trexio  notation): g4,0(l=0), g4,+1(l=+1), g4,-1(l=-1), g4,+2(l=+2), g4,-2(l=-2), g4,+3(l=+3), g4,-3(l=-3), g4,+4(l=+4), g4,-4(l=-4)"
-                    )
-                    logger.debug(
-                        "(makefun notation): g4,0(l=0), g4,+1(l=+1), g4,-1(l=-1), g4,+2(l=+2), g4,-2(l=-2), g4,+3(l=+3), g4,-3(l=-3), g4,+4(l=+4), g4,-4(l=-4)"
-                    )
-                    reorder_index = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-                    reorder_m_list = [0, +1, -1, +2, -2, +3, -3, +4, -4]
-                    reorder_l_list = [4] * 9
-
-            elif current_ang_mom == 5:  # h shell
-
-                if ao_cartesian != 0:
-                    logger.debug(
-                        "Cartesian notation for h shell is not implemented yet! Sorry."
-                    )
-                    raise NotImplementedError
-
-                else:
-                    logger.debug("h shell/no permutation is needed.")
-                    logger.debug(
-                        "(trexio  notation): h5,0(l=0), h5,+1(l=+1), h5,-1(l=-1), h5,+2(l=+2), h5,-2(l=-2), h5,+3(l=+3), h5,-3(l=-3), h5,+4(l=+4), h5,-4(l=-4), h5,+5(l=+5), h5,-5(l=-5)"
-                    )
-                    logger.debug(
-                        "(makefun notation): h5,0(l=0), h5,+1(l=+1), h5,-1(l=-1), h5,+2(l=+2), h5,-2(l=-2), h5,+3(l=+3), h5,-3(l=-3), h5,+4(l=+4), h5,-4(l=-4), h5,+5(l=+5), h5,-5(l=-5)"
-                    )
-                    reorder_index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-                    reorder_m_list = [
-                        0,
-                        +1,
-                        -1,
-                        +2,
-                        -2,
-                        +3,
-                        -3,
-                        +4,
-                        -4,
-                        +5,
-                        -5,
-                    ]
-                    reorder_l_list = [5] * 11
-
-            elif current_ang_mom == 6:  # i shell
-
-                if ao_cartesian != 0:
-                    logger.debug(
-                        "Cartesian notation for i shell is not implemented yet! Sorry."
-                    )
-                    raise NotImplementedError
-
-                else:
-                    logger.debug("i shell/no permutation is needed.")
-                    logger.debug(
-                        "(trexio  notation): i6,0(l=0), i6,+1(l=+1), i6,-1(l=-1), i6,+2(l=+2), i6,-2(l=-2), i6,+3(l=+3), i6,-3(l=-3), i6,+4(l=+4), i6,-4(l=-4), i6,+5(l=+5), i6,-5(l=-5), i6,+6(l=+6), i6,-6(l=-6)"
-                    )
-                    logger.debug(
-                        "(makefun notation): i6,0(l=0), i6,+1(l=+1), i6,-1(l=-1), i6,+2(l=+2), i6,-2(l=-2), i6,+3(l=+3), i6,-3(l=-3), i6,+4(l=+4), i6,-4(l=-4), i6,+5(l=+5), i6,-5(l=-5), i6,+6(l=+6), i6,-6(l=-6)"
-                    )
-                    reorder_index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-                    reorder_m_list = [
-                        0,
-                        +1,
-                        -1,
-                        +2,
-                        -2,
-                        +3,
-                        -3,
-                        +4,
-                        -4,
-                        +5,
-                        -5,
-                        +6,
-                        -6,
-                    ]
-                    reorder_l_list = [6] * 13
-
-            else:
-                logger.error(
-                    f" Angular momentum={ang_mom} is not implemented in TurboRVB!!!"
-                )
-                raise NotImplementedError
-
-            basis_index_list = [
-                n for n, v in enumerate(basis_shell_index) if v == shell_index
-            ]
-
-            mo_coeff_local_buffer = []
-            mo_exponent_local_buffer = []
-            mo_nucleus_index_local_buffer = []
-
-            logger.debug(basis_index_list)
-            logger.debug(basis_nucleus_index)
-            for basis_index in basis_index_list:
-                mo_coeff_local_buffer.append(
-                    mo_coefficient[mo_i][ao_i] * basis_coefficient[basis_index]
-                )
-                mo_exponent_local_buffer.append(basis_exponent[basis_index])
-                mo_nucleus_index_local_buffer.append(
-                    basis_nucleus_index[shell_index]
-                )
-
-            mo_coefficient_list_for_reordering.append(mo_coeff_local_buffer)
-            mo_exponent_list_for_reordering.append(mo_exponent_local_buffer)
-            mo_nucleus_index_list_for_reordering.append(
-                mo_nucleus_index_local_buffer
-            )
-
-            # write MOs!!
-            if len(mo_coefficient_list_for_reordering) == multiplicity:
-                logger.debug("--write MOs!!--")
-                mo_coeff_list_reordered = [
-                    mo_coefficient_list_for_reordering[i]
-                    for i in reorder_index
-                ]
-                mo_exp_list_reordered = [
-                    mo_exponent_list_for_reordering[i] for i in reorder_index
-                ]
-                mo_nucleus_index_list_reordered = [
-                    mo_nucleus_index_list_for_reordering[i]
-                    for i in reorder_index
-                ]
-                mo_m_list_reordered = reorder_m_list * len(basis_index_list)
-                mo_l_list_reordered = reorder_l_list * len(basis_index_list)
-
-                # reordered again is needed here for contracted shell!
-                # because order is not px ... py ... pz but px,py,pz,px,py,pz ...
-                for ii in range(len(mo_coeff_list_reordered[0])):
-                    for mo_coeff_reordered in mo_coeff_list_reordered:
-                        mo_coefficient_list.append(mo_coeff_reordered[ii])
-                for ii in range(len(mo_exp_list_reordered[0])):
-                    for mo_exp_reordered in mo_exp_list_reordered:
-                        mo_exponent_list.append(mo_exp_reordered[ii])
-                for ii in range(len(mo_nucleus_index_list_reordered[0])):
-                    for (
-                        mo_nucleus_index_reordered
-                    ) in mo_nucleus_index_list_reordered:
-                        mo_nucleus_index_list.append(
-                            mo_nucleus_index_reordered[ii]
-                        )
-                """
-                for ii in range(len(mo_m_list_reordered[0])):
-                    for mo_m_reordered in mo_m_list_reordered:
-                        mo_m_list.append(mo_m_reordered[ii])
-                for ii in range(len(mo_angmom_list_reordered[0])):
-                    for mo_angmom_reordered in mo_angmom_list_reordered:
-                        mo_l_list.append(mo_angmom_reordered[ii])
-                """
-                mo_m_list += mo_m_list_reordered
-                mo_l_list += mo_l_list_reordered
-
-                # reset buffer after writing MOs
-                mo_coefficient_list_for_reordering = []
-                mo_exponent_list_for_reordering = []
-                mo_nucleus_index_list_for_reordering = []
-
-        logger.debug(len(mo_exponent_list))
-        logger.debug(len(mo_coefficient_list))
-        logger.debug(len(mo_nucleus_index_list))
-        logger.debug(len(mo_m_list))
-        logger.debug(len(mo_l_list))
-
-        assert len(mo_coefficient_list) == len(mo_exponent_list)
-        assert len(mo_coefficient_list) == len(mo_nucleus_index_list)
-        assert len(mo_coefficient_list) == len(mo_m_list)
-        assert len(mo_coefficient_list) == len(mo_l_list)
-
-        logger.debug("========================================")
-        logger.debug("End buffering MOs")
-        logger.debug("========================================")
-
-        # remove duplicated exponents!
-        # Note: TurboRVB internally removes duplicated exponents.
-        logger.debug(mo_nucleus_index_list)
-        logger.debug(len(mo_nucleus_index_list))
-
-        ref_exponent_index_list = []
-        removed_exponent_index_list = []
-        for unique_mo_nucleus_index in set(mo_nucleus_index_list):
-            logger.debug(
-                f"unique_mo_nucleus_index = {unique_mo_nucleus_index}."
-            )
-            mo_nucleus_index = [
-                i
-                for i, x in enumerate(mo_nucleus_index_list)
-                if x == unique_mo_nucleus_index
-            ]
-            logger.debug(mo_nucleus_index)
-            mo_exponent_list_nucleus = [
-                mo_exponent_list[i] for i in mo_nucleus_index
-            ]
-            mo_m_list_nucleus = [mo_m_list[i] for i in mo_nucleus_index]
-            mo_l_list_nucleus = [mo_l_list[i] for i in mo_nucleus_index]
-            logger.debug(mo_exponent_list_nucleus)
-
-            unique_exp_list = list(set(mo_exponent_list_nucleus))
-            logger.debug(mo_exponent_list_nucleus)
-            logger.debug(unique_exp_list)
-
-            logger.debug(len(mo_exponent_list_nucleus))
-            logger.debug(len(unique_exp_list))
-            if len(unique_exp_list) != len(mo_exponent_list_nucleus):
-                logger.debug(
-                    f"Duplicated exponents exist for nucleus index = {unique_mo_nucleus_index}."
-                )
-                for unique_exp in unique_exp_list:
-                    unique_exponent_index = [
-                        i
-                        for i, x in enumerate(mo_exponent_list_nucleus)
-                        if x == unique_exp
-                    ]
-                    mo_e_list_u = [
-                        mo_exponent_list_nucleus[i]
-                        for i in unique_exponent_index
-                    ]
-                    assert len(set(mo_e_list_u)) == 1
-                    mo_l_list_u = [
-                        mo_l_list_nucleus[i] for i in unique_exponent_index
-                    ]
-                    mo_m_list_u = [
-                        mo_m_list_nucleus[i] for i in unique_exponent_index
-                    ]
-
-                    while (
-                        len(unique_exponent_index) > 0
-                        and len(mo_l_list_u) > 0
-                        and len(mo_m_list_u) > 0
-                    ):
-                        ref_flag = False
-                        removed_uu_list = []
-                        removed_exponent_index_list_ = []
-                        logger.debug(unique_exponent_index)
-                        logger.debug(mo_l_list_nucleus)
-                        logger.debug(mo_m_list_nucleus)
-                        for uu, (e_i, mo_l, mo_m) in enumerate(
-                            zip(
-                                unique_exponent_index, mo_l_list_u, mo_m_list_u
-                            )
-                        ):
-                            if not ref_flag:
-                                ref_e_i = e_i
-                                mo_l_ref = mo_l
-                                mo_m_ref = mo_m
-                                removed_uu_list.append(uu)
-                                ref_flag = True
-                            else:
-                                if mo_l_ref == mo_l and mo_m_ref == mo_m:
-                                    removed_uu_list.append(uu)
-                                    removed_exponent_index_list_.append(e_i)
-
-                        logger.debug(removed_uu_list)
-                        for kk in reversed(sorted(removed_uu_list)):
-                            unique_exponent_index.pop(kk)
-                            mo_l_list_u.pop(kk)
-                            mo_m_list_u.pop(kk)
-
-                        logger.debug(ref_e_i)
-                        logger.debug(removed_exponent_index_list_)
-                        logger.debug(mo_nucleus_index[ref_e_i])
+                    if ao_cartesian != 0:
+                        logger.debug("p shell/no permutation is needed.")
                         logger.debug(
-                            [
-                                mo_nucleus_index[pp]
-                                for pp in removed_exponent_index_list_
-                            ]
+                            "(trexio  notation): px(m=+1), py(m=-1), pz(m=0)"
                         )
-                        ref_exponent_index_list.append(
-                            mo_nucleus_index[ref_e_i]
+                        logger.debug(
+                            "(makefun notation): px(m=+1), py(m=-1), pz(m=0)"
                         )
-                        removed_exponent_index_list.append(
-                            [
-                                mo_nucleus_index[pp]
-                                for pp in removed_exponent_index_list_
-                            ]
+                        reorder_index = [0, 1, 2]
+                        reorder_m_list = [+1, -1, 0]
+                        reorder_l_list = [1] * 3
+                    else:
+                        logger.debug("p shell/permutation is needed.")
+                        logger.debug(
+                            "(trexio  notation): pz(m=0), px(m=+1), py(m=-1)"
                         )
+                        logger.debug(
+                            "(makefun notation): px(m=+1), py(m=-1), pz(m=0)"
+                        )
+                        reorder_index = [1, 2, 0]
+                        reorder_m_list = [+1, -1, 0]
+                        reorder_l_list = [1] * 3
 
-            else:
-                logger.debug(
-                    f"No duplicated exponent is found for nucleus index ={unique_mo_nucleus_index}"
+                elif current_ang_mom == 2:  # d shell
+
+                    if ao_cartesian != 0:
+                        logger.debug(
+                            "Cartesian notation for d shell is not implemented yet! Sorry."
+                        )
+                        raise NotImplementedError
+                    else:
+                        logger.debug("d shell/permutation is needed.")
+                        logger.debug(
+                            "(trexio  notation): dz2(m=0), dzx=(m=+1), dyz(m=-1), dx2-y2(m=+2), dxy(m=-2)"
+                        )
+                        logger.debug(
+                            "(makefun notation): dz2(m=0), dx2-y2(m=+2), dxy(m=-2), dyz(m=-1), dzx=(m=+1)"
+                        )
+                        reorder_index = [0, 3, 4, 2, 1]
+                        reorder_m_list = [0, +2, -2, -1, +1]
+                        reorder_l_list = [2] * 5
+
+                elif current_ang_mom == 3:  # f shell
+
+                    if ao_cartesian != 0:
+                        logger.debug(
+                            "Cartesian notation for f shell is not implemented yet! Sorry."
+                        )
+                        raise NotImplementedError
+
+                    else:
+                        logger.debug("f shell/no permutation is needed.")
+                        logger.debug(
+                            "(trexio  notation): f3,0(l=0), f3,+1(l=+1), f3,-1(l=-1), f3,+2(l=+2), f3,-2(l=-2), f3,+3(l=+3), f3,-3(l=-3)"
+                        )
+                        logger.debug(
+                            "(makefun notation): f3,0(l=0), f3,+1(l=+1), f3,-1(l=-1), f3,+2(l=+2), f3,-2(l=-2), f3,+3(l=+3), f3,-3(l=-3)"
+                        )
+                        reorder_index = [0, 1, 2, 3, 4, 5, 6]
+                        reorder_m_list = [0, +1, -1, +2, -2, +3, -3]
+                        reorder_l_list = [3] * 7
+
+                elif current_ang_mom == 4:  # g shell
+
+                    if ao_cartesian != 0:
+                        logger.debug(
+                            "Cartesian notation for g shell is not implemented yet! Sorry."
+                        )
+                        raise NotImplementedError
+
+                    else:
+                        logger.debug("g shell/no permutation is needed.")
+                        logger.debug(
+                            "(trexio  notation): g4,0(l=0), g4,+1(l=+1), g4,-1(l=-1), g4,+2(l=+2), g4,-2(l=-2), g4,+3(l=+3), g4,-3(l=-3), g4,+4(l=+4), g4,-4(l=-4)"
+                        )
+                        logger.debug(
+                            "(makefun notation): g4,0(l=0), g4,+1(l=+1), g4,-1(l=-1), g4,+2(l=+2), g4,-2(l=-2), g4,+3(l=+3), g4,-3(l=-3), g4,+4(l=+4), g4,-4(l=-4)"
+                        )
+                        reorder_index = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                        reorder_m_list = [0, +1, -1, +2, -2, +3, -3, +4, -4]
+                        reorder_l_list = [4] * 9
+
+                elif current_ang_mom == 5:  # h shell
+
+                    if ao_cartesian != 0:
+                        logger.debug(
+                            "Cartesian notation for h shell is not implemented yet! Sorry."
+                        )
+                        raise NotImplementedError
+
+                    else:
+                        logger.debug("h shell/no permutation is needed.")
+                        logger.debug(
+                            "(trexio  notation): h5,0(l=0), h5,+1(l=+1), h5,-1(l=-1), h5,+2(l=+2), h5,-2(l=-2), h5,+3(l=+3), h5,-3(l=-3), h5,+4(l=+4), h5,-4(l=-4), h5,+5(l=+5), h5,-5(l=-5)"
+                        )
+                        logger.debug(
+                            "(makefun notation): h5,0(l=0), h5,+1(l=+1), h5,-1(l=-1), h5,+2(l=+2), h5,-2(l=-2), h5,+3(l=+3), h5,-3(l=-3), h5,+4(l=+4), h5,-4(l=-4), h5,+5(l=+5), h5,-5(l=-5)"
+                        )
+                        reorder_index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        reorder_m_list = [
+                            0,
+                            +1,
+                            -1,
+                            +2,
+                            -2,
+                            +3,
+                            -3,
+                            +4,
+                            -4,
+                            +5,
+                            -5,
+                        ]
+                        reorder_l_list = [5] * 11
+
+                elif current_ang_mom == 6:  # i shell
+
+                    if ao_cartesian != 0:
+                        logger.debug(
+                            "Cartesian notation for i shell is not implemented yet! Sorry."
+                        )
+                        raise NotImplementedError
+
+                    else:
+                        logger.debug("i shell/no permutation is needed.")
+                        logger.debug(
+                            "(trexio  notation): i6,0(l=0), i6,+1(l=+1), i6,-1(l=-1), i6,+2(l=+2), i6,-2(l=-2), i6,+3(l=+3), i6,-3(l=-3), i6,+4(l=+4), i6,-4(l=-4), i6,+5(l=+5), i6,-5(l=-5), i6,+6(l=+6), i6,-6(l=-6)"
+                        )
+                        logger.debug(
+                            "(makefun notation): i6,0(l=0), i6,+1(l=+1), i6,-1(l=-1), i6,+2(l=+2), i6,-2(l=-2), i6,+3(l=+3), i6,-3(l=-3), i6,+4(l=+4), i6,-4(l=-4), i6,+5(l=+5), i6,-5(l=-5), i6,+6(l=+6), i6,-6(l=-6)"
+                        )
+                        reorder_index = [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7,
+                            8,
+                            9,
+                            10,
+                            11,
+                            12,
+                        ]
+                        reorder_m_list = [
+                            0,
+                            +1,
+                            -1,
+                            +2,
+                            -2,
+                            +3,
+                            -3,
+                            +4,
+                            -4,
+                            +5,
+                            -5,
+                            +6,
+                            -6,
+                        ]
+                        reorder_l_list = [6] * 13
+
+                else:
+                    logger.error(
+                        f" Angular momentum={ang_mom} is not implemented in TurboRVB!!!"
+                    )
+                    raise NotImplementedError
+
+                basis_index_list = [
+                    n
+                    for n, v in enumerate(basis_shell_index)
+                    if v == shell_index
+                ]
+
+                mo_coeff_local_buffer = []
+                mo_exponent_local_buffer = []
+                mo_nucleus_index_local_buffer = []
+
+                logger.debug(basis_index_list)
+                logger.debug(basis_nucleus_index)
+                for basis_index in basis_index_list:
+                    mo_coeff_local_buffer.append(
+                        mo_coefficient[mo_i_shifted][ao_i]
+                        * basis_coefficient[basis_index]
+                    )
+                    mo_exponent_local_buffer.append(
+                        basis_exponent[basis_index]
+                    )
+                    mo_nucleus_index_local_buffer.append(
+                        basis_nucleus_index[shell_index]
+                    )
+
+                mo_coefficient_list_for_reordering.append(
+                    mo_coeff_local_buffer
+                )
+                mo_exponent_list_for_reordering.append(
+                    mo_exponent_local_buffer
+                )
+                mo_nucleus_index_list_for_reordering.append(
+                    mo_nucleus_index_local_buffer
                 )
 
-        # Finally, here, duplicated exponents are removed.
-        # because of using pop here.
-        # if pop is used inside the above for loop, indices change during the for loop.
-        pop_index_list = []
-        for ref_exponent_index, removed_exponent_index in zip(
-            ref_exponent_index_list, removed_exponent_index_list
-        ):
-            for r_index in reversed(sorted(removed_exponent_index)):
-                mo_coefficient_list[ref_exponent_index] += mo_coefficient_list[
-                    r_index
+                # store MOs!!
+                if len(mo_coefficient_list_for_reordering) == multiplicity:
+                    logger.debug("--write MOs!!--")
+                    mo_coeff_list_reordered = [
+                        mo_coefficient_list_for_reordering[i]
+                        for i in reorder_index
+                    ]
+                    mo_exp_list_reordered = [
+                        mo_exponent_list_for_reordering[i]
+                        for i in reorder_index
+                    ]
+                    mo_nucleus_index_list_reordered = [
+                        mo_nucleus_index_list_for_reordering[i]
+                        for i in reorder_index
+                    ]
+                    mo_m_list_reordered = reorder_m_list * len(
+                        basis_index_list
+                    )
+                    mo_l_list_reordered = reorder_l_list * len(
+                        basis_index_list
+                    )
+
+                    # reordered again is needed here for contracted shell!
+                    # because order is not px ... py ... pz but px,py,pz,px,py,pz ...
+                    for ii in range(len(mo_coeff_list_reordered[0])):
+                        for mo_coeff_reordered in mo_coeff_list_reordered:
+                            mo_coefficient_list.append(mo_coeff_reordered[ii])
+                    for ii in range(len(mo_exp_list_reordered[0])):
+                        for mo_exp_reordered in mo_exp_list_reordered:
+                            mo_exponent_list.append(mo_exp_reordered[ii])
+                    for ii in range(len(mo_nucleus_index_list_reordered[0])):
+                        for (
+                            mo_nucleus_index_reordered
+                        ) in mo_nucleus_index_list_reordered:
+                            mo_nucleus_index_list.append(
+                                mo_nucleus_index_reordered[ii]
+                            )
+                    """
+                    for ii in range(len(mo_m_list_reordered[0])):
+                        for mo_m_reordered in mo_m_list_reordered:
+                            mo_m_list.append(mo_m_reordered[ii])
+                    for ii in range(len(mo_angmom_list_reordered[0])):
+                        for mo_angmom_reordered in mo_angmom_list_reordered:
+                            mo_l_list.append(mo_angmom_reordered[ii])
+                    """
+                    mo_m_list += mo_m_list_reordered
+                    mo_l_list += mo_l_list_reordered
+
+                    # reset buffer after writing MOs
+                    mo_coefficient_list_for_reordering = []
+                    mo_exponent_list_for_reordering = []
+                    mo_nucleus_index_list_for_reordering = []
+
+            assert len(mo_coefficient_list) == len(mo_exponent_list)
+            assert len(mo_coefficient_list) == len(mo_nucleus_index_list)
+            assert len(mo_coefficient_list) == len(mo_m_list)
+            assert len(mo_coefficient_list) == len(mo_l_list)
+
+            # ========================================
+            # End buffering MOs
+            # ========================================
+
+            # remove duplicated exponents!
+            # Note: TurboRVB internally removes duplicated exponents.
+
+            ref_exponent_index_list = []
+            removed_exponent_index_list = []
+            for unique_mo_nucleus_index in set(mo_nucleus_index_list):
+                mo_nucleus_index = [
+                    i
+                    for i, x in enumerate(mo_nucleus_index_list)
+                    if x == unique_mo_nucleus_index
                 ]
-                pop_index_list.append(r_index)
-        logger.debug(sorted(pop_index_list))
-        logger.debug(len(sorted(pop_index_list)))
-        for pop_index in reversed(sorted(pop_index_list)):
-            mo_coefficient_list.pop(pop_index)
+                mo_exponent_list_nucleus = [
+                    mo_exponent_list[i] for i in mo_nucleus_index
+                ]
+                mo_m_list_nucleus = [mo_m_list[i] for i in mo_nucleus_index]
+                mo_l_list_nucleus = [mo_l_list[i] for i in mo_nucleus_index]
 
-        mo_coefficient_turbo.append(mo_coefficient_list)
-        mo_exponent_turbo.append(mo_exponent_list)
+                unique_exp_list = list(set(mo_exponent_list_nucleus))
 
-    # fort.10 MO replace
-    logger.debug(len(io_fort10.f10detbasissets.mo_coefficient[0]))
-    logger.debug(len(mo_coefficient_turbo[0]))
+                if len(unique_exp_list) != len(mo_exponent_list_nucleus):
+                    for unique_exp in unique_exp_list:
+                        unique_exponent_index = [
+                            i
+                            for i, x in enumerate(mo_exponent_list_nucleus)
+                            if x == unique_exp
+                        ]
+                        mo_e_list_u = [
+                            mo_exponent_list_nucleus[i]
+                            for i in unique_exponent_index
+                        ]
+                        assert len(set(mo_e_list_u)) == 1
+                        mo_l_list_u = [
+                            mo_l_list_nucleus[i] for i in unique_exponent_index
+                        ]
+                        mo_m_list_u = [
+                            mo_m_list_nucleus[i] for i in unique_exponent_index
+                        ]
+
+                        while (
+                            len(unique_exponent_index) > 0
+                            and len(mo_l_list_u) > 0
+                            and len(mo_m_list_u) > 0
+                        ):
+                            ref_flag = False
+                            removed_uu_list = []
+                            removed_exponent_index_list_ = []
+                            logger.debug(unique_exponent_index)
+                            logger.debug(mo_l_list_nucleus)
+                            logger.debug(mo_m_list_nucleus)
+                            for uu, (e_i, mo_l, mo_m) in enumerate(
+                                zip(
+                                    unique_exponent_index,
+                                    mo_l_list_u,
+                                    mo_m_list_u,
+                                )
+                            ):
+                                if not ref_flag:
+                                    ref_e_i = e_i
+                                    mo_l_ref = mo_l
+                                    mo_m_ref = mo_m
+                                    removed_uu_list.append(uu)
+                                    ref_flag = True
+                                else:
+                                    if mo_l_ref == mo_l and mo_m_ref == mo_m:
+                                        removed_uu_list.append(uu)
+                                        removed_exponent_index_list_.append(
+                                            e_i
+                                        )
+
+                            logger.debug(removed_uu_list)
+                            for kk in reversed(sorted(removed_uu_list)):
+                                unique_exponent_index.pop(kk)
+                                mo_l_list_u.pop(kk)
+                                mo_m_list_u.pop(kk)
+
+                            ref_exponent_index_list.append(
+                                mo_nucleus_index[ref_e_i]
+                            )
+                            removed_exponent_index_list.append(
+                                [
+                                    mo_nucleus_index[pp]
+                                    for pp in removed_exponent_index_list_
+                                ]
+                            )
+
+                else:
+                    logger.debug(
+                        f"No duplicated exponent is found for nucleus index ={unique_mo_nucleus_index}"
+                    )
+
+            # Finally, here, duplicated exponents are removed.
+            # because of using pop here.
+            # if pop is used inside the above for loop, indices change during the for loop.
+            pop_index_list = []
+            for ref_exponent_index, removed_exponent_index in zip(
+                ref_exponent_index_list, removed_exponent_index_list
+            ):
+                for r_index in reversed(sorted(removed_exponent_index)):
+                    mo_coefficient_list[
+                        ref_exponent_index
+                    ] += mo_coefficient_list[r_index]
+                    pop_index_list.append(r_index)
+
+            for pop_index in reversed(sorted(pop_index_list)):
+                mo_coefficient_list.pop(pop_index)
+
+            mo_coefficient_turbo.append(mo_coefficient_list)
+            mo_exponent_turbo.append(mo_exponent_list)
+
+    # mo_exponent_turbo is duplicated in the spin-unrestricted case
+    # remove the duplication here
+    if not spin_restricted:
+        if (
+            mo_exponent_turbo[0:mo_num_use]
+            != mo_exponent_turbo[mo_num_use : 2 * mo_num_use]
+        ):
+            logger.error(
+                "mo_exponent_turbo is not consistent between alpha and beta spins."
+            )
+            raise ValueError
+        mo_exponent_turbo = mo_exponent_turbo[0:mo_num_use]
 
     # molecular orbital swapped, spin polarized cases.
-    mo_coefficient_turbo_unpaired = []
-    pop_lst = [
-        num_ele_dn + nel_diff for nel_diff in range(0, num_ele_up - num_ele_dn)
-    ]
-    for p in reversed(pop_lst):
-        logger.debug("molecular orbital swapped")
-        mo_coefficient_turbo_unpaired.append(mo_coefficient_turbo.pop(p))
-    for m in reversed(mo_coefficient_turbo_unpaired):
-        mo_coefficient_turbo.append(m)
+    if spin_restricted:
+        mo_coefficient_turbo_unpaired = []
+        pop_lst = [
+            num_ele_dn + nel_diff
+            for nel_diff in range(0, num_ele_up - num_ele_dn)
+        ]
+        for p in reversed(pop_lst):
+            logger.debug("molecular orbital swapped (spin-resticted case)")
+            mo_coefficient_turbo_unpaired.append(mo_coefficient_turbo.pop(p))
+        for m in reversed(mo_coefficient_turbo_unpaired):
+            mo_coefficient_turbo.append(m)
+    else:
+        # spin-unrestricted case, here, the MOs are reordered such that
+        # [a,a,a,a,a....a, b,b,b,b,b,b,b,....b]
+        # ->
+        # [b,a,b,a,b,a,b......a (paired),a,a,a,a (unpaired)]
+        # note!! the ""last"" nel_diff orbitals are removed
+        # from the beta spin.
+        # molecular orbital swapped, spin polarized cases.
+        mo_coefficient_turbo_unpaired = []
+        # alpha spins
+        pop_lst = [
+            num_ele_dn + nel_diff
+            for nel_diff in range(0, num_ele_up - num_ele_dn)
+        ]
+
+        for p in reversed(pop_lst):
+            logger.debug("molecular orbital swapped (spin-unresticted case)")
+            mo_coefficient_turbo_unpaired.append(mo_coefficient_turbo.pop(p))
+        # beta spins
+        for _ in range(0, num_ele_up - num_ele_dn):
+            mo_coefficient_turbo.pop(-1)
+        # reordering alpha and beta spins
+        mo_coefficient_turbo_new = []
+        for i in range(0, int(len(mo_coefficient_turbo) / 2)):
+            mo_coefficient_turbo_new.append(
+                mo_coefficient_turbo[i + int(len(mo_coefficient_turbo) / 2)]
+            )  # beta spin
+            mo_coefficient_turbo_new.append(
+                mo_coefficient_turbo[i + 0]
+            )  # alpha spin
+        mo_coefficient_turbo = mo_coefficient_turbo_new
+        for m in reversed(mo_coefficient_turbo_unpaired):
+            mo_coefficient_turbo.append(m)
 
     # fort.10 MO replace
     logger.info("Writing obtained MOs to fort.10....(It might take a while).")
     if not complex_flag:
+        # logger.info(len(mo_coefficient_turbo))
+        # logger.info(len(io_fort10.f10detbasissets.mo_coefficient))
         io_fort10.f10detbasissets.mo_coefficient = mo_coefficient_turbo
     else:
         # complex case,
@@ -866,10 +1077,20 @@ def trexio_to_turborvb_wf(
             # trexio currently supports only restricted open or closed shells, => This is a TODO
             # so, here just duplicate the MOs. => is it ok??
             # Yes. the order seems correct, i.e, up, dn, up, dn....
+
             # but, let me see,,, for spin-polarized cases??
+            # I think they should work as they are, but
+            # just in case, I have put here NotImplementedError
+
             if num_ele_up != num_ele_dn:
                 logger.error(
-                    "spin-polarized case for a complex system is not implemented yet."
+                    "spin-polarized case for a complex system is not tested yet."
+                )
+                raise NotImplementedError
+
+            if not spin_restricted:
+                logger.error(
+                    "spin-unrestricted case for a complex system is not tested yet."
                 )
                 raise NotImplementedError
 
@@ -1102,7 +1323,7 @@ def main():
         trexio_to_turborvb_wf(
             trexio_file=args.trexio_file,
             cleanup=args.cleanup,
-            max_occ_conv=0.0,
+            max_occ_conv=0.01,
             jas_basis_sets=jas_basis_sets,
         )
 

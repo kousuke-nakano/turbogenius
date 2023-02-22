@@ -18,6 +18,7 @@ import os
 import re
 import numpy as np
 from decimal import Decimal
+from typing import Optional
 
 # set logger
 from logging import getLogger, StreamHandler, Formatter
@@ -42,12 +43,22 @@ logger = getLogger("pyturbo").getChild(__name__)
 class Makefort10(FortranIO):
     def __init__(
         self,
-        structure=Structure(),
-        det_basis_sets=Det_Basis_sets(),
-        jas_basis_sets=Jas_Basis_sets(),
-        pseudo_potentials=Pseudopotentials(),
-        namelist=Namelist(),
+        structure: Optional[Structure] = None,
+        det_basis_sets: Optional[Det_Basis_sets] = None,
+        jas_basis_sets: Optional[Jas_Basis_sets] = None,
+        pseudo_potentials: Optional[Pseudopotentials] = None,
+        namelist: Optional[Namelist] = None,
     ):
+        if structure is None:
+            structure = Structure()
+        if det_basis_sets is None:
+            det_basis_sets = Det_Basis_sets()
+        if jas_basis_sets is None:
+            jas_basis_sets = Jas_Basis_sets()
+        if pseudo_potentials is None:
+            pseudo_potentials = Pseudopotentials()
+        if namelist is None:
+            namelist = Namelist()
 
         """
         input values
@@ -68,7 +79,9 @@ class Makefort10(FortranIO):
     def sanity_check(self):
         assert self.structure.natom == self.det_basis_sets.nuclei_num
 
-    def generate_input(self, input_name, basis_sets_unique_element=True):
+    def generate_input(
+        self, input_name: str, basis_sets_unique_element: bool = True
+    ):
         # pseudo potential generation (pseudo.dat)
         self.pseudo_potentials.write_pseudopotential_turborvb_file()
 
@@ -181,7 +194,7 @@ class Makefort10(FortranIO):
             else:
                 # label = "ATOM_{:f}".format(fake_atomic_number) # :f format does not work.
                 label = "ATOM_{:f}".format(
-                    Decimal(str(round(fake_atomic_number,8))).normalize()
+                    Decimal(str(round(fake_atomic_number, 8))).normalize()
                 )
             nshelldet = len(
                 [
@@ -390,14 +403,20 @@ class Makefort10(FortranIO):
         with open(input_name, "a") as f:
             f.writelines(output)
 
-    def run(self, input_name="makefort10.input", output_name="out_make"):
+    def run(
+        self,
+        input_name: str = "makefort10.input",
+        output_name: str = "out_make",
+    ):
         run(
             turbo_makefort10_run_command,
             input_name=input_name,
             output_name=output_name,
         )
 
-    def check_results(self, output_names=["out_make"]):
+    def check_results(self, output_names: Optional[list] = None):
+        if output_names is None:
+            output_names = ["out_make"]
         flags = []
         for output_name in output_names:
             file_check(output_name)
@@ -412,12 +431,14 @@ class Makefort10(FortranIO):
 
     @staticmethod
     def read_default_namelist(
-        structure=Structure(),
-        jastrow_type=-6,
-        neldiff=0,
-        nel=-1,
-        complex_flag=False,
+        structure: Optional[Structure] = None,
+        jastrow_type: int = -6,
+        neldiff: int = 0,
+        nel: int = -1,
+        complex_flag: bool = False,
     ):
+        if structure is None:
+            structure = Structure()
         makefort10_default_file = os.path.join(
             pyturbo_data_dir, "makefort10", "makefort10.input"
         )

@@ -12,6 +12,7 @@ Todo:
 
 # python modules
 import os
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -46,9 +47,12 @@ class VMC_genius(GeniusIO):
         num_walkers: int = -1,  # default -1 -> num of MPI process.
         maxtime: int = 172800,
         twist_average: bool = False,
-        kpoints: list = [1, 1, 1, 0, 0, 0],
+        kpoints: Optional[list] = None,
         force_calc_flag: bool = True,
     ):
+
+        if kpoints is None:
+            kpoints = [1, 1, 1, 0, 0, 0]
 
         self.force_calc_flag = force_calc_flag
         self.vmcsteps = vmcsteps
@@ -219,7 +223,7 @@ class VMC_genius(GeniusIO):
         self,
         bin_block: int = 10,
         warmupblocks: int = 5,
-        output_names: list = ["out_vmc"],
+        output_names: Optional[list] = None,
         rerun: bool = False,
     ) -> bool:
         """
@@ -232,6 +236,8 @@ class VMC_genius(GeniusIO):
             output_names (list): a list of output file names
             rerun (bool): if true, compute energy and force again even if there are energy and force files.
         """
+        if output_names is None:
+            output_names = ["out_vmc"]
         self.estimated_time_for_1_generation = (
             self.get_estimated_time_for_1_generation(output_names=output_names)
         )
@@ -259,7 +265,7 @@ class VMC_genius(GeniusIO):
             )
 
     def get_estimated_time_for_1_generation(
-        self, output_names: list = ["out_vmc"]
+        self, output_names: Optional[list] = None
     ) -> float:
         """
         This procedure stores estimated_time_for_1_generation.
@@ -270,11 +276,13 @@ class VMC_genius(GeniusIO):
         Return:
             float: estimated_time_for_1_generation.
         """
+        if output_names is None:
+            output_names = ["out_vmc"]
         return self.vmc.get_estimated_time_for_1_generation(
             output_names=output_names
         )
 
-    def check_results(self, output_names: list = ["out_vmc"]) -> bool:
+    def check_results(self, output_names: Optional[list] = None) -> bool:
         """
         Check the result.
 
@@ -283,6 +291,8 @@ class VMC_genius(GeniusIO):
         Return:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_vmc"]
         return self.vmc.check_results(output_names=output_names)
 
 

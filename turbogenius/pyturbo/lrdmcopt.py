@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from typing import Optional
 
 # turbo-genius modules
 from turbogenius.pyturbo.namelist import Namelist
@@ -47,11 +48,13 @@ logger = getLogger("pyturbo").getChild(__name__)
 class LRDMCopt(FortranIO):
     def __init__(
         self,
-        in_fort10="fort.10",
-        namelist=Namelist(),
-        pp_flag=False,
-        twist_average=False,
+        in_fort10: str = "fort.10",
+        namelist: Optional[Namelist] = None,
+        pp_flag: bool = False,
+        twist_average: bool = False,
     ):
+        if namelist is None:
+            namelist = Namelist()
 
         """
         input values
@@ -75,11 +78,15 @@ class LRDMCopt(FortranIO):
     def sanity_check(self):
         pass
 
-    def generate_input(self, input_name):
+    def generate_input(self, input_name: str):
         self.namelist.write(input_name)
         logger.info(f"{input_name} has been generated. \n")
 
-    def run(self, input_name="datasfn_opt.input", output_name="out_fn_opt"):
+    def run(
+        self,
+        input_name: str = "datasfn_opt.input",
+        output_name: str = "out_fn_opt",
+    ):
         run(
             turbo_qmc_run_command,
             input_name=input_name,
@@ -87,7 +94,9 @@ class LRDMCopt(FortranIO):
         )
         remove_file(file="stop.dat")
 
-    def check_results(self, output_names=["out_fn_opt"]):
+    def check_results(self, output_names: Optional[list] = None):
+        if output_names is None:
+            output_names = ["out_fn_opt"]
         flags = []
         for output_name in output_names:
             file_check(output_name)
@@ -103,8 +112,10 @@ class LRDMCopt(FortranIO):
         return flags
 
     def plot_energy_and_devmax(
-        self, output_names=["out_fn_opt"], interactive=False
+        self, output_names: Optional[list] = None, interactive: bool = False
     ):
+        if output_names is None:
+            output_names = ["out_fn_opt"]
 
         # plot the energies and devmax
         logger.info("Plotting the energies and devmax")
@@ -193,7 +204,9 @@ class LRDMCopt(FortranIO):
         )
         plt.close()
 
-    def get_energy(self, output_names=["out_fn_opt"]):
+    def get_energy(self, output_names: Optional[list] = None):
+        if output_names is None:
+            output_names = ["out_fn_opt"]
 
         out_min = []
         for output_name in output_names:
@@ -223,8 +236,9 @@ class LRDMCopt(FortranIO):
 
         return energy_list, error_list
 
-    def get_devmax(self, output_names=["out_fn_opt"]):
-
+    def get_devmax(self, output_names: Optional[list] = None):
+        if output_names is None:
+            output_names = ["out_fn_opt"]
         out_min = []
         for output_name in output_names:
             with open(output_name, "r") as f:
@@ -243,7 +257,11 @@ class LRDMCopt(FortranIO):
 
         return devmax_list
 
-    def get_estimated_time_for_1_generation(self, output_names=["out_fn_opt"]):
+    def get_estimated_time_for_1_generation(
+        self, output_names: Optional[list] = None
+    ):
+        if output_names is None:
+            output_names = ["out_fn_opt"]
 
         out_min = []
         for output_name in output_names:
@@ -270,9 +288,9 @@ class LRDMCopt(FortranIO):
 
     def average_optimized_parameters(
         self,
-        equil_steps=10,
-        input_file_used="datasfnopt.input",
-        graph_plot=False,
+        equil_steps: int = 10,
+        input_file_used: str = "datasfnopt.input",
+        graph_plot: bool = False,
     ):
         if self.twist_average:
             raise NotImplementedError
@@ -421,13 +439,13 @@ class LRDMCopt(FortranIO):
         return namelist
 
     @staticmethod
-    def read_namelist_from_file(file):
+    def read_namelist_from_file(file: str):
         namelist = Namelist.parse_namelist_from_file(file)
         return namelist
 
     @classmethod
     def parse_from_default_namelist(
-        cls, in_fort10="fort.10", twist_average=False
+        cls, in_fort10: str = "fort.10", twist_average: bool = False
     ):
         namelist = cls.read_default_namelist()
         return cls(
@@ -435,7 +453,9 @@ class LRDMCopt(FortranIO):
         )
 
     @classmethod
-    def parse_from_file(cls, file, in_fort10="fort.10", twist_average=False):
+    def parse_from_file(
+        cls, file, in_fort10: str = "fort.10", twist_average: bool = False
+    ):
         namelist = Namelist.parse_namelist_from_file(file)
         return cls(
             in_fort10=in_fort10, namelist=namelist, twist_average=twist_average

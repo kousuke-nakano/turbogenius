@@ -13,6 +13,7 @@ Todo:
 # python modules
 import os
 import numpy as np
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -150,7 +151,7 @@ class Convertfort10_genius(GeniusIO):
         flags = self.convertfort10.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self, output_names: list = ["out_conv"]) -> bool:
+    def check_results(self, output_names: Optional[list] = None) -> bool:
         """
         Check the result.
 
@@ -159,6 +160,8 @@ class Convertfort10_genius(GeniusIO):
         Returns:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_conv"]
         return self.convertfort10.check_results(output_names=output_names)
 
 

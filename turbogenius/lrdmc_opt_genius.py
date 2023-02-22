@@ -11,6 +11,7 @@ Todo:
 
 # python modules
 import os
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -85,8 +86,11 @@ class LRDMCopt_genius(GeniusIO):
         opt_det_basis_coeff: bool = False,
         opt_jas_basis_coeff: bool = False,
         twist_average: bool = False,
-        kpoints: list = [1, 1, 1, 0, 0, 0],
+        kpoints: Optional[list] = None,
     ):
+
+        if kpoints is None:
+            kpoints = [1, 1, 1, 0, 0, 0]
 
         self.fort10 = fort10
         self.twist_average = twist_average
@@ -348,13 +352,15 @@ class LRDMCopt_genius(GeniusIO):
         flags = self.lrdmcopt.check_results(output_names=[output_name])
         assert all(flags)
 
-    def store_result(self, output_names: list = ["out_fn_opt"]) -> None:
+    def store_result(self, output_names: Optional[list] = None) -> None:
         """
         Store results. energy, energy_error, and estimated_time_for_1_generation are stored in this class.
 
         Args:
             output_names (list): a list of output file names
         """
+        if output_names is None:
+            output_names = ["out_fn_opt"]
         self.energy, self.energy_error = self.get_energy(
             output_names=output_names
         )
@@ -363,7 +369,9 @@ class LRDMCopt_genius(GeniusIO):
         )
 
     def plot_energy_and_devmax(
-        self, output_names: list = ["out_fn_opt"], interactive: bool = True
+        self,
+        output_names: Optional[list] = None,
+        interactive: bool = True,
     ):
         """
         plot energy and devmax
@@ -372,6 +380,8 @@ class LRDMCopt_genius(GeniusIO):
             output_names (list): a list of output file names
             interactive (bool): flag for an interactive plot
         """
+        if output_names is None:
+            output_names = ["out_fn_opt"]
         self.lrdmcopt.plot_energy_and_devmax(
             output_names=output_names, interactive=interactive
         )
@@ -381,7 +391,7 @@ class LRDMCopt_genius(GeniusIO):
         optwarmupsteps: int = 10,
         graph_plot: bool = False,
         input_name: str = "datasfn_opt.input",
-        output_names: list = ["out_fn_opt"],
+        output_names: Optional[list] = None,
     ) -> None:
         """
         Average parameters of fort.10
@@ -392,6 +402,8 @@ class LRDMCopt_genius(GeniusIO):
             output_names (list): a list of output file names
             graph_plot (bool): Flag for plotting a graph
         """
+        if output_names is None:
+            output_names = ["out_fn_opt"]
         flags = self.lrdmcopt.check_results(output_names=output_names)
         assert all(flags)
         self.lrdmcopt.average_optimized_parameters(
@@ -400,7 +412,7 @@ class LRDMCopt_genius(GeniusIO):
             graph_plot=graph_plot,
         )
 
-    def get_energy(self, output_names: list = ["out_fn_opt"]) -> list:
+    def get_energy(self, output_names: Optional[list] = None) -> list:
         """
         return energy list
 
@@ -410,10 +422,12 @@ class LRDMCopt_genius(GeniusIO):
         Return:
             list: a list of history of energies.
         """
+        if output_names is None:
+            output_names = ["out_fn_opt"]
         return self.lrdmcopt.get_energy(output_names=output_names)
 
     def get_estimated_time_for_1_generation(
-        self, output_names: list = ["out_fn_opt"]
+        self, output_names: Optional[list] = None
     ) -> float:
         """
         This procedure stores estimated_time_for_1_generation.
@@ -424,11 +438,13 @@ class LRDMCopt_genius(GeniusIO):
         Return:
             float: estimated_time_for_1_generation.
         """
+        if output_names is None:
+            output_names = ["out_fn_opt"]
         return self.lrdmcopt.get_estimated_time_for_1_generation(
             output_names=output_names
         )
 
-    def check_results(self, output_names: list = ["out_fn_opt"]) -> bool:
+    def check_results(self, output_names: Optional[list] = None) -> bool:
         """
         Check the result.
 
@@ -437,6 +453,8 @@ class LRDMCopt_genius(GeniusIO):
         Returns:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_fn_opt"]
         return self.lrdmcopt.check_results(output_names=output_names)
 
     def plot_parameters_history(self, interactive: bool = True) -> None:

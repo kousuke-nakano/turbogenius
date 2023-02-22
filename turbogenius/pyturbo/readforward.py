@@ -16,6 +16,7 @@ Todo:
 # python modules
 import os
 import re
+from typing import Optional
 
 # pyturbo modules
 from turbogenius.pyturbo.namelist import Namelist
@@ -35,9 +36,11 @@ logger = getLogger("pyturbo").getChild(__name__)
 class Readforward(FortranIO):
     def __init__(
         self,
-        in_fort10="fort.10",
-        namelist=Namelist(),
+        in_fort10: str = "fort.10",
+        namelist: Optional[Namelist] = None,
     ):
+        if namelist is None:
+            namelist = Namelist()
 
         """
         input values
@@ -58,18 +61,24 @@ class Readforward(FortranIO):
     def sanity_check(self):
         pass
 
-    def generate_input(self, input_name="readforward.input"):
+    def generate_input(self, input_name: str = "readforward.input"):
         self.namelist.write(input_name)
         logger.info(f"{input_name} has been generated.")
 
-    def run(self, input_name="datasvmc.input", output_name="out_readforward"):
+    def run(
+        self,
+        input_name: str = "datasvmc.input",
+        output_name: str = "out_readforward",
+    ):
         run(
             turbo_readforward_run_command,
             input_name=input_name,
             output_name=output_name,
         )
 
-    def check_results(self, output_names=["out_readforward"]):
+    def check_results(self, output_names: Optional[list] = None):
+        if output_names is None:
+            output_names = ["out_readforward"]
         flags = []
         for output_name in output_names:
             file_check(output_name)
@@ -87,7 +96,7 @@ class Readforward(FortranIO):
         return flags
 
     @staticmethod
-    def read_default_namelist(in_fort10="fort.10"):
+    def read_default_namelist(in_fort10: str = "fort.10"):
         readforward_default_file = os.path.join(
             pyturbo_data_dir, "readforward", "readforward.input"
         )
@@ -95,17 +104,17 @@ class Readforward(FortranIO):
         return namelist
 
     @staticmethod
-    def read_namelist_from_file(file):
+    def read_namelist_from_file(file: str):
         namelist = Namelist.parse_namelist_from_file(file)
         return namelist
 
     @classmethod
-    def parse_from_default_namelist(cls, in_fort10="fort.10"):
+    def parse_from_default_namelist(cls, in_fort10: str = "fort.10"):
         namelist = cls.read_default_namelist(in_fort10=in_fort10)
         return cls(in_fort10=in_fort10, namelist=namelist)
 
     @classmethod
-    def parse_from_file(cls, file, in_fort10="fort.10"):
+    def parse_from_file(cls, file, in_fort10: str = "fort.10"):
         namelist = Namelist.parse_namelist_from_file(file)
         return cls(in_fort10=in_fort10, namelist=namelist)
 

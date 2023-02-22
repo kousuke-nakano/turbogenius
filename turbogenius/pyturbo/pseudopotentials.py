@@ -19,6 +19,7 @@ import re
 import shutil
 import random
 import string
+from typing import Optional
 
 # turbo-genius modules
 from turbogenius.pyturbo.utils.env import pyturbo_tmp_dir, turborvb_bin_root
@@ -39,17 +40,36 @@ logger = getLogger("pyturbo").getChild(__name__)
 class Pseudopotentials:
     def __init__(
         self,
-        max_ang_mom_plus_1=[],
-        z_core=[],
-        cutoff=[],
-        nucleus_index=[],
-        element_list=[],
-        ang_mom=[],
-        exponent=[],
-        coefficient=[],
-        power=[],
+        max_ang_mom_plus_1: Optional[list] = None,
+        z_core: Optional[list] = None,
+        cutoff: Optional[list] = None,
+        nucleus_index: Optional[list] = None,
+        element_list: Optional[list] = None,
+        ang_mom: Optional[list] = None,
+        exponent: Optional[list] = None,
+        coefficient: Optional[list] = None,
+        power: Optional[list] = None,
     ):
+        if max_ang_mom_plus_1 is None:
+            max_ang_mom_plus_1 = []
+        if z_core is None:
+            z_core = []
+        if cutoff is None:
+            cutoff = []
+        if nucleus_index is None:
+            nucleus_index = []
+        if element_list is None:
+            element_list = []
+        if ang_mom is None:
+            ang_mom = []
+        if exponent is None:
+            exponent = []
+        if coefficient is None:
+            coefficient = []
+        if power is None:
+            power = []
 
+        # variables
         self.element_list = element_list
         self.max_ang_mom_plus_1 = max_ang_mom_plus_1
         self.z_core = z_core
@@ -86,7 +106,7 @@ class Pseudopotentials:
     def ecp_num(self):
         return len(self.ang_mom)
 
-    def write_pseudopotential_turborvb_file(self, file="pseudo.dat"):
+    def write_pseudopotential_turborvb_file(self, file: str = "pseudo.dat"):
         with open(file, "w") as f:
             output = []
             output.append("ECP\n")
@@ -149,7 +169,7 @@ class Pseudopotentials:
 
             f.writelines(output)
 
-    def set_cutoffs(self, tollerance=0.00001):
+    def set_cutoffs(self, tollerance: float = 0.00001):
         logger.debug(self.cutoff)
         new_cutoff = []
         current_dir = os.getcwd()
@@ -244,7 +264,9 @@ class Pseudopotentials:
             os.chdir(current_dir)
 
     @classmethod
-    def parse_pseudopotential_from_turborvb_pseudo_dat(cls, file="pseudo.dat"):
+    def parse_pseudopotential_from_turborvb_pseudo_dat(
+        cls, file: str = "pseudo.dat"
+    ):
 
         max_ang_mom_plus_1 = []
         z_core = []
@@ -408,15 +430,23 @@ class Pseudopotentials:
 class Pseudopotential:
     def __init__(
         self,
-        max_ang_mom_plus_1=0,
-        z_core=0,
-        element=None,
-        cutoff=0.0,
-        ang_mom=[],
-        exponent=[],
-        coefficient=[],
-        power=[],
+        max_ang_mom_plus_1: int = 0,
+        z_core: int = 0,
+        element: Optional[str] = None,
+        cutoff: float = 0.0,
+        ang_mom: Optional[list] = None,
+        exponent: Optional[list] = None,
+        coefficient: Optional[list] = None,
+        power: Optional[list] = None,
     ):
+        if ang_mom is None:
+            ang_mom = []
+        if exponent is None:
+            exponent = []
+        if coefficient is None:
+            coefficient = []
+        if power is None:
+            power = []
 
         self.element = element
         self.max_ang_mom_plus_1 = max_ang_mom_plus_1
@@ -445,14 +475,14 @@ class Pseudopotential:
         return len(self.ang_mom)
 
     @classmethod
-    def parse_pseudopotential_from_gamess_format_file(cls, file):
+    def parse_pseudopotential_from_gamess_format_file(cls, file: str):
         with open(file, "r") as f:
             text = f.readlines()
         text = "".join(text)
         return cls.parse_pseudopotential_from_gamess_format_text(text=text)
 
     @classmethod
-    def parse_pseudopotential_from_gamess_format_text(cls, text):
+    def parse_pseudopotential_from_gamess_format_text(cls, text: str):
         """ "
         http://myweb.liu.edu/~nmatsuna/gamess/input/ECP.html
         -card 1-    PNAME, PTYPE, IZCORE, LMAX+1
@@ -537,7 +567,7 @@ class Pseudopotential:
         )
 
     @classmethod
-    def parse_pseudopotential_from_turborvb_format_file(cls, file):
+    def parse_pseudopotential_from_turborvb_format_file(cls, file: str):
         with open(file, "r") as f:
             text = f.readlines()
         text = "".join(text)
@@ -551,7 +581,7 @@ class Pseudopotential:
 
     @classmethod
     def parse_pseudopotential_from_turborvb_format_test(
-        cls, text, z_core, element
+        cls, text: str, z_core: int, element: str
     ):
         ang_mom = []
         exponent_list = []
@@ -598,14 +628,14 @@ class Pseudopotential:
         )
 
     @classmethod
-    def parse_pseudopotential_from_eCEPP_format_file(cls, file):
+    def parse_pseudopotential_from_eCEPP_format_file(cls, file: str):
         with open(file, "r") as f:
             text = f.readlines()
         text = "".join(text)
         return cls.parse_pseudopotential_from_eCEPP_format_text(text=text)
 
     @classmethod
-    def parse_pseudopotential_from_eCEPP_format_text(cls, text):
+    def parse_pseudopotential_from_eCEPP_format_text(cls, text: str):
         ang_mom = []
         exponent_list = []
         coefficient_list = []

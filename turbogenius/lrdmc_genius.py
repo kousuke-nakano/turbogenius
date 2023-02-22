@@ -12,6 +12,7 @@ Todo:
 
 # python modules
 import os
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -54,10 +55,12 @@ class LRDMC_genius(GeniusIO):
         num_walkers: int = -1,  # default -1 -> num of MPI process.
         maxtime: int = 172800,
         twist_average: bool = False,
-        kpoints: list = [1, 1, 1, 0, 0, 0],
+        kpoints: Optional[list] = None,
         force_calc_flag: bool = False,
         nonlocalmoves: str = "tmove",  # tmove, dla, dlatm
     ):
+        if kpoints is None:
+            kpoints = [1, 1, 1, 0, 0, 0]
 
         self.force_calc_flag = force_calc_flag
         self.twist_average = twist_average
@@ -261,7 +264,7 @@ class LRDMC_genius(GeniusIO):
         bin_block: int = 10,
         warmupblocks: int = 2,
         correcting_factor: int = 2,
-        output_names: list = ["out_fn"],
+        output_names: Optional[list] = None,
         rerun: bool = False,
     ) -> None:
         """
@@ -275,6 +278,8 @@ class LRDMC_genius(GeniusIO):
             output_names (list): a list of output file names
             rerun (bool): if true, compute energy and force again even if there are energy and force files.
         """
+        if output_names is None:
+            output_names = ["out_fn"]
         self.estimated_time_for_1_generation = (
             self.get_estimated_time_for_1_generation(output_names=output_names)
         )
@@ -309,7 +314,7 @@ class LRDMC_genius(GeniusIO):
         )
 
     def get_estimated_time_for_1_generation(
-        self, output_names: list = ["out_fn"]
+        self, output_names: Optional[list] = None
     ) -> float:
         """
         This procedure stores estimated_time_for_1_generation.
@@ -320,11 +325,13 @@ class LRDMC_genius(GeniusIO):
         Return:
             float: estimated_time_for_1_generation.
         """
+        if output_names is None:
+            output_names = ["out_fn"]
         return self.lrdmc.get_estimated_time_for_1_generation(
             output_names=output_names
         )
 
-    def check_results(self, output_names: list = ["out_fn"]) -> bool:
+    def check_results(self, output_names: Optional[list] = None) -> bool:
         """
         Check the result.
 
@@ -333,6 +340,8 @@ class LRDMC_genius(GeniusIO):
         Return:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_fn"]
         return self.lrdmc.check_results(output_names=output_names)
 
 

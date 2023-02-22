@@ -12,6 +12,7 @@ Todo:
 
 # python modules
 import os
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -80,8 +81,11 @@ class VMCopt_genius(GeniusIO):
         opt_structure: bool = False,
         str_learning_rate: float = 1.0e-6,
         twist_average: bool = False,
-        kpoints: list = [1, 1, 1, 0, 0, 0],
+        kpoints: Optional[list] = None,
     ):
+
+        if kpoints is None:
+            kpoints = [1, 1, 1, 0, 0, 0]
 
         self.fort10 = fort10
         self.twist_average = twist_average
@@ -364,7 +368,7 @@ class VMCopt_genius(GeniusIO):
         flags = self.vmcopt.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self, output_names: list = ["out_min"]) -> bool:
+    def check_results(self, output_names: Optional[list] = None) -> bool:
         """
         Check the result.
 
@@ -373,10 +377,12 @@ class VMCopt_genius(GeniusIO):
         Returns:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_min"]
         return self.vmcopt.check_results(output_names=output_names)
 
     def plot_energy_and_devmax(
-        self, output_names: list = ["out_min"], interactive: bool = True
+        self, output_names: Optional[list] = None, interactive: bool = True
     ) -> None:
         """
         plot energy and devmax
@@ -385,17 +391,21 @@ class VMCopt_genius(GeniusIO):
             output_names (list): a list of output file names
             interactive (bool): flag for an interactive plot
         """
+        if output_names is None:
+            output_names = ["out_min"]
         self.vmcopt.plot_energy_and_devmax(
             output_names=output_names, interactive=interactive
         )
 
-    def store_result(self, output_names: list = ["out_min"]) -> None:
+    def store_result(self, output_names: Optional[list] = None) -> None:
         """
         Store results. energy, energy_error, and estimated_time_for_1_generation are stored in this class.
 
         Args:
             output_names (list): a list of output file names
         """
+        if output_names is None:
+            output_names = ["out_min"]
         self.energy, self.energy_error = self.get_energy(
             output_names=output_names
         )
@@ -407,7 +417,7 @@ class VMCopt_genius(GeniusIO):
         self,
         optwarmupsteps: int,
         input_name: str = "datasmin.input",
-        output_names: list = ["out_min"],
+        output_names: Optional[list] = None,
         graph_plot: bool = False,
     ) -> None:
         """
@@ -419,6 +429,8 @@ class VMCopt_genius(GeniusIO):
             output_names (list): a list of output file names
             graph_plot (bool): Flag for plotting a graph
         """
+        if output_names is None:
+            output_names = ["out_min"]
         current_dir = os.getcwd()
         os.chdir(current_dir)
         if self.twist_average:
@@ -476,7 +488,7 @@ class VMCopt_genius(GeniusIO):
             os.chdir(current_dir)
             """
 
-    def get_energy(self, output_names: list = ["out_min"]) -> list:
+    def get_energy(self, output_names: Optional[list] = None) -> list:
         """
         return energy list
 
@@ -486,10 +498,12 @@ class VMCopt_genius(GeniusIO):
         Return:
             list: a list of history of energies.
         """
+        if output_names is None:
+            output_names = ["out_min"]
         return self.vmcopt.get_energy(output_names=output_names)
 
     def get_estimated_time_for_1_generation(
-        self, output_names: list = ["out_min"]
+        self, output_names: Optional[list] = None
     ) -> float:
         """
         This procedure stores estimated_time_for_1_generation.
@@ -500,6 +514,8 @@ class VMCopt_genius(GeniusIO):
         Return:
             float: estimated_time_for_1_generation.
         """
+        if output_names is None:
+            output_names = ["out_min"]
         return self.vmcopt.get_estimated_time_for_1_generation(
             output_names=output_names
         )

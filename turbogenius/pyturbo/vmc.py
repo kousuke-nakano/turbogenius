@@ -17,6 +17,7 @@ Todo:
 import os
 import re
 import numpy as np
+from typing import Optional
 
 # turbo-genius modules
 from turbogenius.pyturbo.namelist import Namelist
@@ -46,10 +47,12 @@ logger = getLogger("pyturbo").getChild(__name__)
 class VMC(FortranIO):
     def __init__(
         self,
-        in_fort10="fort.10",
-        namelist=Namelist(),
-        twist_average=False,  # False or 0: single-k, True or 1: Monkhorst-Pack, 2: manual k-grid
+        in_fort10: str = "fort.10",
+        namelist: Optional[Namelist] = None,
+        twist_average: bool = False,  # False or 0: single-k, True or 1: Monkhorst-Pack, 2: manual k-grid
     ):
+        if namelist is None:
+            namelist = Namelist()
 
         """
         input values
@@ -99,7 +102,7 @@ class VMC(FortranIO):
     def sanity_check(self):
         pass
 
-    def generate_input(self, input_name="datasvmc.input"):
+    def generate_input(self, input_name: str = "datasvmc.input"):
         self.namelist.write(input_name)
         # check if twist_average is manual
         if self.twist_average == 2:  # k-points are set manually
@@ -137,7 +140,9 @@ class VMC(FortranIO):
                 f.writelines(lines)
         logger.info(f"{input_name} has been generated.")
 
-    def run(self, input_name="datasvmc.input", output_name="out_vmc"):
+    def run(
+        self, input_name: str = "datasvmc.input", output_name: str = "out_vmc"
+    ):
         remove_file(file="pip0.d")
         remove_file(file="forces.dat")
         run(
@@ -146,7 +151,9 @@ class VMC(FortranIO):
             output_name=output_name,
         )
 
-    def check_results(self, output_names=["out_vmc"]):
+    def check_results(self, output_names: Optional[list] = None):
+        if output_names is None:
+            output_names = ["out_vmc"]
         flags = []
         for output_name in output_names:
             file_check(output_name)
@@ -160,8 +167,11 @@ class VMC(FortranIO):
                 flags.append(False)
         return flags
 
-    def get_estimated_time_for_1_generation(self, output_names=["out_vmc"]):
-
+    def get_estimated_time_for_1_generation(
+        self, output_names: Optional[list] = None
+    ):
+        if output_names is None:
+            output_names = ["out_vmc"]
         out_min = []
         for output_name in output_names:
             with open(output_name, "r") as f:
@@ -186,7 +196,7 @@ class VMC(FortranIO):
         return ave_time_1_generation  # sec.
 
     @staticmethod
-    def read_energy(twist_average=False):
+    def read_energy(twist_average: bool = False):
         if twist_average:
             line = get_line_from_file(file="pip0.d", line_no=0).split()
             energy = float(line[3])
@@ -197,7 +207,13 @@ class VMC(FortranIO):
             error = float(line[3])
         return energy, error
 
-    def get_energy(self, init=10, bin=10, num_proc=-1, rerun=False):
+    def get_energy(
+        self,
+        init: int = 10,
+        bin: int = 10,
+        num_proc: int = -1,
+        rerun: bool = False,
+    ):
         force_compute_flag = False
         if rerun:
             force_compute_flag = True
@@ -224,7 +240,13 @@ class VMC(FortranIO):
         logger.debug("energy={}, error={}".format(energy, error))
         return energy, error
 
-    def get_forces(self, init=10, bin=10, num_proc=-1, rerun=False):
+    def get_forces(
+        self,
+        init: int = 10,
+        bin: int = 10,
+        num_proc: int = -1,
+        rerun: bool = False,
+    ):
 
         force_compute_flag = False
         if rerun:
@@ -324,7 +346,9 @@ class VMC(FortranIO):
         # unit (Ha/au)
         return force_matrix, force_matrix_error_bar
 
-    def compute_energy_and_forces(self, init=10, bin=10, pulay=1, num_proc=-1):
+    def compute_energy_and_forces(
+        self, init: int = 10, bin: int = 10, pulay: int = 1, num_proc: int = -1
+    ):
         if self.twist_average:
             if num_proc == -1:
                 logger.warning(
@@ -336,7 +360,7 @@ class VMC(FortranIO):
                 num_proc = os.cpu_count()
             if num_proc > 1:
                 command = turbo_forcevmc_kpoints_para_run_command
-                #command = turbo_forcevmc_kpoints_run_command  # for the time being!!! because paperoga does not have sufficient memory.
+                # command = turbo_forcevmc_kpoints_run_command  # for the time being!!! because paperoga does not have sufficient memory.
             else:
                 command = turbo_forcevmc_kpoints_run_command
             cmd = "{:s} {:d} {:d} {:d} {:d}".format(
@@ -358,13 +382,13 @@ class VMC(FortranIO):
         return namelist
 
     @staticmethod
-    def read_namelist_from_file(file):
+    def read_namelist_from_file(file: str):
         namelist = Namelist.parse_namelist_from_file(file)
         return namelist
 
     @classmethod
     def parse_from_default_namelist(
-        cls, in_fort10="fort.10", twist_average=False
+        cls, in_fort10: str = "fort.10", twist_average: bool = False
     ):
         namelist = cls.read_default_namelist()
         return cls(
@@ -372,7 +396,9 @@ class VMC(FortranIO):
         )
 
     @classmethod
-    def parse_from_file(cls, file, in_fort10="fort.10", twist_average=False):
+    def parse_from_file(
+        cls, file: str, in_fort10: str = "fort.10", twist_average: bool = False
+    ):
         namelist = Namelist.parse_namelist_from_file(file)
         return cls(
             in_fort10=in_fort10, namelist=namelist, twist_average=twist_average

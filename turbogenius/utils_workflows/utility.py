@@ -17,7 +17,7 @@ def prompt(text, checker):
             return output
 
 
-def get_nonlocalmoves_setting(nonlocalmoves):
+def get_nonlocalmoves_setting(nonlocalmoves: str):
     if nonlocalmoves == "tmove":
         typereg = 0
         npow = 0.0
@@ -38,16 +38,16 @@ def get_nonlocalmoves_setting(nonlocalmoves):
 
 
 def get_optimizer_flags(
-    optimizer="sr",
-    opt_onebody=True,
-    opt_twobody=True,
-    opt_det_mat=True,
-    opt_jas_mat=True,
-    opt_det_basis_exp=True,
-    opt_jas_basis_exp=True,
-    opt_det_basis_coeff=True,
-    opt_jas_basis_coeff=True,
-    qmc_type="vmc",
+    optimizer: str = "sr",
+    opt_onebody: bool = True,
+    opt_twobody: bool = True,
+    opt_det_mat: bool = True,
+    opt_jas_mat: bool = True,
+    opt_det_basis_exp: bool = True,
+    opt_jas_basis_exp: bool = True,
+    opt_det_basis_coeff: bool = True,
+    opt_jas_basis_coeff: bool = True,
+    qmc_type: str = "vmc",
 ):
     logger.debug(optimizer)
 
@@ -176,7 +176,7 @@ def get_optimizer_flags(
 
 
 def return_optimizer_number(
-    optimizer="sr", qmc_type="vmc", opt_exponent=False
+    optimizer: str = "sr", qmc_type: str = "vmc", opt_exponent: bool = False
 ):
     if optimizer == "lr":
         if qmc_type == "vmc":

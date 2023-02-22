@@ -16,7 +16,7 @@ from __future__ import annotations
 import os
 import shutil
 import numpy as np
-from typing import Union
+from typing import Union, Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -309,7 +309,7 @@ class Wavefunction:
     def to_agps(
         self,
         grid_size: float = 0.10,
-        additional_hyb: list = [],
+        additional_hyb: Optional[list] = None,
         nosym: float = False,
         clean_flag: float = False,
     ) -> None:
@@ -323,6 +323,8 @@ class Wavefunction:
             clean_flag (bool): cleaning temporary files
 
         """
+        if additional_hyb is None:
+            additional_hyb = []
         if not self.read_flag:
             logger.warning(
                 "WF file is not read yet! Please read a WF file first."
@@ -342,7 +344,7 @@ class Wavefunction:
     def to_agpu(
         self,
         grid_size: float = 0.10,
-        additional_hyb: list = [],
+        additional_hyb: Optional[list] = None,
         nosym: bool = False,
         clean_flag: bool = False,
     ) -> None:
@@ -356,6 +358,8 @@ class Wavefunction:
             clean_flag (bool): cleaning temporary files
 
         """
+        if additional_hyb is None:
+            additional_hyb = []
         if not self.read_flag:
             logger.warning(
                 "WF file is not read yet! Please read a WF file first."
@@ -377,7 +381,7 @@ class Wavefunction:
         triplet: bool = False,
         pfaffian_flag: bool = False,
         grid_size: float = 0.10,
-        additional_hyb: list = [],
+        additional_hyb: Optional[list] = None,
         nosym: bool = False,
         clean_flag: bool = False,
         only_generate_template: bool = False,
@@ -394,6 +398,8 @@ class Wavefunction:
             clean_flag (bool): cleaning temporary files
 
         """
+        if additional_hyb is None:
+            additional_hyb = []
         if not self.read_flag:
             logger.warning(
                 "WF file is not read yet! Please read a WF file first."

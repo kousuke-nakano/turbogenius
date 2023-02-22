@@ -17,6 +17,7 @@ import os
 import sys
 import re
 import subprocess
+from typing import Optional
 
 # set logger
 from logging import getLogger
@@ -24,7 +25,9 @@ from logging import getLogger
 logger = getLogger("pyturbo").getChild(__name__)
 
 
-def run(binary, input_name=None, output_name="out.o"):
+def run(
+    binary: str, input_name: Optional[str] = None, output_name: str = "out.o"
+):
     sys_env = os.environ.copy()
     if input_name is None:
         cmd = f"{binary} > {output_name}"

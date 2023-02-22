@@ -19,6 +19,7 @@ import shutil
 import argparse
 import numpy as np
 import glob
+from typing import Optional
 
 # logger
 from logging import getLogger, StreamHandler, Formatter
@@ -53,7 +54,7 @@ logger = getLogger("Turbo-Genius").getChild(__name__)
 
 def trexio_to_turborvb_wf(
     trexio_file: str,
-    jas_basis_sets=Jas_Basis_sets(),
+    jas_basis_sets: Optional[Jas_Basis_sets] = None,
     max_occ_conv: int = 0,
     mo_num_conv: int = -1,
     only_mol: bool = True,
@@ -70,6 +71,8 @@ def trexio_to_turborvb_wf(
         only_mol (bool): if True, only moleculer orbitals option = True in convertfort10mol
         cleanup (bool): clean up temporary files
     """
+    if jas_basis_sets is None:
+        jas_basis_sets = Jas_Basis_sets()
     # os.environ["DYLD_LIBRARY_PATH"]=os.environ["LIBRARY_PATH"]
 
     # prefix and file names

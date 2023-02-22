@@ -32,7 +32,7 @@ class Trexio_wrapper_r:
 
     """
 
-    def __init__(self, trexio_file):
+    def __init__(self, trexio_file: str):
 
         # prefix and file names
         logger.info(f"TREXIO file = {trexio_file}")

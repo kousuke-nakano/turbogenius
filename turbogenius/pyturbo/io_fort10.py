@@ -155,7 +155,7 @@ class IO_fort10:
     )
     f10jasbasis_sym_end_keyword = "New parameters *$"
 
-    def __init__(self, fort10, in_place: bool = True):
+    def __init__(self, fort10: str = "fort.10", in_place: bool = True):
 
         self.fort10 = fort10
         self.in_place = in_place

@@ -15,6 +15,7 @@ Todo:
 # python modules
 import os
 import re
+from typing import Optional
 
 # pyturbo modules
 from turbogenius.pyturbo.namelist import Namelist
@@ -45,10 +46,12 @@ class Convertfort10(FortranIO):
 
     def __init__(
         self,
-        in_fort10="fort.10_in",
-        out_fort10="fort.10_out",
-        namelist=Namelist(),
+        in_fort10: str = "fort.10_in",
+        out_fort10: str = "fort.10_out",
+        namelist: Optional[Namelist] = None,
     ):
+        if namelist is None:
+            namelist = Namelist()
 
         """
         input values
@@ -103,7 +106,7 @@ class Convertfort10(FortranIO):
             output_name=output_name,
         )
 
-    def check_results(self, output_names: list = ["out_conv"]) -> bool:
+    def check_results(self, output_names: Optional[list] = None) -> bool:
         """
         Check the result.
 
@@ -112,6 +115,8 @@ class Convertfort10(FortranIO):
         Returns:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_conv"]
         flags = []
         for output_name in output_names:
             file_check(output_name)

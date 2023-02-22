@@ -13,6 +13,7 @@ Todo:
 # python modules
 import os
 import numpy as np
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -40,10 +41,10 @@ class Convertfort10mol_genius(GeniusIO):
 
     def __init__(
         self,
-        fort10="fort.10_in",
-        add_random_mo=True,
-        grid_size=0.10,
-        additional_mo=0,
+        fort10: str = "fort.10_in",
+        add_random_mo: bool = True,
+        grid_size: float = 0.10,
+        additional_mo: int = 0,
     ):
 
         self.fort10 = fort10
@@ -178,7 +179,7 @@ class Convertfort10mol_genius(GeniusIO):
         flags = self.convertfort10mol.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self, output_names: list = ["out_mol"]) -> bool:
+    def check_results(self, output_names: Optional[list] = None) -> bool:
         """
         Check the result.
 
@@ -187,6 +188,8 @@ class Convertfort10mol_genius(GeniusIO):
         Return:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_mol"]
         return self.convertfort10mol.check_results(output_names=output_names)
 
 

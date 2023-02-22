@@ -14,7 +14,6 @@ Todo:
 import os
 import re
 from urllib.request import urlopen
-from ase.data import chemical_symbols
 import git
 import tempfile
 import pathlib
@@ -22,9 +21,13 @@ import itertools
 import time
 from tqdm import tqdm
 from tqdm.contrib import itertools as titertools
+from typing import Optional
 
 # pymatgen
 from pymatgen.core.periodic_table import Element
+
+# ASE
+from ase.data import chemical_symbols
 
 # basissetexchange
 import basis_set_exchange as bse
@@ -44,7 +47,9 @@ class ccECP:
     list_of_basis_all += [f"ang-{x}" for x in list_of_basis_all]
 
     def __init__(
-        self, basis_sets_output_dir=None, pseudo_potential_output_dir=None
+        self,
+        basis_sets_output_dir: Optional[str] = None,
+        pseudo_potential_output_dir: Optional[str] = None,
     ):
         if basis_sets_output_dir is None:
             self.basis_sets_output_dir = None
@@ -55,7 +60,15 @@ class ccECP:
         else:
             self.ecp_output_dir = pseudo_potential_output_dir
 
-    def to_file(self, element_list=None, basis_list=None):
+    def to_file(
+        self,
+        element_list: Optional[list] = None,
+        basis_list: Optional[list] = None,
+    ):
+        if element_list is None:
+            element_list = []
+        if basis_list is None:
+            basis_list = []
         if self.basis_sets_output_dir is not None:
             os.makedirs(self.basis_sets_output_dir, exist_ok=True)
         if self.ecp_output_dir is not None:
@@ -134,7 +147,7 @@ class ccECP:
                     ) as fhandle_out:
                         fhandle_out.write(fhandle.read())
 
-    def all_to_file(self, sleep_time=1):
+    def all_to_file(self, sleep_time: float = 1):
         self.to_file(
             element_list=chemical_symbols, basis_list=self.list_of_basis_all
         )
@@ -146,14 +159,25 @@ class BSE:
     list_of_basis_all += [f"ang-{x}" for x in list_of_basis_all]
 
     def __init__(
-        self, basis_sets_output_dir=None, pseudo_potential_output_dir=None
+        self,
+        basis_sets_output_dir: Optional[str] = None,
+        pseudo_potential_output_dir: Optional[str] = None,
     ):
         if basis_sets_output_dir is None:
             self.basis_sets_output_dir = None
         else:
             self.basis_sets_output_dir = basis_sets_output_dir
 
-    def to_file(self, element_list, basis_list, sleep_time=1.0):
+    def to_file(
+        self,
+        element_list: Optional[list] = None,
+        basis_list: Optional[list] = None,
+        sleep_time: int = 1.0,
+    ):
+        if element_list is None:
+            element_list = []
+        if basis_list is None:
+            basis_list = []
         if self.basis_sets_output_dir is None:
             return
         os.makedirs(self.basis_sets_output_dir, exist_ok=True)
@@ -181,7 +205,7 @@ class BSE:
                     f"element={e}, basis={b} do not exist in the database."
                 )
 
-    def all_to_file(self, sleep_time=1):
+    def all_to_file(self, sleep_time: float = 1):
         self.to_file(
             element_list=chemical_symbols,
             basis_list=self.list_of_basis_all,
@@ -195,7 +219,9 @@ class BFD:
     # list_of_basis_all += [f"{x}_ano" for x in list_of_basis_all]
 
     def __init__(
-        self, basis_sets_output_dir=None, pseudo_potential_output_dir=None
+        self,
+        basis_sets_output_dir: Optional[str] = None,
+        pseudo_potential_output_dir: Optional[str] = None,
     ):
         if basis_sets_output_dir is None:
             self.basis_sets_output_dir = None
@@ -206,7 +232,16 @@ class BFD:
         else:
             self.ecp_output_dir = pseudo_potential_output_dir
 
-    def to_file(self, element_list, basis_list, sleep_time=1.5):
+    def to_file(
+        self,
+        element_list: Optional[list] = None,
+        basis_list: Optional[list] = None,
+        sleep_time: float = 1.5,
+    ):
+        if element_list is None:
+            element_list = []
+        if basis_list is None:
+            basis_list = []
         if self.basis_sets_output_dir is None and self.ecp_output_dir is None:
             return
         if self.basis_sets_output_dir is not None:
@@ -344,7 +379,7 @@ class BFD:
                         f"e={e:s} b={b:s} already downloaded or NaN in the database"
                     )
 
-    def all_to_file(self, sleep_time=1.5):
+    def all_to_file(self, sleep_time: float = 1.5):
         logger.debug(self.list_of_basis_all)
         self.to_file(
             basis_list=self.list_of_basis_all,

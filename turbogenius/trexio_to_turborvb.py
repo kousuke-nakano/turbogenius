@@ -24,6 +24,9 @@ from typing import Optional
 # logger
 from logging import getLogger, StreamHandler, Formatter
 
+# import trexio
+import trexio
+
 # import pyturbo modules
 from turbogenius.pyturbo.structure import Structure, Cell
 from turbogenius.pyturbo.pseudopotentials import Pseudopotentials
@@ -210,6 +213,11 @@ def trexio_to_turborvb_wf(
         spin_restricted = False
     else:
         raise ValueError
+
+    # spin unrestricted is supported only with trexio >= 1.3.0
+    if not spin_restricted and not trexio.__version__ >= '1.3.0':
+        logger.error("spin unrestricted is supported only with trexio >= 1.3.0")
+        raise NotImplementedError
 
     # check if the num. of MOs for alpha and beta are the same.
     if not spin_restricted:
@@ -1008,23 +1016,26 @@ def trexio_to_turborvb_wf(
 
     # molecular orbital swapped, spin polarized cases.
     if spin_restricted:
+        logger.info("Molecular orbitals are swapped (spin-resticted case).")
+        # spin-restricted case, here, the MOs are reordered such that
+        # [a,a,a,a(unpaired),a(unpaired)....a]
+        # ->
+        # # [a,a,a... (paired),a,a (unpaired)]
         mo_coefficient_turbo_unpaired = []
         pop_lst = [
             num_ele_dn + nel_diff
             for nel_diff in range(0, num_ele_up - num_ele_dn)
         ]
         for p in reversed(pop_lst):
-            logger.debug("molecular orbital swapped (spin-resticted case)")
             mo_coefficient_turbo_unpaired.append(mo_coefficient_turbo.pop(p))
         for m in reversed(mo_coefficient_turbo_unpaired):
             mo_coefficient_turbo.append(m)
     else:
+        logger.info("Molecular orbitals are swapped (spin-unresticted case).")
         # spin-unrestricted case, here, the MOs are reordered such that
         # [a,a,a,a,a....a, b,b,b,b,b,b,b,....b]
         # ->
         # [b,a,b,a,b,a,b......a (paired),a,a,a,a (unpaired)]
-        # note!! the ""last"" nel_diff orbitals are removed
-        # from the beta spin.
         # molecular orbital swapped, spin polarized cases.
         mo_coefficient_turbo_unpaired = []
         # alpha spins
@@ -1034,11 +1045,16 @@ def trexio_to_turborvb_wf(
         ]
 
         for p in reversed(pop_lst):
-            logger.debug("molecular orbital swapped (spin-unresticted case)")
             mo_coefficient_turbo_unpaired.append(mo_coefficient_turbo.pop(p))
         # beta spins
-        for _ in range(0, num_ele_up - num_ele_dn):
-            mo_coefficient_turbo.pop(-1)
+        # note!! 
+        # there are two choices which MOs are removed in the beta spins 
+        # 1. the last 'nel_diff' beta orbitals are removed.
+        # 2. the beta MOs corresponding to unpaired alpha MOs are removed.
+        #for _ in range(0, num_ele_up - num_ele_dn): # this is the choice 1.
+        #    mo_coefficient_turbo.pop(-1)
+        for _ in range(0, num_ele_up - num_ele_dn): # this is the choice 2.
+            mo_coefficient_turbo.pop(mo_num_use - len(pop_lst) + num_ele_dn)
         # reordering alpha and beta spins
         mo_coefficient_turbo_new = []
         for i in range(0, int(len(mo_coefficient_turbo) / 2)):
@@ -1086,7 +1102,8 @@ def trexio_to_turborvb_wf(
             # but, let me see,,, for spin-polarized cases??
             # I think they should work as they are, but
             # just in case, I have put here NotImplementedError
-
+            
+            """
             if num_ele_up != num_ele_dn:
                 logger.error(
                     "spin-polarized case for a complex system is not tested yet."
@@ -1098,6 +1115,7 @@ def trexio_to_turborvb_wf(
                     "spin-unrestricted case for a complex system is not tested yet."
                 )
                 raise NotImplementedError
+            """
 
             mo_coefficient_turbo_real.append(mo_real_b_up)  # up
             mo_coefficient_turbo_imag.append(mo_imag_b_up)  # up

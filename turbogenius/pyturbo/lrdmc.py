@@ -67,6 +67,36 @@ class LRDMC(FortranIO):
         self.namelist = namelist
         self.twist_average = twist_average
 
+        # manual k-grid! [[[kx, ky, kz, wkp for up], ....], [[# kx, ky, kz, wkp for dn], ...]]
+        self.__manual_kpoints = []
+
+    @property
+    def manual_kpoints(self):
+        return self.__manual_kpoints
+
+    @manual_kpoints.setter
+    def manual_kpoints(self, kpoints):
+        assert len(kpoints) == 2
+        kpoints_up, kpoints_dn = kpoints
+        assert len(kpoints_up) == len(kpoints_dn)
+        for kup, kdn in zip(kpoints_up, kpoints_dn):
+            assert len(kup) == 4  # kx, ky, kz, wkp for up
+            assert len(kdn) == 4  # kx, ky, kz, wkp for dn
+        self.__manual_kpoints = kpoints
+        self.namelist.set_parameter(
+            parameter="yes_kpoints", value=".true.", namelist="&parameters"
+        )
+        # self.namelist.set_parameter(parameter="yeswrite10", value=".true.", namelist="&optimization")
+        self.namelist.set_parameter(
+            parameter="kp_type", value=2, namelist="&kpoints"
+        )
+        self.namelist.set_parameter(
+            parameter="nk1", value=len(kpoints_up), namelist="&kpoints"
+        )
+        self.namelist.set_parameter(
+            parameter="double_kpgrid", value=".true.", namelist="&kpoints"
+        )
+
     def __str__(self):
 
         output = [
@@ -79,6 +109,40 @@ class LRDMC(FortranIO):
 
     def generate_input(self, input_name: str = "datasfn.input"):
         self.namelist.write(input_name)
+        # check if twist_average is manual
+        if self.twist_average == 2:  # k-points are set manually
+            kpoints_up, kpoints_dn = self.manual_kpoints
+            # read
+            with open(input_name, "r") as f:
+                lines = f.readlines()
+            kpoint_index = [
+                True if re.match(r".*&kpoints.*", line) else False
+                for line in lines
+            ].index(True)
+            insert_lineno = -1
+            for i, line in enumerate(lines[kpoint_index + 1 :]):
+                if re.match(r".*/.*", line):
+                    insert_lineno = kpoint_index + 1 + i + 1
+                    break
+                if re.match(r".*&.*", line):
+                    insert_lineno = kpoint_index + 1 + i
+                    break
+            if insert_lineno == -1:
+                logger.error("No suitable position for KPOINT is found")
+                raise ValueError
+            # write dn
+            lines.insert(insert_lineno, "\n")
+            for kx, ky, kz, wk in reversed(kpoints_dn):
+                lines.insert(insert_lineno, f"{kx} {ky} {kz} {wk}\n")
+            lines.insert(insert_lineno, "\n")
+            # write up
+            for kx, ky, kz, wk in reversed(kpoints_up):
+                lines.insert(insert_lineno, f"{kx} {ky} {kz} {wk}\n")
+            lines.insert(insert_lineno, "KPOINTS\n")
+            lines.insert(insert_lineno, "\n")
+            # saved
+            with open(input_name, "w") as f:
+                f.writelines(lines)
         logger.info(f"{input_name} has been generated.")
 
     def run(self, input_name="datasfn.input", output_name="out_fn"):

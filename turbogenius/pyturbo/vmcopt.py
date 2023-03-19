@@ -94,7 +94,7 @@ class VMCopt(FortranIO):
         )
         self.namelist.set_parameter(
             parameter="nk1",
-            value=len(kpoints_up) + len(kpoints_dn),
+            value=len(kpoints_up),
             namelist="&kpoints",
         )
 

@@ -89,9 +89,7 @@ class VMCopt(FortranIO):
             parameter="yes_kpoints", value=".true.", namelist="&parameters"
         )
         # self.namelist.set_parameter(parameter="yeswrite10", value=".true.", namelist="&optimization")
-        self.namelist.set_parameter(
-            parameter="kp_type", value=2, namelist="&kpoints"
-        )
+        self.namelist.set_parameter(parameter="kp_type", value=2, namelist="&kpoints")
         self.namelist.set_parameter(
             parameter="nk1",
             value=len(kpoints_up) + len(kpoints_dn),
@@ -117,8 +115,7 @@ class VMCopt(FortranIO):
             with open(input_name, "r") as f:
                 lines = f.readlines()
             kpoint_index = [
-                True if re.match(r".*&kpoints.*", line) else False
-                for line in lines
+                True if re.match(r".*&kpoints.*", line) else False for line in lines
             ].index(True)
             insert_lineno = -1
             for i, line in enumerate(lines[kpoint_index + 1 :]):
@@ -146,9 +143,7 @@ class VMCopt(FortranIO):
                 f.writelines(lines)
         logger.info(f"{os.path.basename(input_name)} has been generated.")
 
-    def run(
-        self, input_name: str = "datasmin.input", output_name: str = "out_min"
-    ):
+    def run(self, input_name: str = "datasmin.input", output_name: str = "out_min"):
         run(
             turbo_qmc_run_command,
             input_name=input_name,
@@ -164,9 +159,7 @@ class VMCopt(FortranIO):
             file_check(output_name)
             with open(output_name, "r") as f:
                 lines = f.readlines()
-            if any(
-                [re.match(r".*Final.*tstep.*found.*", line) for line in lines]
-            ):
+            if any([re.match(r".*Final.*tstep.*found.*", line) for line in lines]):
                 flags.append(True)
             else:
                 flags.append(False)
@@ -197,11 +190,7 @@ class VMCopt(FortranIO):
         devmax_list = list(
             map(
                 lambda x: x.split(),
-                [
-                    i
-                    for i in out_min
-                    if re.match(r".*devmax.*par.*Normal.*", i)
-                ],
+                [i for i in out_min if re.match(r".*devmax.*par.*Normal.*", i)],
             )
         )
         devmax_pandas_str = pd.DataFrame(devmax_list, columns=col)
@@ -259,9 +248,7 @@ class VMCopt(FortranIO):
         ax1.legend(h1 + h2, l1 + l2, loc="upper right")
         if interactive:
             plt.waitforbuttonpress()
-        plt.savefig(
-            "plot_energy_and_devmax.png", bbox_inches="tight", pad_inches=0.2
-        )
+        plt.savefig("plot_energy_and_devmax.png", bbox_inches="tight", pad_inches=0.2)
         plt.close()
 
     def get_energy(self, output_names: Optional[list] = None):
@@ -275,21 +262,13 @@ class VMCopt(FortranIO):
         energy_list = list(
             map(
                 float,
-                [
-                    i.split()[3]
-                    for i in out_min
-                    if re.match(r".*New.*Energy.*", i)
-                ],
+                [i.split()[3] for i in out_min if re.match(r".*New.*Energy.*", i)],
             )
         )
         error_list = list(
             map(
                 float,
-                [
-                    i.split()[4]
-                    for i in out_min
-                    if re.match(r".*New.*Energy.*", i)
-                ],
+                [i.split()[4] for i in out_min if re.match(r".*New.*Energy.*", i)],
             )
         )
 
@@ -316,9 +295,7 @@ class VMCopt(FortranIO):
 
         return devmax_list
 
-    def get_estimated_time_for_1_generation(
-        self, output_names: Optional[list] = None
-    ):
+    def get_estimated_time_for_1_generation(self, output_names: Optional[list] = None):
         if output_names is None:
             output_names = ["out_min"]
 
@@ -333,15 +310,11 @@ class VMCopt(FortranIO):
                 [
                     i.split()[5]
                     for i in out_min
-                    if re.match(
-                        r".*Average.*time.*for.*1000.*generations.*", i
-                    )
+                    if re.match(r".*Average.*time.*for.*1000.*generations.*", i)
                 ],
             )
         )
-        ave_time_1_generation = (
-            np.mean(np.array(ave_time_1000_generations)) / 1000
-        )
+        ave_time_1_generation = np.mean(np.array(ave_time_1000_generations)) / 1000
 
         return ave_time_1_generation  # sec.
 
@@ -401,9 +374,7 @@ class VMCopt(FortranIO):
                     logger.info("KeyboardInterrupt")
                     break
             plt.savefig(
-                os.path.join(
-                    graph_save_dir, "Parameter_No{}_all.png".format(i)
-                ),
+                os.path.join(graph_save_dir, "Parameter_No{}_all.png".format(i)),
                 bbox_inches="tight",
                 pad_inches=0.2,
             )
@@ -483,9 +454,7 @@ class VMCopt(FortranIO):
                     linestyle="dashed",
                     label="averaged",
                 )
-                plt.xlabel(
-                    "Iteration", fontname="Times New Roman", fontsize=14
-                )
+                plt.xlabel("Iteration", fontname="Times New Roman", fontsize=14)
                 plt.ylabel("Value", fontname="Times New Roman", fontsize=14)
                 # plt.legend(frameon=True)
                 plt.title("Parameter_No.{}".format(i))
@@ -515,7 +484,7 @@ class VMCopt(FortranIO):
         )
         vmcopt.set_parameter("iopt", 1)
         vmcopt.set_parameter("ngen", 0)
-        if self.twist_average:
+        if self.twist_average != 0:
             vmcopt.set_parameter("yes_kpoints", ".false.", "&parameters")
 
         # replace iopt from 0 -> 1
@@ -558,9 +527,7 @@ class VMCopt(FortranIO):
 
     @staticmethod
     def read_default_namelist():
-        vmcopt_default_file = os.path.join(
-            pyturbo_data_dir, "vmcopt", "datasmin.input"
-        )
+        vmcopt_default_file = os.path.join(pyturbo_data_dir, "vmcopt", "datasmin.input")
         namelist = Namelist.parse_namelist_from_file(vmcopt_default_file)
         return namelist
 
@@ -574,18 +541,14 @@ class VMCopt(FortranIO):
         cls, in_fort10: str = "fort.10", twist_average: bool = False
     ):
         namelist = cls.read_default_namelist()
-        return cls(
-            in_fort10=in_fort10, namelist=namelist, twist_average=twist_average
-        )
+        return cls(in_fort10=in_fort10, namelist=namelist, twist_average=twist_average)
 
     @classmethod
     def parse_from_file(
         cls, file, in_fort10: str = "fort.10", twist_average: bool = False
     ):
         namelist = Namelist.parse_namelist_from_file(file)
-        return cls(
-            in_fort10=in_fort10, namelist=namelist, twist_average=twist_average
-        )
+        return cls(in_fort10=in_fort10, namelist=namelist, twist_average=twist_average)
 
 
 if __name__ == "__main__":
@@ -593,9 +556,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

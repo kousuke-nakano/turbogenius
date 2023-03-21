@@ -76,7 +76,7 @@ class LRDMCopt_genius(GeniusIO):
         alat: float = -0.20,
         time_branching: float = 0.10,
         etry: float = 0.0,
-        nonlocalmoves: str = "tmove",  # tmove, dla, dlatm
+        nonlocalmoves: str = "dla",  # tmove, dla, dlatm
         opt_onebody: bool = True,
         opt_twobody: bool = True,
         opt_det_mat: bool = False,

@@ -57,7 +57,7 @@ class LRDMC_genius(GeniusIO):
         twist_average: bool = False,
         kpoints: Optional[list] = None,
         force_calc_flag: bool = False,
-        nonlocalmoves: str = "tmove",  # tmove, dla, dlatm
+        nonlocalmoves: str = "dla",  # tmove, dla, dlatm
     ):
         if kpoints is None:
             kpoints = [1, 1, 1, 0, 0, 0]

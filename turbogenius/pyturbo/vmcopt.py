@@ -480,7 +480,7 @@ class VMCopt(FortranIO):
         vmcopt = VMCopt.parse_from_file(
             file=input_file_used,
             in_fort10=self.in_fort10,
-            twist_average=self.twist_average,
+            twist_average=False, # always False because we do not need twist for the average.
         )
         vmcopt.set_parameter("iopt", 1)
         vmcopt.set_parameter("ngen", 0)

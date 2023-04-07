@@ -891,8 +891,7 @@ def vmcopt(
         else:
             logger.info("Job was failure. See the output file.")
             return
-        if plot_graph:
-            vmcopt_genius.plot_energy_and_devmax(interactive=plot_interactive)
+        vmcopt_genius.plot_energy_and_devmax(interactive=plot_interactive)
         if plot_graph:
             vmcopt_genius.plot_parameters_history(interactive=plot_interactive)
         vmcopt_genius.average(

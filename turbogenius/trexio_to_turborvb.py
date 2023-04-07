@@ -1079,54 +1079,38 @@ def trexio_to_turborvb_wf(
         # mo_coefficient_turbo -> mo_coefficient_turbo_real, mo_coefficient_turbo_imag
         mo_coefficient_turbo_real = []
         mo_coefficient_turbo_imag = []
-        for mo__ in mo_coefficient_turbo:
+        for mo_counter, mo__ in enumerate(mo_coefficient_turbo):
             mo_real_b = []
             mo_imag_b = []
             for coeff in mo__:
                 mo_real_b.append(coeff.real)
                 mo_imag_b.append(coeff.imag)
-
-            mo_real_b_up = list(np.array(mo_real_b) * +1)
-            mo_imag_b_up = list(np.array(mo_imag_b) * +1)  # up phase is +
-            # these commented lines are wrong!! In general, the wf does not symmetric with respect to the time reversal except for TRIM points.
-            # mo_real_b_dn=list(np.array(mo_real_b) * +1) # real part is the same as the up spin.
-            # mo_imag_b_dn=list(np.array(mo_imag_b) * -1) # dn phase is -. because the opposite phase is attached in turbo with option double k-grid=.true.
-            mo_real_b_dn = list(np.array(mo_real_b) * +1)
-            mo_imag_b_dn = list(np.array(mo_imag_b) * +1)
-
-            # turbo seems to treat up and dn MOs individually for complex cases!!
-            # trexio currently supports only restricted open or closed shells, => This is a TODO
-            # so, here just duplicate the MOs. => is it ok??
-            # Yes. the order seems correct, i.e, up, dn, up, dn....
-
-            # but, let me see,,, for spin-polarized cases??
-            # I think they should work as they are, but
-            # just in case, I have put here NotImplementedError
             
-            """
-            if num_ele_up != num_ele_dn:
-                logger.error(
-                    "spin-polarized case for a complex system is not tested yet."
-                )
-                raise NotImplementedError
+            if spin_restricted:
+                mo_real_b_up = list(np.array(mo_real_b) * +1)
+                mo_imag_b_up = list(np.array(mo_imag_b) * +1)  # up phase is +
+                # these commented lines are wrong!! In general, the wf does not symmetric with respect to the time reversal except for TRIM points.
+                # mo_real_b_dn=list(np.array(mo_real_b) * +1) # real part is the same as the up spin.
+                # mo_imag_b_dn=list(np.array(mo_imag_b) * -1) # dn phase is -. because the opposite phase is attached in turbo with option double k-grid=.true.
+                mo_real_b_dn = list(np.array(mo_real_b) * +1)
+                mo_imag_b_dn = list(np.array(mo_imag_b) * +1)
 
-            if not spin_restricted:
-                logger.error(
-                    "spin-unrestricted case for a complex system is not tested yet."
-                )
-                raise NotImplementedError
-            """
-
-            mo_coefficient_turbo_real.append(mo_real_b_up)  # up
-            mo_coefficient_turbo_imag.append(mo_imag_b_up)  # up
-            mo_coefficient_turbo_real.append(mo_real_b_dn)  # dn
-            mo_coefficient_turbo_imag.append(mo_imag_b_dn)  # dn
+                mo_coefficient_turbo_real.append(mo_real_b_dn)  # dn
+                mo_coefficient_turbo_imag.append(mo_imag_b_dn)  # dn
+                # because mo_dn is not needed for unpaired MOs.
+                # if num_ele_up - num_ele_dn == 0: the following condition is always true.
+                if (len(mo_coefficient_turbo) - (num_ele_up - num_ele_dn)) >= mo_counter + 1:
+                    mo_coefficient_turbo_real.append(mo_real_b_up)  # up
+                    mo_coefficient_turbo_imag.append(mo_imag_b_up)  # up
+            else: # if spin_restricted==False
+                mo_coefficient_turbo_real.append(mo_real_b)
+                mo_coefficient_turbo_imag.append(mo_imag_b)
 
         logger.debug(mo_coefficient_turbo)
-        logger.debug(len(io_fort10.f10detbasissets.mo_coefficient))
-        logger.debug(len(mo_coefficient_turbo_real))
-        logger.debug(len(io_fort10.f10detbasissets.mo_coefficient_imag))
-        logger.debug(len(mo_coefficient_turbo_imag))
+        logger.info(f"fort10mo_real={len(io_fort10.f10detbasissets.mo_coefficient)}")
+        logger.info(f"trexmo_real={len(mo_coefficient_turbo_real)}")
+        logger.info(f"fort10mo_real={len(io_fort10.f10detbasissets.mo_coefficient_imag)}")
+        logger.info(f"trexmo_real={len(mo_coefficient_turbo_imag)}")
         io_fort10.f10detbasissets.mo_coefficient = mo_coefficient_turbo_real
         io_fort10.f10detbasissets.mo_coefficient_imag = (
             mo_coefficient_turbo_imag

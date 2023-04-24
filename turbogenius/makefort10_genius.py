@@ -14,7 +14,7 @@ Todo:
 import os
 import numpy as np
 import glob
-from typing import Union
+from typing import Union, Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -64,23 +64,30 @@ class Makefort10_genius(GeniusIO):
     def __init__(
         self,
         structure_file: str,
-        supercell: list = [1, 1, 1],
+        supercell: Optional[list] = None,
         det_basis_set: Union[str, list] = "cc-pVQZ",
         jas_basis_set: Union[str, list] = "cc-pVQZ",
         det_contracted_flag: bool = True,
         jas_contracted_flag: bool = True,
         all_electron_jas_basis_set: bool = True,
-        pseudo_potential: Union[str, None] = None,
+        pseudo_potential: Union[str, list, None] = None,
         det_cut_basis_option: bool = False,
         jas_cut_basis_option: bool = False,
         det_exp_to_discard: float = 0.00,
         jastrow_type: int = -6,
         complex: bool = False,
-        phase_up: list = [0.0, 0.0, 0.0],
-        phase_dn: list = [0.0, 0.0, 0.0],
+        phase_up: Optional[list] = None,
+        phase_dn: Optional[list] = None,
         same_phase_up_dn: bool = False,
         neldiff: int = 0,
     ):
+
+        if supercell is None:
+            supercell = [1, 1, 1]
+        if phase_up is None:
+            phase_up = [0.0, 0.0, 0.0]
+        if phase_dn is None:
+            phase_dn = [0.0, 0.0, 0.0]
 
         self.structure_file = structure_file
         self.supercell = supercell
@@ -546,7 +553,7 @@ class Makefort10_genius(GeniusIO):
         """
         self.makefort10.run(input_name=input_name, output_name=output_name)
 
-    def check_results(self, output_names: list = ["out_make"]) -> bool:
+    def check_results(self, output_names: list = None) -> bool:
         """
         Check the result.
 
@@ -555,6 +562,8 @@ class Makefort10_genius(GeniusIO):
         Return:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_make"]
         return self.makefort10.check_results(output_names=output_names)
 
 

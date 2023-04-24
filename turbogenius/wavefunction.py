@@ -16,7 +16,7 @@ from __future__ import annotations
 import os
 import shutil
 import numpy as np
-from typing import Union
+from typing import Union, Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -309,7 +309,7 @@ class Wavefunction:
     def to_agps(
         self,
         grid_size: float = 0.10,
-        additional_hyb: list = [],
+        additional_hyb: Optional[list] = None,
         nosym: float = False,
         clean_flag: float = False,
     ) -> None:
@@ -323,13 +323,15 @@ class Wavefunction:
             clean_flag (bool): cleaning temporary files
 
         """
+        if additional_hyb is None:
+            additional_hyb = []
         if not self.read_flag:
             logger.warning(
                 "WF file is not read yet! Please read a WF file first."
             )
             return
 
-        self.io_fort10.to_agp(
+        self.to_agp(
             triplet=False,
             grid_size=grid_size,
             additional_hyb=additional_hyb,
@@ -342,7 +344,7 @@ class Wavefunction:
     def to_agpu(
         self,
         grid_size: float = 0.10,
-        additional_hyb: list = [],
+        additional_hyb: Optional[list] = None,
         nosym: bool = False,
         clean_flag: bool = False,
     ) -> None:
@@ -356,13 +358,15 @@ class Wavefunction:
             clean_flag (bool): cleaning temporary files
 
         """
+        if additional_hyb is None:
+            additional_hyb = []
         if not self.read_flag:
             logger.warning(
                 "WF file is not read yet! Please read a WF file first."
             )
             return
 
-        self.io_fort10.to_agp(
+        self.to_agp(
             triplet=True,
             grid_size=grid_size,
             additional_hyb=additional_hyb,
@@ -377,7 +381,7 @@ class Wavefunction:
         triplet: bool = False,
         pfaffian_flag: bool = False,
         grid_size: float = 0.10,
-        additional_hyb: list = [],
+        additional_hyb: Optional[list] = None,
         nosym: bool = False,
         clean_flag: bool = False,
         only_generate_template: bool = False,
@@ -394,6 +398,8 @@ class Wavefunction:
             clean_flag (bool): cleaning temporary files
 
         """
+        if additional_hyb is None:
+            additional_hyb = []
         if not self.read_flag:
             logger.warning(
                 "WF file is not read yet! Please read a WF file first."
@@ -536,23 +542,25 @@ class Wavefunction:
         shutil.move("fort.10_new", "fort.10_out")
 
         if only_generate_template:
-            return
+            logger.warning("A template AGP file, fort.10_out, is generated.")
+        else:
+            # convertfort10
+            convertfort10_genius = Convertfort10_genius(
+                in_fort10="fort.10_in",
+                out_fort10="fort.10_out",
+                grid_size=grid_size,
+            )
 
-        # convertfort10
-        convertfort10_genius = Convertfort10_genius(
-            in_fort10="fort.10_in",
-            out_fort10="fort.10_out",
-            grid_size=grid_size,
-        )
-
-        convertfort10_genius.generate_input(input_name="convertfort10.input")
-        convertfort10_genius.run(
-            input_name="convertfort10.input", output_name="out_conv"
-        )
-        shutil.move(self.io_fort10.fort10, "fort.10_bak")
-        shutil.move("fort.10_new", "fort.10")
-        shutil.copy("fort.10_in", "fort.10_new")
-        copy_jastrow(fort10_to="fort.10", fort10_from="fort.10_new")
+            convertfort10_genius.generate_input(
+                input_name="convertfort10.input"
+            )
+            convertfort10_genius.run(
+                input_name="convertfort10.input", output_name="out_conv"
+            )
+            shutil.move(self.io_fort10.fort10, "fort.10_bak")
+            shutil.move("fort.10_new", "fort.10")
+            shutil.copy("fort.10_in", "fort.10_new")
+            copy_jastrow(fort10_to="fort.10", fort10_from="fort.10_new")
 
         if clean_flag:
             os.remove("fort.10_new")

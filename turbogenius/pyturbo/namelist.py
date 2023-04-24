@@ -15,6 +15,7 @@ Todo:
 
 # python modules
 import re
+from typing import Optional, Union
 from collections import OrderedDict
 
 # turbo-genius modules
@@ -27,9 +28,11 @@ logger = getLogger("pyturbo").getChild(__name__)
 
 
 class Namelist:
-    def __init__(self, namelist=OrderedDict()):
-        assert type(namelist) == type(
-            OrderedDict()
+    def __init__(self, namelist: Optional[OrderedDict] = None):
+        if namelist is None:
+            namelist = OrderedDict()
+        assert isinstance(
+            namelist, OrderedDict
         ), "Please use OrderedDict() for the namelist!"
         self.__namelist = namelist
 
@@ -37,7 +40,12 @@ class Namelist:
     def parameters(self):
         return self.__namelist
 
-    def set_parameter(self, parameter, value, namelist=None):
+    def set_parameter(
+        self,
+        parameter: str,
+        value: Union[int, float, str],
+        namelist: Optional[dict] = None,
+    ):
         if namelist is None:
             for key, parameters in self.__namelist.items():
                 if parameter in parameters.keys():

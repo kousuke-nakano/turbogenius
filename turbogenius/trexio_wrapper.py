@@ -32,7 +32,7 @@ class Trexio_wrapper_r:
 
     """
 
-    def __init__(self, trexio_file):
+    def __init__(self, trexio_file: str):
 
         # prefix and file names
         logger.info(f"TREXIO file = {trexio_file}")
@@ -83,16 +83,17 @@ class Trexio_wrapper_r:
         self.basis_prim_factor = trexio.read_basis_prim_factor(file_r)
 
         # Pseudo potentials info
-        self.ecp_max_ang_mom_plus_1 = trexio.read_ecp_max_ang_mom_plus_1(
-            file_r
-        )
-        self.ecp_z_core = trexio.read_ecp_z_core(file_r)
-        self.ecp_num = trexio.read_ecp_num(file_r)
-        self.ecp_ang_mom = trexio.read_ecp_ang_mom(file_r)
-        self.ecp_nucleus_index = trexio.read_ecp_nucleus_index(file_r)
-        self.ecp_exponent = trexio.read_ecp_exponent(file_r)
-        self.ecp_coefficient = trexio.read_ecp_coefficient(file_r)
-        self.ecp_power = trexio.read_ecp_power(file_r)
+        if trexio.has_ecp_num(file_r):
+            self.ecp_max_ang_mom_plus_1 = trexio.read_ecp_max_ang_mom_plus_1(
+                file_r
+            )
+            self.ecp_z_core = trexio.read_ecp_z_core(file_r)
+            self.ecp_num = trexio.read_ecp_num(file_r)
+            self.ecp_ang_mom = trexio.read_ecp_ang_mom(file_r)
+            self.ecp_nucleus_index = trexio.read_ecp_nucleus_index(file_r)
+            self.ecp_exponent = trexio.read_ecp_exponent(file_r)
+            self.ecp_coefficient = trexio.read_ecp_coefficient(file_r)
+            self.ecp_power = trexio.read_ecp_power(file_r)
 
         # ao info
         self.ao_cartesian = trexio.read_ao_cartesian(file_r)
@@ -105,6 +106,10 @@ class Trexio_wrapper_r:
         self.mo_num = trexio.read_mo_num(file_r)
         self.mo_occupation = trexio.read_mo_occupation(file_r)
         self.mo_coefficient = trexio.read_mo_coefficient(file_r)
+        try:
+            self.mo_spin = trexio.read_mo_spin(file_r)
+        except:  # backward compatibility
+            self.mo_spin = [0 for _ in range(self.mo_num)]
         if trexio.has_mo_coefficient_im(file_r):
             logger.info("The WF is complex")
             self.mo_coefficient_imag = trexio.read_mo_coefficient_im(file_r)
@@ -114,35 +119,6 @@ class Trexio_wrapper_r:
             self.complex_flag = False
 
         file_r.close()
-
-    """
-    def write_to_turbowf(
-        self,
-        jas_basis_sets=Jas_Basis_sets(),
-        max_occ_conv: int = 0,
-        mo_num_conv: int = -1,
-        only_mol: bool = True,
-        cleanup: bool = True,
-    ) -> None:
-
-        Convert trexio file to TurboRVB WF file (fort.10)
-
-        Args:
-            jas_basis_sets (Jas_basis_sets): Jastrow basis sets added to the TREXIO WF.
-            max_occ_conv (int): maximum occ used for the conv, not used with mo_num
-            mo_num_conv (int): num mo used for the conv, not used with max occ
-            only_mol (bool): if True, only moleculer orbitals option = True in convertfort10mol
-            cleanup (bool): clean up temporary files
-
-        trexio_to_turborvb_wf(
-            trexio_file=self.trexio_file,
-            jas_basis_sets=jas_basis_sets,
-            max_occ_conv=max_occ_conv,
-            mo_num_conv=max_occ_conv,
-            only_mol=only_mol,
-            cleanup=cleanup,
-        )
-    """
 
 
 if __name__ == "__main__":

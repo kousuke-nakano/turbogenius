@@ -15,6 +15,7 @@ Todo:
 # python modules
 import os
 import re
+from typing import Optional
 
 # pyturbo modules
 from turbogenius.pyturbo.namelist import Namelist
@@ -33,9 +34,12 @@ logger = getLogger("pyturbo").getChild(__name__)
 class Convertfort10mol(FortranIO):
     def __init__(
         self,
-        in_fort10="fort.10_in",
-        namelist=Namelist(),
+        in_fort10: str = "fort.10_in",
+        namelist: Optional[Namelist] = None,
     ):
+
+        if namelist is None:
+            namelist = Namelist()
 
         """
         input values
@@ -57,18 +61,24 @@ class Convertfort10mol(FortranIO):
     def sanity_check(self):
         pass
 
-    def generate_input(self, input_name="convertfort10mol.input"):
+    def generate_input(self, input_name: str = "convertfort10mol.input"):
         self.namelist.write(input_name)
         logger.info(f"{input_name} has been generated.")
 
-    def run(self, input_name="convertfort10mol.input", output_name="out_mol"):
+    def run(
+        self,
+        input_name: str = "convertfort10mol.input",
+        output_name: str = "out_mol",
+    ):
         run(
             turbo_convertfort10mol_run_command,
             input_name=input_name,
             output_name=output_name,
         )
 
-    def check_results(self, output_names=["out_mol"]):
+    def check_results(self, output_names: Optional[list] = None):
+        if output_names is None:
+            output_names = ["out_mol"]
         flags = []
         for output_name in output_names:
             file_check(output_name)
@@ -86,7 +96,7 @@ class Convertfort10mol(FortranIO):
         return flags
 
     @staticmethod
-    def read_default_namelist(in_fort10="fort.10_in"):
+    def read_default_namelist(in_fort10: str = "fort.10_in"):
         convertfort10mol_default_file = os.path.join(
             pyturbo_data_dir, "convertfort10mol", "convertfort10mol.input"
         )
@@ -104,12 +114,12 @@ class Convertfort10mol(FortranIO):
         return namelist
 
     @classmethod
-    def parse_from_default_namelist(cls, in_fort10="fort.10_in"):
+    def parse_from_default_namelist(cls, in_fort10: str = "fort.10_in"):
         namelist = cls.read_default_namelist(in_fort10=in_fort10)
         return cls(in_fort10=in_fort10, namelist=namelist)
 
     @classmethod
-    def parse_from_file(cls, file, in_fort10="fort.10_in"):
+    def parse_from_file(cls, file, in_fort10: str = "fort.10_in"):
         namelist = Namelist.parse_namelist_from_file(file)
         return cls(in_fort10=in_fort10, namelist=namelist)
 

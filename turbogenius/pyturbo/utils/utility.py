@@ -96,8 +96,8 @@ def prompt(text, checker):
 
 
 def get_str_variable_type_auto(variable):
-    logger.debug(f"variable={variable}")
-    logger.debug(f"isdecimal={variable.isdecimal()}")
+    # logger.debug(f"variable={variable}")
+    # logger.debug(f"isdecimal={variable.isdecimal()}")
 
     if not variable.replace("-", "").isdecimal():
         try:

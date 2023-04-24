@@ -30,7 +30,9 @@ logger = getLogger("Turbo-Genius").getChild(__name__)
 
 
 def copy_jastrow(
-    fort10_to="fort.10", fort10_from="fort.10_new", twist_flag=False
+    fort10_to: str = "fort.10",
+    fort10_from: str = "fort.10_new",
+    twist_flag: bool = False,
 ):
     """
     Copy Jastrow factors

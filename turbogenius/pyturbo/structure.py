@@ -17,6 +17,7 @@ Todo:
 import math
 import numpy as np
 from numpy import linalg as LA
+from typing import Optional
 
 # python material modules
 from ase import Atoms
@@ -36,15 +37,21 @@ logger = getLogger("pyturbo").getChild(__name__)
 class Cell:
     def __init__(
         self,
-        vec_a=np.array([0.0, 0.0, 0.0], dtype=float),  # bohr
-        vec_b=np.array([0.0, 0.0, 0.0], dtype=float),  # bohr
-        vec_c=np.array([0.0, 0.0, 0.0], dtype=float),  # bohr
+        vec_a: Optional[list] = None,
+        vec_b: Optional[list] = None,
+        vec_c: Optional[list] = None,
     ):
+        if vec_a is None:
+            vec_a = [0.0, 0.0, 0.0]  # bohr
+        if vec_b is None:
+            vec_b = [0.0, 0.0, 0.0]  # bohr
+        if vec_c is None:
+            vec_c = [0.0, 0.0, 0.0]  # bohr
 
         # cell vectors (the units are bohr)
-        self.__vec_a = vec_a
-        self.__vec_b = vec_b
-        self.__vec_c = vec_c
+        self.__vec_a = np.array(vec_a, dtype=float)
+        self.__vec_b = np.array(vec_b, dtype=float)
+        self.__vec_c = np.array(vec_c, dtype=float)
 
         # calc norm
         self.__norm_vec_a = LA.norm(self.__vec_a)
@@ -232,11 +239,19 @@ class Cell:
 class Structure:
     def __init__(
         self,
-        cell=Cell(),
-        atomic_numbers=[],
-        element_symbols=[],
-        positions=np.array([[]]),  # 3 * N matrix, the unit is bohr!!
+        cell: Optional[Cell] = None,
+        atomic_numbers: Optional[list] = None,
+        element_symbols: Optional[list] = None,
+        positions: Optional[list] = None,  # 3 * N matrix, the unit is bohr!!
     ):
+        if cell is None:
+            cell = Cell()
+        if atomic_numbers is None:
+            atomic_numbers = []
+        if element_symbols is None:
+            element_symbols = []
+        if positions is None:
+            positions = np.array([[]])
 
         self.__cell = cell
         self.__atomic_numbers = atomic_numbers

@@ -107,25 +107,16 @@ and type `make html`. The document is generated in `docs/_build/html`.
 `index.html` is the main page.
 
 # Reference
-K. Nakano et. al in prepareation (2022).
+K. Nakano et. al in prepareation (2023).
 
 # How to contribute
 
-Work on the development or on a new branch
+Please do not directly push your changes to `main` and `devel` branch.
+Please create a pull request on GitHub from your forked repository or a new branch (e.g. `devel-#1`). 
 
-    git merge <new branch> development # if you work on a new branch.
-    git push origin development
-
-Check the next-version version
+# How to check the version info.
 
     # Confirm the version number via `setuptools-scm`
     python -m setuptools_scm
     e.g., 1.1.4.dev28+gceef293.d20221123 -> <next-version> = v1.1.4 or v1.1.4-alpha(for pre-release)
 
-Add and push with the new tag
-
-    # Push with tag
-    git tag <next-version>  # e.g., git tag v1.1.4  # Do not forget "v" before the version number!
-    git push origin development --tags  # or to the new branch
-    
-Send a pull request to the main branch on GitHub. 

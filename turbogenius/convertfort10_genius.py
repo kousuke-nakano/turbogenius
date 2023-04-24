@@ -13,6 +13,7 @@ Todo:
 # python modules
 import os
 import numpy as np
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -77,13 +78,12 @@ class Convertfort10_genius(GeniusIO):
             self.convertfort10.comment_out(parameter="ny")
             self.convertfort10.comment_out(parameter="nz")
         else:
-            # +- 7.5 bohr from the edges.
             pos = self.io_fort10.f10structure.positions
-            Lx = np.max(pos[:, 0]) - np.min(pos[:, 0]) + 3.0
-            Ly = np.max(pos[:, 1]) - np.min(pos[:, 1]) + 3.0
-            Lz = np.max(pos[:, 2]) - np.min(pos[:, 2]) + 3.0
+            Lx = np.max(pos[:, 0]) - np.min(pos[:, 0]) + 6.0
+            Ly = np.max(pos[:, 1]) - np.min(pos[:, 1]) + 6.0
+            Lz = np.max(pos[:, 2]) - np.min(pos[:, 2]) + 6.0
             logger.info(
-                "Lbox is set to +- 1.5 bohr from the edges of the molecules."
+                "Lbox is set to +- 3.0 bohr from the edges of the molecules."
             )
             logger.info(f"Lx={Lx}, Ly={Ly}, Lz={Lz}")
             ax = self.grid_size
@@ -150,7 +150,7 @@ class Convertfort10_genius(GeniusIO):
         flags = self.convertfort10.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self, output_names: list = ["out_conv"]) -> bool:
+    def check_results(self, output_names: Optional[list] = None) -> bool:
         """
         Check the result.
 
@@ -159,6 +159,8 @@ class Convertfort10_genius(GeniusIO):
         Returns:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_conv"]
         return self.convertfort10.check_results(output_names=output_names)
 
 

@@ -12,6 +12,7 @@ Todo:
 
 # python modules
 import os
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -52,8 +53,10 @@ class Correlated_sampling_genius(GeniusIO):
         num_walkers: int = -1,  # default -1 -> num of MPI process.
         maxtime: int = 172800,
         twist_average: bool = False,
-        kpoints: list = [1, 1, 1, 0, 0, 0],
+        kpoints: Optional[list] = None,
     ):
+        if kpoints is None:
+            kpoints = [1, 1, 1, 0, 0, 0]
 
         self.in_fort10 = in_fort10
         self.corr_fort10 = corr_fort10
@@ -244,8 +247,8 @@ class Correlated_sampling_genius(GeniusIO):
 
     def check_results(
         self,
-        vmc_output_names: list = ["out_vmc"],
-        readforward_output_names: list = ["out_readforward"],
+        vmc_output_names: Optional[list] = None,
+        readforward_output_names: Optional[list] = None,
     ) -> bool:
         """
         Check the result.
@@ -256,6 +259,10 @@ class Correlated_sampling_genius(GeniusIO):
         Returns:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if vmc_output_names is None:
+            vmc_output_names = ["out_vmc"]
+        if readforward_output_names is None:
+            readforward_output_names = ["out_readforward"]
         return self.readforward.check_results(
             output_names=readforward_output_names
         ) + self.vmc.check_results(output_names=vmc_output_names)

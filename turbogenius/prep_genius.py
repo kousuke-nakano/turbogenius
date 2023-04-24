@@ -13,6 +13,7 @@ Todo:
 # python modules
 import os
 import numpy as np
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -51,20 +52,28 @@ class DFT_genius(GeniusIO):
     def __init__(
         self,
         fort10: str = "fort.10",
-        grid_size: list = [0.1, 0.1, 0.1],
-        lbox: list = [15.0, 15.0, 15.0],
+        grid_size: Optional[list] = None,
+        lbox: Optional[list] = None,
         smearing: float = 0.0,
         maxtime: int = 172800,
         memlarge: bool = False,
         maxit: int = 50,
         epsdft: float = 1.0e-5,
         h_field: float = 0.0,
-        magnetic_moment_list: list = [],
+        magnetic_moment_list: Optional[list] = None,
         xc: str = "lda",  # lda or lsda
         twist_average: bool = False,
         independent_kpoints: bool = False,
-        kpoints: list = [1, 1, 1, 0, 0, 0],
+        kpoints: Optional[list] = None,
     ):
+        if grid_size is None:
+            grid_size = [0.1, 0.1, 0.1]
+        if lbox is None:
+            lbox = [15.0, 15.0, 15.0]
+        if magnetic_moment_list is None:
+            magnetic_moment_list = []
+        if kpoints is None:
+            kpoints = [1, 1, 1, 0.0, 0]
 
         self.fort10 = fort10
         self.grid_a, self.grid_b, self.grid_c = grid_size
@@ -430,7 +439,7 @@ class DFT_genius(GeniusIO):
         flags = self.prep.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self, output_names: list = ["out_prep"]) -> None:
+    def check_results(self, output_names: Optional[list] = None) -> None:
         """
         Check the result.
 
@@ -439,6 +448,8 @@ class DFT_genius(GeniusIO):
         Returns:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_prep"]
         return self.prep.check_results(output_names=output_names)
 
     def get_mangetic_moments_3d_array(self):  # -> numpy.array(XXX)

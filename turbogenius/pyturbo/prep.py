@@ -17,6 +17,7 @@ Todo:
 import os
 import re
 import numpy as np
+from typing import Optional
 
 # pyturbo modules
 from turbogenius.pyturbo.namelist import Namelist
@@ -48,13 +49,23 @@ class Prep(FortranIO):
 
     def __init__(
         self,
-        in_fort10="fort.10",
-        namelist=Namelist(),
-        nelocc_list=[],
-        neloccdn_list=[],
-        magnetic_moments_3d_array=[],  # dim = 3, shape = (nzs,nys,nxs)
-        twist_average=False,  # False or 0: single-k, True or 1: Monkhorst-Pack, 2: manual k-grid
+        in_fort10: str = "fort.10",
+        namelist: Optional[Namelist] = None,
+        nelocc_list: Optional[list] = None,
+        neloccdn_list: Optional[list] = None,
+        magnetic_moments_3d_array: Optional[
+            list
+        ] = None,  # dim = 3, shape = (nzs,nys,nxs)
+        twist_average: bool = False,  # False or 0: single-k, True or 1: Monkhorst-Pack, 2: manual k-grid
     ):
+        if namelist is None:
+            namelist = Namelist()
+        if nelocc_list is None:
+            nelocc_list = []
+        if neloccdn_list is None:
+            neloccdn_list = []
+        if magnetic_moments_3d_array is None:
+            magnetic_moments_3d_array = []
 
         """
         input values
@@ -129,7 +140,7 @@ class Prep(FortranIO):
     def sanity_check(self):
         pass
 
-    def generate_input(self, input_name):
+    def generate_input(self, input_name: str = "prep.input"):
         """
         Args:
             input_name (str): Name of input file
@@ -211,7 +222,9 @@ class Prep(FortranIO):
             output_name=output_name,
         )
 
-    def check_results(self, output_names=["out_prep"]):
+    def check_results(self, output_names: Optional[list] = None):
+        if output_names is None:
+            output_names = ["out_prep"]
         flags = []
         for output_name in output_names:
             file_check(output_name)
@@ -232,7 +245,7 @@ class Prep(FortranIO):
         return flags
 
     @staticmethod
-    def read_default_namelist(in_fort10="fort.10"):
+    def read_default_namelist(in_fort10: str = "fort.10"):
         prep_default_file = os.path.join(
             pyturbo_data_dir, "prep", "prep.input"
         )
@@ -283,10 +296,12 @@ class Prep(FortranIO):
     @classmethod
     def parse_from_default_namelist(
         cls,
-        in_fort10="fort.10",
-        magnetic_moments_3d_array=[],
-        twist_average=False,
+        in_fort10: str = "fort.10",
+        magnetic_moments_3d_array: Optional[list] = None,
+        twist_average: bool = False,
     ):
+        if magnetic_moments_3d_array is None:
+            magnetic_moments_3d_array = []
         namelist = cls.read_default_namelist(in_fort10=in_fort10)
         # fort10
         io_fort10 = IO_fort10(fort10=in_fort10)
@@ -320,7 +335,7 @@ class Prep(FortranIO):
         )
 
     @classmethod
-    def parse_from_file(cls, file, in_fort10="fort.10"):
+    def parse_from_file(cls, file: str, in_fort10: str = "fort.10"):
         namelist = Namelist.parse_namelist_from_file(file)
         logger.warning(
             f"nelocc_list and neloccdn_list are not read from {file}"

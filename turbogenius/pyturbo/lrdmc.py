@@ -18,6 +18,7 @@ Todo:
 import os
 import re
 import numpy as np
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -46,8 +47,13 @@ logger = getLogger("pyturbo").getChild(__name__)
 
 class LRDMC(FortranIO):
     def __init__(
-        self, in_fort10="fort.10", namelist=Namelist(), twist_average=False
+        self,
+        in_fort10: str = "fort.10",
+        namelist: Optional[Namelist] = None,
+        twist_average: bool = False,
     ):
+        if namelist is None:
+            namelist = Namelist()
 
         """
         input values
@@ -61,6 +67,36 @@ class LRDMC(FortranIO):
         self.namelist = namelist
         self.twist_average = twist_average
 
+        # manual k-grid! [[[kx, ky, kz, wkp for up], ....], [[# kx, ky, kz, wkp for dn], ...]]
+        self.__manual_kpoints = []
+
+    @property
+    def manual_kpoints(self):
+        return self.__manual_kpoints
+
+    @manual_kpoints.setter
+    def manual_kpoints(self, kpoints):
+        assert len(kpoints) == 2
+        kpoints_up, kpoints_dn = kpoints
+        assert len(kpoints_up) == len(kpoints_dn)
+        for kup, kdn in zip(kpoints_up, kpoints_dn):
+            assert len(kup) == 4  # kx, ky, kz, wkp for up
+            assert len(kdn) == 4  # kx, ky, kz, wkp for dn
+        self.__manual_kpoints = kpoints
+        self.namelist.set_parameter(
+            parameter="yes_kpoints", value=".true.", namelist="&parameters"
+        )
+        # self.namelist.set_parameter(parameter="yeswrite10", value=".true.", namelist="&optimization")
+        self.namelist.set_parameter(
+            parameter="kp_type", value=2, namelist="&kpoints"
+        )
+        self.namelist.set_parameter(
+            parameter="nk1", value=len(kpoints_up), namelist="&kpoints"
+        )
+        self.namelist.set_parameter(
+            parameter="double_kpgrid", value=".true.", namelist="&kpoints"
+        )
+
     def __str__(self):
 
         output = [
@@ -71,8 +107,42 @@ class LRDMC(FortranIO):
     def sanity_check(self):
         pass
 
-    def generate_input(self, input_name="datasfn.input"):
+    def generate_input(self, input_name: str = "datasfn.input"):
         self.namelist.write(input_name)
+        # check if twist_average is manual
+        if self.twist_average == 2:  # k-points are set manually
+            kpoints_up, kpoints_dn = self.manual_kpoints
+            # read
+            with open(input_name, "r") as f:
+                lines = f.readlines()
+            kpoint_index = [
+                True if re.match(r".*&kpoints.*", line) else False
+                for line in lines
+            ].index(True)
+            insert_lineno = -1
+            for i, line in enumerate(lines[kpoint_index + 1 :]):
+                if re.match(r".*/.*", line):
+                    insert_lineno = kpoint_index + 1 + i + 1
+                    break
+                if re.match(r".*&.*", line):
+                    insert_lineno = kpoint_index + 1 + i
+                    break
+            if insert_lineno == -1:
+                logger.error("No suitable position for KPOINT is found")
+                raise ValueError
+            # write dn
+            lines.insert(insert_lineno, "\n")
+            for kx, ky, kz, wk in reversed(kpoints_dn):
+                lines.insert(insert_lineno, f"{kx} {ky} {kz} {wk}\n")
+            lines.insert(insert_lineno, "\n")
+            # write up
+            for kx, ky, kz, wk in reversed(kpoints_up):
+                lines.insert(insert_lineno, f"{kx} {ky} {kz} {wk}\n")
+            lines.insert(insert_lineno, "KPOINTS\n")
+            lines.insert(insert_lineno, "\n")
+            # saved
+            with open(input_name, "w") as f:
+                f.writelines(lines)
         logger.info(f"{input_name} has been generated.")
 
     def run(self, input_name="datasfn.input", output_name="out_fn"):
@@ -84,7 +154,9 @@ class LRDMC(FortranIO):
             output_name=output_name,
         )
 
-    def check_results(self, output_names=["out_fn"]):
+    def check_results(self, output_names: Optional[list] = None):
+        if output_names is None:
+            output_names = ["out_fn"]
         flags = []
         for output_name in output_names:
             file_check(output_name)
@@ -98,7 +170,11 @@ class LRDMC(FortranIO):
                 flags.append(False)
         return flags
 
-    def get_estimated_time_for_1_generation(self, output_names=["out_fn"]):
+    def get_estimated_time_for_1_generation(
+        self, output_names: Optional[list] = None
+    ):
+        if output_names is None:
+            output_names = ["out_fn"]
 
         out_min = []
         for output_name in output_names:
@@ -124,7 +200,12 @@ class LRDMC(FortranIO):
         return ave_time_1_generation  # sec.
 
     def get_energy(
-        self, init=10, correct=10, bin=10, num_proc=-1, rerun=False
+        self,
+        init: int = 10,
+        correct: int = 10,
+        bin: int = 10,
+        num_proc: int = -1,
+        rerun: bool = False,
     ):
         force_compute_flag = False
         if rerun:
@@ -152,7 +233,7 @@ class LRDMC(FortranIO):
         return energy, error
 
     @staticmethod
-    def read_energy(twist_average=False):
+    def read_energy(twist_average: bool = False):
         if twist_average:
             line = get_line_from_file(file="pip0_fn.d", line_no=0).split()
             energy = float(line[3])
@@ -164,7 +245,12 @@ class LRDMC(FortranIO):
         return energy, error
 
     def get_forces(
-        self, init=10, correct=10, bin=10, num_proc=-1, rerun=False
+        self,
+        init: int = 10,
+        correct: int = 10,
+        bin: int = 10,
+        num_proc: int = -1,
+        rerun: bool = False,
     ):
 
         force_compute_flag = False
@@ -275,7 +361,12 @@ class LRDMC(FortranIO):
         return force_matrix, force_matrix_error_bar
 
     def compute_energy_and_forces(
-        self, init=10, correct=10, bin=10, pulay=1, num_proc=-1
+        self,
+        init: int = 10,
+        correct: int = 10,
+        bin: int = 10,
+        pulay: int = 1,
+        num_proc: int = -1,
     ):
         if self.twist_average:
             if num_proc == -1:
@@ -288,7 +379,7 @@ class LRDMC(FortranIO):
                 num_proc = os.cpu_count()
             if num_proc > 1:
                 command = turbo_forcefn_kpoints_para_run_command
-                #command = turbo_forcefn_kpoints_run_command  # for the time being!!! because paperoga does not have sufficient memory.
+                # command = turbo_forcefn_kpoints_run_command  # for the time being!!! because paperoga does not have sufficient memory.
             else:
                 command = turbo_forcefn_kpoints_run_command
             cmd = "{:s} {:d} {:d} {:d} {:d} {:d}".format(
@@ -310,13 +401,13 @@ class LRDMC(FortranIO):
         return namelist
 
     @staticmethod
-    def read_namelist_from_file(file):
+    def read_namelist_from_file(file: str):
         namelist = Namelist.parse_namelist_from_file(file)
         return namelist
 
     @classmethod
     def parse_from_default_namelist(
-        cls, in_fort10="fort.10", twist_average=False
+        cls, in_fort10: str = "fort.10", twist_average: bool = False
     ):
         namelist = cls.read_default_namelist()
         return cls(
@@ -324,7 +415,9 @@ class LRDMC(FortranIO):
         )
 
     @classmethod
-    def parse_from_file(cls, file, in_fort10="fort.10", twist_average=False):
+    def parse_from_file(
+        cls, file: str, in_fort10: str = "fort.10", twist_average: bool = False
+    ):
         namelist = Namelist.parse_namelist_from_file(file)
         logger.debug("parse from file, lrdmc.py")
         return cls(

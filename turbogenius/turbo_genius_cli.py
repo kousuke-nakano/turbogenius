@@ -891,8 +891,7 @@ def vmcopt(
         else:
             logger.info("Job was failure. See the output file.")
             return
-        if plot_graph:
-            vmcopt_genius.plot_energy_and_devmax(interactive=plot_interactive)
+        vmcopt_genius.plot_energy_and_devmax(interactive=plot_interactive)
         if plot_graph:
             vmcopt_genius.plot_parameters_history(interactive=plot_interactive)
         vmcopt_genius.average(
@@ -1577,7 +1576,11 @@ def convertpfaff(
 @cli.command(short_help="convert wavefunction")
 @decorate_grpost
 @click.option(
-    "-to", "to_ansatz", help="Specify to ansatz", default="agps", type=str
+    "-to",
+    "to_ansatz",
+    help="Specify to ansatz",
+    default="agps",
+    type=click.Choice(["sd", "agps", "agpu", "pf"], case_sensitive=False),
 )
 @click.option(
     "-hyb",
@@ -1622,7 +1625,8 @@ def convertwf(
     os.chdir(root_dir)
     number_of_additional_hybrid_orbitals = list(map(int, hybrid_orbitals))
 
-    wavefunction = Wavefunction(fort10="fort.10")
+    wavefunction = Wavefunction()
+    wavefunction.read_from_fort10(fort10="fort.10")
 
     if to_ansatz == "agps":
         logger.info("convert the wf to agps")
@@ -1630,7 +1634,7 @@ def convertwf(
             grid_size=grid_size,
             additional_hyb=number_of_additional_hybrid_orbitals,
             nosym=nosymmetry,
-            clean_flag=False,
+            clean_flag=True,
         )
 
     elif to_ansatz == "agpu":
@@ -1639,7 +1643,7 @@ def convertwf(
             grid_size=grid_size,
             additional_hyb=number_of_additional_hybrid_orbitals,
             nosym=nosymmetry,
-            clean_flag=False,
+            clean_flag=True,
         )
 
     elif to_ansatz == "sd":
@@ -1653,7 +1657,7 @@ def convertwf(
             grid_size=grid_size,
             rotate_angle=rotate_angle,
             nosym=nosymmetry,
-            clean_flag=False,
+            clean_flag=True,
         )
 
 

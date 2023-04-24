@@ -15,7 +15,7 @@ Todo:
 import os
 import re
 import numpy as np
-from typing import Union
+from typing import Union, Optional
 
 # logger set
 from logging import getLogger, StreamHandler, Formatter
@@ -52,17 +52,36 @@ class Basis_sets:
 
     def __init__(
         self,
-        nucleus_index: list = [],
-        shell_ang_mom: list = [],
-        shell_ang_mom_turbo_notation: list = [],
-        shell_factor: list = [],
-        shell_index: list = [],
-        exponent: list = [],
-        coefficient: list = [],
-        coefficient_imag: list = [],
-        prim_factor: list = [],
+        nucleus_index: Optional[list] = None,
+        shell_ang_mom: Optional[list] = None,
+        shell_ang_mom_turbo_notation: Optional[list] = None,
+        shell_factor: Optional[list] = None,
+        shell_index: Optional[list] = None,
+        exponent: Optional[list] = None,
+        coefficient: Optional[list] = None,
+        coefficient_imag: Optional[list] = None,
+        prim_factor: Optional[list] = None,
     ):
+        if nucleus_index is None:
+            nucleus_index = []
+        if shell_ang_mom is None:
+            shell_ang_mom = []
+        if shell_ang_mom_turbo_notation is None:
+            shell_ang_mom_turbo_notation = []
+        if shell_factor is None:
+            shell_factor = []
+        if shell_index is None:
+            shell_index = []
+        if exponent is None:
+            exponent = []
+        if coefficient is None:
+            coefficient = []
+        if coefficient_imag is None:
+            coefficient_imag = []
+        if prim_factor is None:
+            prim_factor = []
 
+        # variables
         self.nucleus_index = nucleus_index
         self.shell_ang_mom = shell_ang_mom
         self.shell_ang_mom_turbo_notation = shell_ang_mom_turbo_notation
@@ -73,15 +92,17 @@ class Basis_sets:
         self.coefficient_imag = coefficient_imag
         self.prim_factor = prim_factor
 
-        logger.debug(self.nucleus_index)
-        logger.debug(self.shell_ang_mom)
-        logger.debug(self.shell_ang_mom_turbo_notation)
-        logger.debug(self.shell_factor)
-        logger.debug(self.shell_index)
-        logger.debug(self.exponent)
-        logger.debug(self.coefficient)
-        logger.debug(self.coefficient_imag)
-        logger.debug(self.prim_factor)
+        logger.debug(f"nucleus_index={self.nucleus_index}")
+        logger.debug(f"shell_ang_mom={self.shell_ang_mom}")
+        logger.debug(
+            f"shell_ang_mom_turbo_notation={self.shell_ang_mom_turbo_notation}"
+        )
+        logger.debug(f"shell_factor={self.shell_factor}")
+        logger.debug(f"shell_index={self.shell_index}")
+        logger.debug(f"exponent={self.exponent}")
+        logger.debug(f"coefficient={self.coefficient}")
+        logger.debug(f"coefficient_imag={self.coefficient_imag}")
+        logger.debug(f"prim_factor={self.prim_factor}")
 
         # assertion!!
         assert len(self.exponent) == len(self.coefficient)
@@ -476,7 +497,7 @@ class Basis_sets:
 
     @classmethod
     def parse_basis_sets_from_gamess_format_files(
-        cls, files: list = []
+        cls, files: Optional[list] = None
     ):  # -> cls
         """
         parse basis sets from GAMESS format files
@@ -488,6 +509,8 @@ class Basis_sets:
             Basis_sets: parsed basis sets
 
         """
+        if files is None:
+            files = []
         texts = []
         for file in files:
             with open(file, "r") as f:
@@ -499,7 +522,7 @@ class Basis_sets:
 
     @classmethod
     def parse_basis_sets_from_eCEPP_format_files(
-        cls, files: list = []
+        cls, files: Optional[list] = None
     ):  # -> cls
         """
         parse basis sets from eCECPP format files
@@ -511,6 +534,8 @@ class Basis_sets:
             Basis_sets: parsed basis sets.
 
         """
+        if files is None:
+            files = []
         texts = []
         for file in files:
             with open(file, "r") as f:
@@ -522,7 +547,7 @@ class Basis_sets:
 
     @classmethod
     def parse_basis_sets_from_texts(
-        cls, texts: list = [], format: str = "gamess"
+        cls, texts: Optional[list] = None, format: str = "gamess"
     ):  # -> cls
         """
         parse basis sets from texts (gamess or eCEPP)
@@ -535,6 +560,8 @@ class Basis_sets:
             Basis_sets: parsed basis sets.
 
         """
+        if texts is None:
+            texts = []
         nucleus_index = []
         shell_ang_mom = []
         shell_ang_mom_turbo_notation = []
@@ -625,13 +652,24 @@ class Basis_set:
 
     def __init__(
         self,
-        shell_ang_mom=[],
-        shell_index=[],
-        exponent_list=[],
-        coefficient_list=[],
-        coefficient_imag_list=[],
+        shell_ang_mom: Optional[list] = None,
+        shell_index: Optional[list] = None,
+        exponent_list: Optional[list] = None,
+        coefficient_list: Optional[list] = None,
+        coefficient_imag_list: Optional[list] = None,
     ):
+        if shell_ang_mom is None:
+            shell_ang_mom = []
+        if shell_index is None:
+            shell_index = []
+        if exponent_list is None:
+            exponent_list = []
+        if coefficient_list is None:
+            coefficient_list = []
+        if coefficient_imag_list is None:
+            coefficient_imag_list = []
 
+        # variables
         self.shell_ang_mom = shell_ang_mom
         self.shell_index = shell_index
         self.exponent_list = exponent_list
@@ -969,24 +1007,59 @@ class Det_Basis_sets(Basis_sets):
 
     def __init__(
         self,
-        nucleus_index: list = [],
-        shell_ang_mom: list = [],
-        shell_ang_mom_turbo_notation: list = [],
-        shell_factor: list = [],
-        shell_index: list = [],
-        exponent: list = [],
-        coefficient: list = [],
-        coefficient_imag: list = [],
-        prim_factor: list = [],
-        hyb_nucleus_index: list = [],
-        hyb_param_num: list = [],
-        hyb_shell_ang_mom: list = [],
-        hyb_shell_ang_mom_turbo_notation: list = [],
-        hyb_prim_index: list = [],
-        hyb_coefficient: list = [],
-        hyb_coefficient_imag: list = [],
-        number_of_additional_hybrid_orbitals: list = [],
+        nucleus_index: Optional[list] = None,
+        shell_ang_mom: Optional[list] = None,
+        shell_ang_mom_turbo_notation: Optional[list] = None,
+        shell_factor: Optional[list] = None,
+        shell_index: Optional[list] = None,
+        exponent: Optional[list] = None,
+        coefficient: Optional[list] = None,
+        coefficient_imag: Optional[list] = None,
+        prim_factor: Optional[list] = None,
+        hyb_nucleus_index: Optional[list] = None,
+        hyb_param_num: Optional[list] = None,
+        hyb_shell_ang_mom: Optional[list] = None,
+        hyb_shell_ang_mom_turbo_notation: Optional[list] = None,
+        hyb_prim_index: Optional[list] = None,
+        hyb_coefficient: Optional[list] = None,
+        hyb_coefficient_imag: Optional[list] = None,
+        number_of_additional_hybrid_orbitals: Optional[list] = None,
     ):
+        if nucleus_index is None:
+            nucleus_index = []
+        if shell_ang_mom is None:
+            shell_ang_mom = []
+        if shell_ang_mom_turbo_notation is None:
+            shell_ang_mom_turbo_notation = []
+        if shell_factor is None:
+            shell_factor = []
+        if shell_index is None:
+            shell_index = []
+        if exponent is None:
+            exponent = []
+        if coefficient is None:
+            coefficient = []
+        if coefficient_imag is None:
+            coefficient_imag = []
+        if prim_factor is None:
+            prim_factor = []
+        if hyb_nucleus_index is None:
+            hyb_nucleus_index = []
+        if hyb_nucleus_index is None:
+            hyb_param_num = []
+        if hyb_shell_ang_mom is None:
+            hyb_shell_ang_mom = []
+        if hyb_shell_ang_mom_turbo_notation is None:
+            hyb_shell_ang_mom_turbo_notation = []
+        if hyb_prim_index is None:
+            hyb_prim_index = []
+        if hyb_coefficient is None:
+            hyb_coefficient = []
+        if hyb_coefficient_imag is None:
+            hyb_coefficient_imag = []
+        if number_of_additional_hybrid_orbitals is None:
+            number_of_additional_hybrid_orbitals = []
+
         super().__init__(
             nucleus_index=nucleus_index,
             shell_ang_mom=shell_ang_mom,
@@ -1032,17 +1105,39 @@ class Jas_Basis_sets(Basis_sets):
 
     def __init__(
         self,
-        nucleus_index=[],
-        shell_ang_mom=[],
-        shell_ang_mom_turbo_notation=[],
-        shell_factor=[],
-        shell_index=[],
-        exponent=[],
-        coefficient=[],
-        coefficient_imag=[],
-        prim_factor=[],
-        number_of_additional_hybrid_orbitals=[],
+        nucleus_index: Optional[list] = None,
+        shell_ang_mom: Optional[list] = None,
+        shell_ang_mom_turbo_notation: Optional[list] = None,
+        shell_factor: Optional[list] = None,
+        shell_index: Optional[list] = None,
+        exponent: Optional[list] = None,
+        coefficient: Optional[list] = None,
+        coefficient_imag: Optional[list] = None,
+        prim_factor: Optional[list] = None,
+        number_of_additional_hybrid_orbitals: Optional[list] = None,
     ):
+        if nucleus_index is None:
+            nucleus_index = []
+        if shell_ang_mom is None:
+            shell_ang_mom = []
+        if shell_ang_mom_turbo_notation is None:
+            shell_ang_mom_turbo_notation = []
+        if shell_factor is None:
+            shell_factor = []
+        if shell_factor is None:
+            shell_index = []
+        if exponent is None:
+            exponent = []
+        if coefficient is None:
+            coefficient = []
+        if coefficient_imag is None:
+            coefficient_imag = []
+        if prim_factor is None:
+            prim_factor = []
+        if number_of_additional_hybrid_orbitals is None:
+            number_of_additional_hybrid_orbitals = []
+
+        # variables
         super().__init__(
             nucleus_index=nucleus_index,
             shell_ang_mom=shell_ang_mom,

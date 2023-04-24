@@ -10,6 +10,7 @@ convertpfaff genius related classes and methods
 
 # python modules
 import os
+from typing import Optional
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -95,7 +96,7 @@ class Convertpfaff_genius(GeniusIO):
         flags = self.convertpfaff.check_results(output_names=[output_name])
         assert all(flags)
 
-    def check_results(self, output_names: list = ["out_pfaff"]) -> bool:
+    def check_results(self, output_names: Optional[list] = None) -> bool:
         """
         Check the result.
 
@@ -104,6 +105,8 @@ class Convertpfaff_genius(GeniusIO):
         Returns:
             bool: True if all the runs were successful, False if an error is detected in the files.
         """
+        if output_names is None:
+            output_names = ["out_pfaff"]
         return self.convertpfaff.check_results(output_names=output_names)
 
 

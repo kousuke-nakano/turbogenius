@@ -111,8 +111,8 @@ K. Nakano et. al in prepareation (2023).
 
 # How to contribute
 
-Please do not directory push the changes to `devel` branch.
-Please create a pull request on GitHub from your forked repository or a new branch (e.g. devel-#1). 
+Please do not directly push your changes to `main` and `devel` branch.
+Please create a pull request on GitHub from your forked repository or a new branch (e.g. `devel-#1`). 
 
 # How to check the version info.
 

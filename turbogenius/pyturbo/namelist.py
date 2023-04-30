@@ -28,12 +28,18 @@ logger = getLogger("pyturbo").getChild(__name__)
 
 
 class Namelist:
+    """
     def __init__(self, namelist: Optional[OrderedDict] = None):
         if namelist is None:
             namelist = OrderedDict()
         assert isinstance(
             namelist, OrderedDict
         ), "Please use OrderedDict() for the namelist!"
+    """
+
+    def __init__(self, namelist: dict = None):
+        if namelist is None:
+            namelist = dict()
         self.__namelist = namelist
 
     @property
@@ -149,9 +155,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

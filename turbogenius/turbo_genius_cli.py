@@ -76,9 +76,7 @@ class OptionEatAll(click.Option):
 
         retval = super(OptionEatAll, self).add_to_parser(parser, ctx)
         for name in self.opts:
-            our_parser = parser._long_opt.get(name) or parser._short_opt.get(
-                name
-            )
+            our_parser = parser._long_opt.get(name) or parser._short_opt.get(name)
             if our_parser:
                 self._eat_all_parser = our_parser
                 self._previous_parser_process = our_parser.process
@@ -374,9 +372,7 @@ def makefort10(
     default=True,
     type=bool,
 )
-@click.option(
-    "--add_mo", "additional_mo", help="additional MOs", default=0, type=int
-)
+@click.option("--add_mo", "additional_mo", help="additional MOs", default=0, type=int)
 @click.option(
     "--grid_size",
     "grid_size",
@@ -444,9 +440,7 @@ def convertfort10mol(
 # --------------------------------------------------------------
 @cli.command(short_help="convertfort10_genius")
 @decorate_grpost
-@click.option(
-    "-grid", "grid_size", help="Specify grid size", default=0.1, type=float
-)
+@click.option("-grid", "grid_size", help="Specify grid size", default=0.1, type=float)
 @header
 def convertfort10(
     g: bool,
@@ -520,9 +514,7 @@ def convertfort10(
 @click.option(
     "-smear", "smearing", help="Specify the smearing", default=0.0, type=float
 )
-@click.option(
-    "-f", "h_field", help="Specify the h_field", default=0.0, type=float
-)
+@click.option("-f", "h_field", help="Specify the h_field", default=0.0, type=float)
 @click.option(
     "-m",
     "magnetic_moment_list",
@@ -532,12 +524,8 @@ def convertfort10(
     type=list,
     cls=OptionEatAll,
 )
-@click.option(
-    "-max", "maxtime", help="Specify maxtime (sec.)", default=3600, type=int
-)
-@click.option(
-    "-xc", "xc", help="Specify xc (lda or lsda)", default="lda", type=str
-)
+@click.option("-max", "maxtime", help="Specify maxtime (sec.)", default=3600, type=int)
+@click.option("-xc", "xc", help="Specify xc (lda or lsda)", default="lda", type=str)
 @click.option(
     "-kpts",
     "kpoints",
@@ -658,18 +646,12 @@ def prep(
     default=20,
     type=int,
 )
-@click.option(
-    "-bin", "bin_block", help="Specify bin_block", default=1, type=int
-)
+@click.option("-bin", "bin_block", help="Specify bin_block", default=1, type=int)
 @click.option(
     "-warmup", "warmupblocks", help="Specify warmupblocks", default=0, type=int
 )
-@click.option(
-    "-nw", "num_walkers", help="Specify num_walkers", default=-1, type=int
-)
-@click.option(
-    "-maxtime", "maxtime", help="Specify maxtime", default=3600, type=int
-)
+@click.option("-nw", "num_walkers", help="Specify num_walkers", default=-1, type=int)
+@click.option("-maxtime", "maxtime", help="Specify maxtime", default=3600, type=int)
 @click.option(
     "-optimizer",
     "optimizer",
@@ -894,9 +876,7 @@ def vmcopt(
         vmcopt_genius.plot_energy_and_devmax(interactive=plot_interactive)
         if plot_graph:
             vmcopt_genius.plot_parameters_history(interactive=plot_interactive)
-        vmcopt_genius.average(
-            optwarmupsteps=optwarmupsteps, graph_plot=plot_graph
-        )
+        vmcopt_genius.average(optwarmupsteps=optwarmupsteps, graph_plot=plot_graph)
 
 
 # --------------------------------------------------------------
@@ -904,21 +884,13 @@ def vmcopt(
 # --------------------------------------------------------------
 @cli.command(short_help="vmc_genius")
 @decorate_grpost
-@click.option(
-    "-steps", "vmcsteps", help="Specify vmcsteps", default=1000, type=int
-)
-@click.option(
-    "-bin", "bin_block", help="Specify bin_block", default=1, type=int
-)
+@click.option("-steps", "vmcsteps", help="Specify vmcsteps", default=1000, type=int)
+@click.option("-bin", "bin_block", help="Specify bin_block", default=1, type=int)
 @click.option(
     "-warmup", "warmupblocks", help="Specify warmupblocks", default=1, type=int
 )
-@click.option(
-    "-nw", "num_walkers", help="Specify num_walkers", default=-1, type=int
-)
-@click.option(
-    "-maxtime", "maxtime", help="Specify maxtime", default=3600, type=int
-)
+@click.option("-nw", "num_walkers", help="Specify num_walkers", default=-1, type=int)
+@click.option("-maxtime", "maxtime", help="Specify maxtime", default=3600, type=int)
 @click.option(
     "-twist",
     "twist_average",
@@ -1017,9 +989,7 @@ def vmc(
     is_flag=True,
     default=True,
 )
-@click.option(
-    "-bin", "bin_block", help="Specify bin_block", default=1, type=int
-)
+@click.option("-bin", "bin_block", help="Specify bin_block", default=1, type=int)
 @click.option(
     "-warmup", "warmupblocks", help="Specify warmupblocks", default=1, type=int
 )
@@ -1065,9 +1035,7 @@ def readforward(
                 with open(pkl_file, "rb") as f:
                     readforward_genius = pickle.load(f)
             except FileNotFoundError:
-                logger.error(
-                    "Did you generate your input file using turbogenius?"
-                )
+                logger.error("Did you generate your input file using turbogenius?")
                 raise FileNotFoundError
             flags = readforward_genius.check_results()
             if all(flags):
@@ -1083,21 +1051,13 @@ def readforward(
 # --------------------------------------------------------------
 @cli.command(short_help="correlated_sampling_genius")
 @decorate_grpost
-@click.option(
-    "-steps", "vmcsteps", help="Specify vmcsteps", default=1000, type=int
-)
-@click.option(
-    "-bin", "bin_block", help="Specify bin_block", default=2, type=int
-)
+@click.option("-steps", "vmcsteps", help="Specify vmcsteps", default=1000, type=int)
+@click.option("-bin", "bin_block", help="Specify bin_block", default=2, type=int)
 @click.option(
     "-warmup", "warmupblocks", help="Specify warmupblocks", default=1, type=int
 )
-@click.option(
-    "-nw", "num_walkers", help="Specify num_walkers", default=-1, type=int
-)
-@click.option(
-    "-maxtime", "maxtime", help="Specify maxtime", default=3600, type=int
-)
+@click.option("-nw", "num_walkers", help="Specify num_walkers", default=-1, type=int)
+@click.option("-maxtime", "maxtime", help="Specify maxtime", default=3600, type=int)
 @click.option(
     "-twist",
     "twist_average",
@@ -1154,9 +1114,7 @@ def correlated_sampling(
                 with open(pkl_file, "rb") as f:
                     readforward_genius = pickle.load(f)
             except FileNotFoundError:
-                logger.error(
-                    "Did you generate your input file using turbogenius?"
-                )
+                logger.error("Did you generate your input file using turbogenius?")
                 raise FileNotFoundError
             flags = readforward_genius.check_results()
             if all(flags):
@@ -1193,18 +1151,12 @@ def correlated_sampling(
     default=1,
     type=int,
 )
-@click.option(
-    "-bin", "bin_block", help="Specify bin_block", default=1, type=int
-)
+@click.option("-bin", "bin_block", help="Specify bin_block", default=1, type=int)
 @click.option(
     "-warmup", "warmupblocks", help="Specify warmupblocks", default=1, type=int
 )
-@click.option(
-    "-nw", "num_walkers", help="Specify num_walkers", default=-1, type=int
-)
-@click.option(
-    "-maxtime", "maxtime", help="Specify maxtime", default=1, type=int
-)
+@click.option("-nw", "num_walkers", help="Specify num_walkers", default=-1, type=int)
+@click.option("-maxtime", "maxtime", help="Specify maxtime", default=1, type=int)
 @click.option(
     "-optimizer",
     "optimizer",
@@ -1376,12 +1328,8 @@ def lrdmcopt(
 # --------------------------------------------------------------
 @cli.command(short_help="lrdmc_genius")
 @decorate_grpost
-@click.option(
-    "-steps", "lrdmcsteps", help="Specify lrdmcsteps", default=1000, type=int
-)
-@click.option(
-    "-bin", "bin_block", help="Specify bin_block", default=1, type=int
-)
+@click.option("-steps", "lrdmcsteps", help="Specify lrdmcsteps", default=1000, type=int)
+@click.option("-bin", "bin_block", help="Specify bin_block", default=1, type=int)
 @click.option(
     "-corr",
     "correcting_factor",
@@ -1394,12 +1342,8 @@ def lrdmcopt(
 @click.option(
     "-warmup", "warmupblocks", help="Specify warmupblocks", default=1, type=int
 )
-@click.option(
-    "-nw", "num_walkers", help="Specify num_walkers", default=-1, type=int
-)
-@click.option(
-    "-maxtime", "maxtime", help="Specify maxtime", default=3600, type=int
-)
+@click.option("-nw", "num_walkers", help="Specify num_walkers", default=-1, type=int)
+@click.option("-maxtime", "maxtime", help="Specify maxtime", default=3600, type=int)
 @click.option(
     "-twist",
     "twist_average",
@@ -1497,9 +1441,7 @@ def lrdmc(
 # --------------------------------------------------------------
 @cli.command(short_help="readforward_genius")
 @decorate_grpost
-@click.option(
-    "-rotate", "rotate_flag", help="rotate_flag", is_flag=True, default=False
-)
+@click.option("-rotate", "rotate_flag", help="rotate_flag", is_flag=True, default=False)
 @click.option(
     "-angle",
     "rotate_angle",
@@ -1557,9 +1499,7 @@ def convertpfaff(
                 with open(pkl_file, "rb") as f:
                     convertpfaff_genius = pickle.load(f)
             except FileNotFoundError:
-                logger.error(
-                    "Did you generate your input file using turbogenius?"
-                )
+                logger.error("Did you generate your input file using turbogenius?")
                 raise FileNotFoundError
             flags = convertpfaff_genius.check_results()
             if all(flags):
@@ -1604,9 +1544,7 @@ def convertpfaff(
     default=0.00,
     type=float,
 )
-@click.option(
-    "-grid", "grid_size", help="Specify grid size", default=0.10, type=float
-)
+@click.option("-grid", "grid_size", help="Specify grid size", default=0.10, type=float)
 @header
 def convertwf(
     g: bool,
@@ -1626,7 +1564,7 @@ def convertwf(
     number_of_additional_hybrid_orbitals = list(map(int, hybrid_orbitals))
 
     wavefunction = Wavefunction()
-    wavefunction.read_from_fort10(fort10="fort.10")
+    wavefunction.from_fort10(fort10="fort.10")
 
     if to_ansatz == "agps":
         logger.info("convert the wf to agps")

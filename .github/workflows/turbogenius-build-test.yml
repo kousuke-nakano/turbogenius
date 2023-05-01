@@ -1,0 +1,56 @@
+# This workflow will build and test TurboGenius.
+
+name: TurboGenius build, and test (GNU)
+
+on:
+  push:
+    branches: [ "main", "devel" ]
+  pull_request:
+    branches: [ "main", "devel" ]
+
+jobs:
+  gnu-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install gfortran and gcc
+      run: |
+        sudo apt-get update
+        sudo apt-get install gfortran
+
+    - name: Install OpenBLAS and LAPACK
+      run: sudo apt-get install libopenblas-dev liblapack-dev
+
+    - name: Install CMake
+      run: sudo apt-get install cmake
+
+    - name: Install and Setup Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.8
+
+    - name: Install python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install numpy scipy pandas
+
+    - name: Checkout the TurboGenius repository
+      uses: actions/checkout@v3
+      with:
+        path: turbogenius
+
+    - name: Checkout the TurboRVB repository
+      uses: actions/checkout@v3
+      with:
+        repository: sissaschool/turborvb
+        path: turborvb
+
+    - name: Build TurboRVB with cmake serial and parallel versions
+      working-directory: turborvb
+      run: cmake -S. -Bbuild -DEXT_PARALLEL=OFF -DCMAKE_C_COMPILER=gcc -DCMAKE_Fortran_COMPILER=gfortran
+
+    - name: Test TurboRVB with ctest both serial and parallel versions
+      working-directory: turborvb
+      run: |
+        ctest --test-dir build --output-on-failure -j 2
+        echo "export PATH=$GITHUB_WORKSPACE/turborvb/bin:\$PATH" >> $GITHUB_ENV
+        echo "$GITHUB_ENV"

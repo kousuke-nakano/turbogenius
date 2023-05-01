@@ -33,15 +33,11 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install numpy scipy pandas
 
-    - name: Checkout the TurboGenius repository
-      uses: actions/checkout@v3
-      with:
-        path: turbogenius
-
     - name: Checkout the TurboRVB repository
       uses: actions/checkout@v3
       with:
         repository: sissaschool/turborvb
+        ref: devel
         path: turborvb
 
     - name: Build TurboRVB with cmake serial and parallel versions
@@ -54,3 +50,8 @@ jobs:
         ctest --test-dir build --output-on-failure -j 2
         echo "export PATH=$GITHUB_WORKSPACE/turborvb/bin:\$PATH" >> $GITHUB_ENV
         echo "$GITHUB_ENV"
+
+    - name: Checkout the TurboGenius repository
+      uses: actions/checkout@v3
+      with:
+        path: turbogenius

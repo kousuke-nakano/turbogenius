@@ -43,7 +43,7 @@ jobs:
     - name: Build TurboRVB with cmake serial version
       working-directory: turborvb
       run: |
-        cmake -S. -Bbuild -DEXT_PARALLEL=OFF -DCMAKE_C_COMPILER=gcc -DCMAKE_Fortran_COMPILER=gfortran
+        cmake -S. -Bbuild -DEXT_PARALLEL=OFF -DEXT_OPT=OFF -DCMAKE_C_COMPILER=gcc -DCMAKE_Fortran_COMPILER=gfortran
         cmake --build build -j 2
 
     - name: Test TurboRVB with ctest serial version
@@ -54,11 +54,31 @@ jobs:
     - name: Copy the compiled binaries and set env.
       working-directory: turborvb
       run: |
-        cp $GITHUB_WORKSPACE/turborvb/build/*.x  $GITHUB_WORKSPACE/turborvb/bin
+        cp $GITHUB_WORKSPACE/turborvb/build/*.x  $GITHUB_WORKSPACE/turborvb/bin/
         echo "export PATH=$GITHUB_WORKSPACE/turborvb/bin:\$PATH" >> $GITHUB_ENV
-        echo "$GITHUB_ENV"
+        cat "$GITHUB_ENV"
 
     - name: Checkout the TurboGenius repository
       uses: actions/checkout@v3
       with:
         path: turbogenius
+
+    - name: Install TurboGenius
+      working-directory: turbogenius
+      run: |
+        python -m pip install flake8 pytest
+        python -m pip install .
+        
+    - name: Lint TurboGenius with flake8
+      working-directory: turbogenius
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Test TurboGenius with pytest
+      working-directory: turbogenius
+      run: |
+        echo "pytest will be implemented soon."
+        #pytest

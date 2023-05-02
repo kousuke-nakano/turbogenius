@@ -80,5 +80,4 @@ jobs:
     - name: Test TurboGenius with pytest
       working-directory: turbogenius
       run: |
-        echo "pytest will be implemented soon."
-        #pytest
+        pytest

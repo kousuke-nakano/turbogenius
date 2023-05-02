@@ -135,15 +135,9 @@ class IO_fort10:
     f10detmatsym_start_keyword = "Grouped par.  in the chosen ordered basis *$"
     f10detmatsym_end_keyword = "Nonzero values of  jasmat *$"
     f10jasmat_start_keyword = "Nonzero values of  jasmat *$"
-    f10jasmat_end_keyword = (
-        "Eq. par. in the 3-body Jastrow in the chosen basis *$"
-    )
-    f10jasmatsym_start_keyword = (
-        "Eq. par. in the 3-body Jastrow in the chosen basis *$"
-    )
-    f10jasmatsym_end_keyword = (
-        "Eq. par. in the atomic Det par.in the chosen basis *$"
-    )
+    f10jasmat_end_keyword = "Eq. par. in the 3-body Jastrow in the chosen basis *$"
+    f10jasmatsym_start_keyword = "Eq. par. in the 3-body Jastrow in the chosen basis *$"
+    f10jasmatsym_end_keyword = "Eq. par. in the atomic Det par.in the chosen basis *$"
     f10detbasis_sym_start_keyword = (
         "Eq. par. in the atomic Det par.in the chosen basis *$"
     )
@@ -296,24 +290,6 @@ class IO_fort10:
     @property
     def complex_flag(self):
         return self.f10header.complex_flag
-
-    """to be deleted
-    def normalize_detmat_sym(self):
-        logger.info("Normalizing the determinant matrix")
-        logger.info("A -> A / max(A)")
-
-        # determinant matrix which will be normalized.
-        if self.f10detmatrix.complex_flag:
-            logger.warning("normalize_detmat_sym supports only real cases")
-        else:
-            max_A = np.max(np.abs(self.f10detmatrix.coeff_real))
-            if max_A != 0.0:
-                logger.debug(self.f10detmatrix.coeff_real)
-                logger.debug(self.f10detmatrix.coeff_real / max_A)
-                normalized_coeff_real = self.f10detmatrix.coeff_real / max_A
-                logger.debug(normalized_coeff_real)
-                self.f10detmatrix.coeff_real = normalized_coeff_real
-    """
 
 
 class F10header:
@@ -588,9 +564,7 @@ class F10header:
     @three_body_atomic_par.setter
     def three_body_atomic_par(self, value):
         self.read()
-        self.__three_body_atomic_par.replace(
-            value=value, in_place=self.in_place
-        )
+        self.__three_body_atomic_par.replace(value=value, in_place=self.in_place)
 
     @property
     def det_mat_nonzero(self):
@@ -630,9 +604,7 @@ class F10header:
     @eq_3_body_atomic_par.setter
     def eq_3_body_atomic_par(self, value):
         self.read()
-        self.__Eq_3_body_atomic_par.replace(
-            value=value, in_place=self.in_place
-        )
+        self.__Eq_3_body_atomic_par.replace(value=value, in_place=self.in_place)
 
     @property
     def iesfree(self):
@@ -725,9 +697,7 @@ class F10structure:
             if self.__pbc:
                 if not self.__tilted_flag:
                     lineno = 1
-                    line = pygetline(
-                        filename=self.fort10, lineno=lineno
-                    ).split()
+                    line = pygetline(filename=self.fort10, lineno=lineno).split()
                     self.__r_s = Value(
                         value=float(line[0]),
                         lineno=lineno,
@@ -799,9 +769,7 @@ class F10structure:
 
                 else:
                     lineno = 1
-                    line = pygetline(
-                        filename=self.fort10, lineno=lineno
-                    ).split()
+                    line = pygetline(filename=self.fort10, lineno=lineno).split()
                     self.__vec_a_1 = Value(
                         value=float(line[0]),
                         lineno=lineno,
@@ -913,9 +881,7 @@ class F10structure:
             self.__valence_electrons = []
             self.__positions = []
             lines = [
-                pygetline(
-                    filename=self.fort10, lineno=lineno, clearcache=False
-                )
+                pygetline(filename=self.fort10, lineno=lineno, clearcache=False)
                 for lineno in range(self.start_lineno, self.end_lineno + 1)
             ]  # clearcache should be false (for loop), otherwise so slow
 
@@ -944,9 +910,7 @@ class F10structure:
                 p[5 * i + 4].type(float)
                 self.__valence_electrons.append(p[5 * i + 0])
                 self.__atomic_numbers.append(p[5 * i + 1])
-                self.__positions.append(
-                    [p[5 * i + 2], p[5 * i + 3], p[5 * i + 4]]
-                )
+                self.__positions.append([p[5 * i + 2], p[5 * i + 3], p[5 * i + 4]])
 
             self.read_flag = True
 
@@ -960,9 +924,7 @@ class F10structure:
         __structure = Structure(
             cell=__cell,
             atomic_numbers=self.atomic_numbers,
-            element_symbols=[
-                return_element_symbol(z) for z in self.atomic_numbers
-            ],
+            element_symbols=[return_element_symbol(z) for z in self.atomic_numbers],
             positions=self.positions,
         )
         return __structure
@@ -970,7 +932,7 @@ class F10structure:
     @property
     def ortho_flag(self):
         self.read()
-        return self.__tilted_flag
+        return not self.__tilted_flag
 
     @property
     def pbc_flag(self):
@@ -1078,9 +1040,7 @@ class F10forceconstraint:
             self.__direction = []
 
             lines = [
-                pygetline(
-                    filename=self.fort10, lineno=lineno, clearcache=False
-                )
+                pygetline(filename=self.fort10, lineno=lineno, clearcache=False)
                 for lineno in range(self.start_lineno, self.end_lineno + 1)
             ]  # clearcache should be false (for for loop); otherwise very slow
             # a manual clearcache is better to avoid
@@ -1174,9 +1134,7 @@ class F10jastwobody:
         if not self.read_flag:
             # read det basis sets, molecular orbitals, and hybrid orbitals
             lines = [
-                pygetline(
-                    filename=self.fort10, lineno=lineno, clearcache=False
-                )
+                pygetline(filename=self.fort10, lineno=lineno, clearcache=False)
                 for lineno in range(self.start_lineno, self.end_lineno + 1)
             ]  # clearcache should be false
             # a manual clearcache is better to avoid unexpected
@@ -1317,9 +1275,7 @@ class F10detbasissets:
             # read det basis sets, molecular orbitals, and hybrid orbitals
             # logger.debug("Check0")
             lines = [
-                pygetline(
-                    filename=self.fort10, lineno=lineno, clearcache=False
-                )
+                pygetline(filename=self.fort10, lineno=lineno, clearcache=False)
                 for lineno in range(self.start_lineno, self.end_lineno + 1)
             ]  # clearcache should be False otherwise very slow.
             # a manual clearcache is better to avoid
@@ -1352,9 +1308,7 @@ class F10detbasissets:
                 p[3].type(int)
                 atom_label = p[3]
 
-                orb_type_chr = str(
-                    return_orb_type_chr(shell_ang_mom_turbo_notation.v)
-                )
+                orb_type_chr = str(return_orb_type_chr(shell_ang_mom_turbo_notation.v))
 
                 if orb_type_chr == "hyb":
                     self.__hyb_shell_multiplicity.append(multiplicity)
@@ -1500,18 +1454,14 @@ class F10detbasissets:
         return Det_Basis_sets(
             # det basis
             nucleus_index=[a.v - 1 for a in self.__atom_label],
-            shell_ang_mom=[
-                int((a.v - 1) / 2) for a in self.__shell_multiplicity
-            ],
+            shell_ang_mom=[int((a.v - 1) / 2) for a in self.__shell_multiplicity],
             shell_ang_mom_turbo_notation=[
                 a.v for a in self.__shell_ang_mom_turbo_notation
             ],
             shell_factor=[1.0] * len(self.__atom_label),
             shell_index=[a for a in self.__shell_index],
             exponent=[a.v for a in self.__exponent],
-            coefficient=[
-                a.v if a.v is not None else 1.0 for a in self.__coefficient
-            ],
+            coefficient=[a.v if a.v is not None else 1.0 for a in self.__coefficient],
             coefficient_imag=[a.v for a in self.__coefficient_imag],
             prim_factor=[1.0] * len(self.__exponent),
             # hybrid
@@ -1579,9 +1529,7 @@ class F10detbasissets:
             """
             # """ with readlines
             logger.debug("replace by sed-python (real part)")
-            self.replace_mo_coeff_pure_python(
-                self.__mo_coefficient, new_mo_coefficient
-            )
+            self.replace_mo_coeff_pure_python(self.__mo_coefficient, new_mo_coefficient)
             # """
         # todo, self.__mo_coefficient itself should be replaced
         # with new_mo_coefficient!! at present, fort.10 is not updated.
@@ -1593,9 +1541,7 @@ class F10detbasissets:
         # logger.debug(len(self.__mo_coefficient_imag))
         # logger.debug(new_mo_coefficient[0][-1])
         assert len(new_mo_coefficient_imag) == len(self.__mo_coefficient_imag)
-        total_num_sed = len(new_mo_coefficient_imag) * len(
-            new_mo_coefficient_imag[0]
-        )
+        total_num_sed = len(new_mo_coefficient_imag) * len(new_mo_coefficient_imag[0])
         logger.debug(f"Total num sed = {total_num_sed}")
         if self.in_place:
             """with gnu-sed (very slow after improvement!!)
@@ -1613,17 +1559,13 @@ class F10detbasissets:
         # todo, self.__mo_coefficient_imag itself should be replaced
         # with new_mo_coefficient!! at present, fort.10 is not updated.
 
-    def replace_mo_coeff_with_sed(
-        self, old_mo_coefficient, new_mo_coefficient
-    ):
+    def replace_mo_coeff_with_sed(self, old_mo_coefficient, new_mo_coefficient):
         start_sed = time.time()
         file_list = []
         lineno_list = []
         value_list = []
         index_list = []
-        for mo_coeff, new_mo_coeff in zip(
-            old_mo_coefficient, new_mo_coefficient
-        ):
+        for mo_coeff, new_mo_coeff in zip(old_mo_coefficient, new_mo_coefficient):
             assert len(mo_coeff) == len(new_mo_coeff)
             lineno = -1
             files = []
@@ -1684,19 +1626,13 @@ class F10detbasissets:
             index_list=index_list,
         )
         end_sed = time.time()
-        logger.info(
-            "elapsed time for sed:{:f}".format(end_sed - start_sed) + "[sec]"
-        )
+        logger.info("elapsed time for sed:{:f}".format(end_sed - start_sed) + "[sec]")
 
-    def replace_mo_coeff_pure_python(
-        self, old_mo_coefficient, new_mo_coefficient
-    ):
+    def replace_mo_coeff_pure_python(self, old_mo_coefficient, new_mo_coefficient):
         line_no_list = []
         index_list = []
         w_mo_coeff_list = []
-        for old_mo_coeff, new_mo_coeff in zip(
-            old_mo_coefficient, new_mo_coefficient
-        ):
+        for old_mo_coeff, new_mo_coeff in zip(old_mo_coefficient, new_mo_coefficient):
             if len(old_mo_coeff) != len(new_mo_coeff):
                 logger.error(
                     f"len(old_mo_coeff):{len(old_mo_coeff)} != len(new_mo_coeff):{len(new_mo_coeff)}"
@@ -1743,9 +1679,7 @@ class F10detbasissets:
 
                 r_index_list = [index_list[i] for i in line_no_index_list]
 
-                r_new_mo_coeff_list = [
-                    w_mo_coeff_list[i] for i in line_no_index_list
-                ]
+                r_new_mo_coeff_list = [w_mo_coeff_list[i] for i in line_no_index_list]
 
                 if len(r_index_list) != len(set(r_index_list)):
                     logger.error("Duplicated r_index!! It should not happen.")
@@ -1788,9 +1722,7 @@ class F10detbasissets:
                         line_no_index_list = [
                             i for i, x in enumerate(line_no_list) if x == cnt
                         ]
-                        r_index_list = [
-                            index_list[i] for i in line_no_index_list
-                        ]
+                        r_index_list = [index_list[i] for i in line_no_index_list]
                         r_new_mo_coeff_list = [
                             w_mo_coeff_list[i] for i in line_no_index_list
                         ]
@@ -1905,9 +1837,7 @@ class F10jasbasissets:
         if not self.read_flag:
             # read jas basis sets, molecular orbitals, and hybrid orbitals
             lines = [
-                pygetline(
-                    filename=self.fort10, lineno=lineno, clearcache=False
-                )
+                pygetline(filename=self.fort10, lineno=lineno, clearcache=False)
                 for lineno in range(self.start_lineno, self.end_lineno + 1)
             ]  # clearcache should be False, otherwise very slow
             # a manual clearcache is better to avoid unexpected behavior
@@ -1940,9 +1870,7 @@ class F10jasbasissets:
                 shell_index = len(self.__shell_multiplicity)
                 self.__shell_multiplicity.append(multiplicity)
                 self.__param_num.append(param_num)
-                self.__shell_ang_mom_turbo_notation.append(
-                    shell_ang_mom_turbo_notation
-                )
+                self.__shell_ang_mom_turbo_notation.append(shell_ang_mom_turbo_notation)
                 self.__atom_label.append(atom_label)
 
                 # logger.debug(f"multi= {multiplicity.v}")
@@ -1952,9 +1880,7 @@ class F10jasbasissets:
                 # )
                 # logger.debug(f"atom_label = {atom_label.v}")
 
-                orb_type_chr = str(
-                    return_orb_type_chr(shell_ang_mom_turbo_notation.v)
-                )
+                orb_type_chr = str(return_orb_type_chr(shell_ang_mom_turbo_notation.v))
 
                 if orb_type_chr in {"s", "p", "d", "f", "g", "h", "i"}:
                     contraction_flag = return_contraction_flag(
@@ -1994,9 +1920,7 @@ class F10jasbasissets:
         self.read()
         return Jas_Basis_sets(
             nucleus_index=[a.v - 1 for a in self.__atom_label[:-1]],
-            shell_ang_mom=[
-                int((a.v - 1) / 2) for a in self.__shell_multiplicity[:-1]
-            ],
+            shell_ang_mom=[int((a.v - 1) / 2) for a in self.__shell_multiplicity[:-1]],
             shell_ang_mom_turbo_notation=[
                 a.v for a in self.__shell_ang_mom_turbo_notation[:-1]
             ],
@@ -2004,8 +1928,7 @@ class F10jasbasissets:
             shell_index=[a for a in self.__shell_index[:-1]],
             exponent=[a.v for a in self.__exponent[:-1]],
             coefficient=[
-                a.v if a.v is not None else 1.0
-                for a in self.__coefficient[:-1]
+                a.v if a.v is not None else 1.0 for a in self.__coefficient[:-1]
             ],
             prim_factor=[1.0] * len(self.__atom_label[:-1]),
         )
@@ -2057,9 +1980,7 @@ class F10occ:
         if not self.read_flag:
             # read det basis sets, molecular orbitals, and hybrid orbitals
             lines = [
-                pygetline(
-                    filename=self.fort10, lineno=lineno, clearcache=False
-                )
+                pygetline(filename=self.fort10, lineno=lineno, clearcache=False)
                 for lineno in range(self.start_lineno, self.end_lineno + 1)
             ]  # clearcache should be false, otherwise very slow.
             # a manual clearcache is better to avoid
@@ -2135,9 +2056,7 @@ class F10detmat:
         if not self.read_flag:
             # read det basis sets, molecular orbitals, and hybrid orbitals
             lines = [
-                pygetline(
-                    filename=self.fort10, lineno=lineno, clearcache=False
-                )
+                pygetline(filename=self.fort10, lineno=lineno, clearcache=False)
                 for lineno in range(self.start_lineno, self.end_lineno + 1)
             ]  # clearcache should be False otherwise very slow
             # a manual clearcache is better to avoid
@@ -2272,9 +2191,7 @@ class F10jasmat:
         if not self.read_flag:
             # read det basis sets, molecular orbitals, and hybrid orbitals
             lines = [
-                pygetline(
-                    filename=self.fort10, lineno=lineno, clearcache=False
-                )
+                pygetline(filename=self.fort10, lineno=lineno, clearcache=False)
                 for lineno in range(self.start_lineno, self.end_lineno + 1)
             ]  # clearcache should be false, otherwise very slow.
             # a manual clearcache is better to avoid
@@ -2392,9 +2309,7 @@ class F10matsymmetry:
             self.__column = []
 
             lines = [
-                pygetline(
-                    filename=self.fort10, lineno=lineno, clearcache=False
-                )
+                pygetline(filename=self.fort10, lineno=lineno, clearcache=False)
                 for lineno in range(self.start_lineno, self.end_lineno + 1)
             ]  # clearcache should be false otherwise very slow.
             # a manual clearcache is better to avoid
@@ -2517,9 +2432,7 @@ class F10basissymmetry:
             self.__basis_index = []
 
             lines = [
-                pygetline(
-                    filename=self.fort10, lineno=lineno, clearcache=False
-                )
+                pygetline(filename=self.fort10, lineno=lineno, clearcache=False)
                 for lineno in range(self.start_lineno, self.end_lineno + 1)
             ]  # clear cache should be false otherwise very slow.
             # a manual clearcache is better to avoid
@@ -2587,9 +2500,7 @@ if __name__ == "__main__":
     logger.setLevel("DEBUG")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

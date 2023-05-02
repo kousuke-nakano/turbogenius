@@ -51,6 +51,7 @@ class Wavefunction:
         self.read_flag = False  # flag for read
         self.wf_format = None  # turborvb or trexio
         self.trexio_filename = None
+        self.io_fort10 = None
 
     def read_from_fort10(self, fort10: str) -> None:
         """
@@ -189,7 +190,7 @@ class Wavefunction:
 
         # sd
         logger.warning(
-            "The generated fort.10 has random MO coefficients!! plz. initialize them by DFT."
+            "The generated fort.10 has random MO coefficients!! plz. initialize it by DFT."
         )
 
     # to pfaffian
@@ -214,9 +215,7 @@ class Wavefunction:
         """
 
         if not self.read_flag:
-            logger.warning(
-                "WF file is not read yet! Please read a WF file first."
-            )
+            logger.warning("WF file is not read yet! Please read a WF file first.")
             return
 
         # check if the wf is polarized or not.
@@ -244,9 +243,7 @@ class Wavefunction:
             shutil.copy("fort.10", "fort.10_in")
             shutil.copy("fort.10", "fort.10_out")
             logger.info("convert to pf w rotation.")
-            convertpfaff_genius.run(
-                rotate_flag=True, rotate_angle=rotate_angle
-            )
+            convertpfaff_genius.run(rotate_flag=True, rotate_angle=rotate_angle)
             shutil.move("fort.10_new", "fort.10")
             shutil.copy("fort.10_in", "fort.10_new")
             copy_jastrow(fort10_to="fort.10", fort10_from="fort.10_new")
@@ -292,9 +289,7 @@ class Wavefunction:
 
         """
         if not self.read_flag:
-            logger.warning(
-                "WF file is not read yet! Please read a WF file first."
-            )
+            logger.warning("WF file is not read yet! Please read a WF file first.")
             return
 
         # mo=Ndn/2
@@ -326,9 +321,7 @@ class Wavefunction:
         if additional_hyb is None:
             additional_hyb = []
         if not self.read_flag:
-            logger.warning(
-                "WF file is not read yet! Please read a WF file first."
-            )
+            logger.warning("WF file is not read yet! Please read a WF file first.")
             return
 
         self.to_agp(
@@ -361,9 +354,7 @@ class Wavefunction:
         if additional_hyb is None:
             additional_hyb = []
         if not self.read_flag:
-            logger.warning(
-                "WF file is not read yet! Please read a WF file first."
-            )
+            logger.warning("WF file is not read yet! Please read a WF file first.")
             return
 
         self.to_agp(
@@ -401,9 +392,7 @@ class Wavefunction:
         if additional_hyb is None:
             additional_hyb = []
         if not self.read_flag:
-            logger.warning(
-                "WF file is not read yet! Please read a WF file first."
-            )
+            logger.warning("WF file is not read yet! Please read a WF file first.")
             return
 
         shutil.copy(self.io_fort10.fort10, "fort.10_in")
@@ -442,13 +431,9 @@ class Wavefunction:
             structure=structure, jastrow_type=jastrow_type
         )
         for i, twobody in enumerate(twobody_list):
-            namelist.set_parameter(
-                f"twobodypar({i + 1})", twobody, "&electrons"
-            )
+            namelist.set_parameter(f"twobodypar({i + 1})", twobody, "&electrons")
         for i, onebody in enumerate(onebody_list):
-            namelist.set_parameter(
-                f"onebodypar({i + 1})", onebody, "&electrons"
-            )
+            namelist.set_parameter(f"onebodypar({i + 1})", onebody, "&electrons")
         namelist.comment_out("twobodypar")
         namelist.comment_out("onebodypar")
         if triplet:  # jagpu
@@ -456,15 +441,15 @@ class Wavefunction:
         else:  # jagps
             namelist.set_parameter("symmagp", ".true.", "&symmetries")
         if self.io_fort10.pp_flag:
-            pseudo_potentials = Pseudopotentials.parse_pseudopotential_from_turborvb_pseudo_dat(
-                file="pseudo.dat"
+            pseudo_potentials = (
+                Pseudopotentials.parse_pseudopotential_from_turborvb_pseudo_dat(
+                    file="pseudo.dat"
+                )
             )
             # compute z_core
             atomic_numbers = self.io_fort10.f10structure.atomic_numbers
             valence_electrons = self.io_fort10.f10structure.valence_electrons
-            z_core = list(
-                np.array(atomic_numbers) - np.array(valence_electrons)
-            )
+            z_core = list(np.array(atomic_numbers) - np.array(valence_electrons))
             pseudo_potentials.z_core = z_core
         else:
             pseudo_potentials = Pseudopotentials()
@@ -474,9 +459,7 @@ class Wavefunction:
         # add number of hybrid orbitals
         if len(additional_hyb) != 0:
             assert len(additional_hyb) == self.io_fort10.f10header.natom
-            det_basis_sets.number_of_additional_hybrid_orbitals = (
-                additional_hyb
-            )
+            det_basis_sets.number_of_additional_hybrid_orbitals = additional_hyb
 
         if self.io_fort10.pbc_flag:
             (
@@ -524,9 +507,7 @@ class Wavefunction:
             )
 
         # neldiff
-        neldiff = (
-            self.io_fort10.f10header.nelup - self.io_fort10.f10header.neldn
-        )
+        neldiff = self.io_fort10.f10header.nelup - self.io_fort10.f10header.neldn
         namelist.set_parameter("neldiff", neldiff, "&electrons")
 
         makefort10 = Makefort10(
@@ -551,9 +532,7 @@ class Wavefunction:
                 grid_size=grid_size,
             )
 
-            convertfort10_genius.generate_input(
-                input_name="convertfort10.input"
-            )
+            convertfort10_genius.generate_input(input_name="convertfort10.input")
             convertfort10_genius.run(
                 input_name="convertfort10.input", output_name="out_conv"
             )
@@ -591,9 +570,7 @@ class Wavefunction:
             grid_size=grid_size,
             additional_mo=additional_mo,
         )
-        convertfort10mol_genius.generate_input(
-            input_name="convertfort10mol.input"
-        )
+        convertfort10mol_genius.generate_input(input_name="convertfort10mol.input")
         convertfort10mol_genius.run(
             input_name="convertfort10mol.input", output_name="out_mol"
         )
@@ -624,9 +601,7 @@ if __name__ == "__main__":
     logger_p.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
     logger_p.addHandler(stream_handler)

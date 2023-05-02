@@ -291,6 +291,43 @@ class IO_fort10:
     def complex_flag(self):
         return self.f10header.complex_flag
 
+    @property
+    def ansatz_type(self):
+        ansatz_list = ["sd", "agps", "agpu", "agpn", "pf", "pfn"]
+        if self.f10header.nel > 0:
+            # agp
+            if self.f10detbasissets.has_mo:
+                if self.f10structure.pbc_flag:
+                    if self.f10detbasissets.num_mo == self.f10header.neldn * 2 + (
+                        self.f10header.nelup - self.f10header.neldn
+                    ):
+                        ansatz = "sd"
+                    else:
+                        ansatz = "agpn"
+                else:
+                    if self.f10detbasissets.num_mo == self.f10header.neldn * 1 + (
+                        self.f10header.nelup - self.f10header.neldn
+                    ):
+                        ansatz = "sd"
+                    else:
+                        ansatz = "agpn"
+            else:
+                if self.f10jastwobody.num_jas_param < 0:
+                    ansatz = "agpu"
+                else:
+                    ansatz = "agps"
+        else:
+            # pf
+            if self.f10detbasissets.has_mo:
+                ansatz = "pfn"
+            else:
+                ansatz = "pf"
+
+        if ansatz not in ansatz_list:
+            raise ValueError
+
+        return ansatz
+
 
 class F10header:
     def __init__(self, fort10: str, in_place: bool = True):
@@ -650,9 +687,6 @@ class F10header:
     @property
     def neldn(self):
         return np.abs(self.__Nel.v) - np.abs(self.__Nelup.v)
-
-    def write(self):
-        raise NotImplementedError
 
 
 class F10structure:
@@ -1126,7 +1160,7 @@ class F10jastwobody:
         self.in_place = in_place
 
         # Values()
-        self.__num_param = []
+        self.__num_jas_param = 0
         self.__twobody_list = []
         self.__onebody_list = []
 
@@ -1154,8 +1188,8 @@ class F10jastwobody:
                 lineno += 1
 
             p[0].type(int)
-            self.__num_param.append(p[0])
-            num_param = np.abs(p[0].v)
+            self.__num_jas_param = p[0]
+            num_jas_param = np.abs(p[0].v)
             num_twobody, flag_onebody = return_num_twobody_and_flag_onebody(
                 jastrow_type=self.jastrow_type
             )
@@ -1171,7 +1205,7 @@ class F10jastwobody:
 
             elif flag_onebody:  # yes
                 num_twobody_jas = num_twobody
-                num_onebody_jas = num_param - num_twobody
+                num_onebody_jas = num_jas_param - num_twobody
                 for i in range(num_twobody_jas):
                     p[1 + i].type(float)
                     self.__twobody_list.append(p[1 + i])
@@ -1190,6 +1224,11 @@ class F10jastwobody:
 
     def write(self):
         raise NotImplementedError
+
+    @property
+    def num_jas_param(self):
+        self.read()
+        return self.__num_jas_param.v
 
     @property
     def twobody_list(self):
@@ -1490,6 +1529,19 @@ class F10detbasissets:
         self.read()
         return self.__shell_index
         # self.read(); return [[i.v for i in j] for j in self.__shell_index]
+
+    @property
+    def has_mo(self):
+        self.read()
+        if len(self.__mo_atom_label) > 0:
+            return True
+        else:
+            return False
+
+    @property
+    def num_mo(self):
+        self.read()
+        return len(self.__mo_atom_label)
 
     @property
     def mo_coefficient(self):

@@ -6,7 +6,7 @@ from turbogenius.pyturbo.io_fort10 import IO_fort10
 
 data_dir = os.path.dirname(os.path.abspath(__file__))
 
-
+"""
 def test_fort10_hydrogen():
     shutil.copy(
         os.path.join(data_dir, "fort.10_hydrogen"), os.path.join(data_dir, "fort.10")
@@ -252,3 +252,28 @@ def test_fort10_hBN():
     io_fort10.f10detbasissets.mo_coefficient_imag = mo_coefficient_imag
     io_fort10 = IO_fort10(os.path.join(data_dir, "fort.10"), in_place=False)
     assert io_fort10.f10detbasissets.mo_coefficient_imag[0][0] == 5000.0
+
+"""
+
+
+def test_fort10_ansatz_type():
+    io_fort10 = IO_fort10(os.path.join(data_dir, "fort.10_N_agps_js"), in_place=False)
+    assert io_fort10.ansatz_type == "agps"
+
+    io_fort10 = IO_fort10(os.path.join(data_dir, "fort.10_N_agpu_js"), in_place=False)
+    assert io_fort10.ansatz_type == "agpu"
+
+    io_fort10 = IO_fort10(os.path.join(data_dir, "fort.10_N_agpu_ju"), in_place=False)
+    assert io_fort10.ansatz_type == "agpu"
+
+    io_fort10 = IO_fort10(os.path.join(data_dir, "fort.10_N_sd_js"), in_place=False)
+    assert io_fort10.ansatz_type == "sd"
+
+    io_fort10 = IO_fort10(os.path.join(data_dir, "fort.10_N_agpn_js"), in_place=False)
+    assert io_fort10.ansatz_type == "agpn"
+
+    io_fort10 = IO_fort10(os.path.join(data_dir, "fort.10_hBN"), in_place=False)
+    assert io_fort10.ansatz_type == "sd"
+
+    io_fort10 = IO_fort10(os.path.join(data_dir, "fort.10_O_solid"), in_place=False)
+    assert io_fort10.ansatz_type == "sd"

@@ -16,7 +16,8 @@ Todo:
 # python modules
 import re
 from typing import Optional, Union
-from collections import OrderedDict
+
+# from collections import OrderedDict
 
 # turbo-genius modules
 from turbogenius.pyturbo.utils.utility import get_str_variable_type_auto
@@ -50,7 +51,7 @@ class Namelist:
         self,
         parameter: str,
         value: Union[int, float, str],
-        namelist: Optional[dict] = None,
+        namelist: Optional[str] = None,
     ):
         if namelist is None:
             for key, parameters in self.__namelist.items():
@@ -65,7 +66,8 @@ class Namelist:
             try:
                 self.__namelist[namelist][parameter] = value
             except KeyError:
-                raise (f"{namelist} is not defined in the namelist.")
+                logger.error(f"{namelist} is not defined in the namelist.")
+                raise KeyError
 
     def get_parameter(self, parameter, namelist=None):
         for key, parameters in self.__namelist.items():
@@ -73,8 +75,9 @@ class Namelist:
                 continue
             if parameter in parameters.keys():
                 return parameters[parameter]
-
-        return None
+        logger.error(f"{parameter} is not defined in the namelist")
+        raise ValueError
+        # return None
 
     def get_parameters(self):
         return self.__namelist
@@ -113,7 +116,7 @@ class Namelist:
         namelist = []
         namelist_l = []
         namelist_d = {}
-        namelist_d_ordered = OrderedDict()
+        namelist_d_ordered = dict()
         read_flag = False
 
         for line in input_lines:

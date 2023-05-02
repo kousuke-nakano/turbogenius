@@ -5,9 +5,6 @@
 
 pyturbo: basis set module
 
-Todo:
-    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
-
 """
 
 
@@ -104,21 +101,22 @@ class Basis_sets:
         logger.debug(f"coefficient_imag={self.coefficient_imag}")
         logger.debug(f"prim_factor={self.prim_factor}")
 
-        # assertion!!
-        assert len(self.exponent) == len(self.coefficient)
-        assert len(self.exponent) == len(self.prim_factor)
-        assert len(self.exponent) == len(self.shell_index)
-
-        assert len(self.nucleus_index) == len(self.shell_ang_mom)
-        assert len(self.nucleus_index) == len(
-            self.shell_ang_mom_turbo_notation
+        # consistency check
+        check_flags = (
+            len(self.exponent) == len(self.coefficient),
+            len(self.exponent) == len(self.prim_factor),
+            len(self.exponent) == len(self.shell_index),
+            len(self.nucleus_index) == len(self.shell_ang_mom),
+            len(self.nucleus_index) == len(self.shell_ang_mom_turbo_notation),
+            len(self.nucleus_index) == len(self.shell_factor),
+            (
+                len(self.coefficient) == len(self.coefficient_imag)
+                or len(self.coefficient_imag) == 0
+            ),
         )
-        assert len(self.nucleus_index) == len(self.shell_factor)
 
-        assert (
-            len(self.coefficient) == len(self.coefficient_imag)
-            or len(self.coefficient_imag) == 0
-        )
+        if not all(check_flags):
+            raise ValueError
 
     @property
     def prim_num(self):
@@ -210,9 +208,7 @@ class Basis_sets:
 
         cut_prim_index = []
         for nuc in nucleus_index:
-            shell_index_list = [
-                i for i, x in enumerate(self.nucleus_index) if x == nuc
-            ]
+            shell_index_list = [i for i, x in enumerate(self.nucleus_index) if x == nuc]
             logger.debug(shell_index_list)
             for shell in shell_index_list:
                 prim_index_list = [
@@ -278,23 +274,27 @@ class Basis_sets:
 
         num_nucleus_index_b_cut = len(self.nucleus_index)
         num_shell_ang_mom_b_cut = len(self.shell_ang_mom)
-        num_shell_ang_mom_turbo_notation_b_cut = len(
-            self.shell_ang_mom_turbo_notation
-        )
+        num_shell_ang_mom_turbo_notation_b_cut = len(self.shell_ang_mom_turbo_notation)
         num_shell_factor_b_cut = len(self.shell_factor)
-        assert num_nucleus_index_b_cut == num_shell_ang_mom_b_cut
-        assert (
-            num_nucleus_index_b_cut == num_shell_ang_mom_turbo_notation_b_cut
+        check_flags = (
+            num_nucleus_index_b_cut == num_shell_ang_mom_b_cut,
+            num_nucleus_index_b_cut == num_shell_ang_mom_turbo_notation_b_cut,
+            num_nucleus_index_b_cut == num_shell_factor_b_cut,
         )
-        assert num_nucleus_index_b_cut == num_shell_factor_b_cut
+        if not all(check_flags):
+            raise ValueError
 
         num_shell_index_b_cut = len(self.shell_index)
         num_exponent_b_cut = len(self.exponent)
         num_coefficient_b_cut = len(self.coefficient)
         num_prim_factor_b_cut = len(self.prim_factor)
-        assert num_shell_index_b_cut == num_exponent_b_cut
-        assert num_shell_index_b_cut == num_coefficient_b_cut
-        assert num_shell_index_b_cut == num_prim_factor_b_cut
+        check_flags = (
+            num_shell_index_b_cut == num_exponent_b_cut,
+            num_shell_index_b_cut == num_coefficient_b_cut,
+            num_shell_index_b_cut == num_prim_factor_b_cut,
+        )
+        if not all(check_flags):
+            raise ValueError
 
         self.exponent.pop(prim_index)
         self.coefficient.pop(prim_index)
@@ -335,48 +335,61 @@ class Basis_sets:
 
         num_nucleus_index_a_cut = len(self.nucleus_index)
         num_shell_ang_mom_a_cut = len(self.shell_ang_mom)
-        num_shell_ang_mom_turbo_notation_a_cut = len(
-            self.shell_ang_mom_turbo_notation
-        )
+        num_shell_ang_mom_turbo_notation_a_cut = len(self.shell_ang_mom_turbo_notation)
         num_shell_factor_a_cut = len(self.shell_factor)
-        assert num_nucleus_index_a_cut == num_shell_ang_mom_a_cut
-        assert (
-            num_nucleus_index_a_cut == num_shell_ang_mom_turbo_notation_a_cut
+
+        check_flags = (
+            num_nucleus_index_a_cut == num_shell_ang_mom_a_cut,
+            num_nucleus_index_a_cut == num_shell_ang_mom_turbo_notation_a_cut,
+            num_nucleus_index_a_cut == num_shell_factor_a_cut,
         )
-        assert num_nucleus_index_a_cut == num_shell_factor_a_cut
+        if not all(check_flags):
+            raise ValueError
 
         num_shell_index_a_cut = len(self.shell_index)
         num_exponent_a_cut = len(self.exponent)
         num_coefficient_a_cut = len(self.coefficient)
         num_prim_factor_a_cut = len(self.prim_factor)
-        assert num_shell_index_a_cut == num_exponent_a_cut
-        assert num_shell_index_a_cut == num_coefficient_a_cut
-        assert num_shell_index_a_cut == num_prim_factor_a_cut
 
-        # check !!!!
-        assert num_shell_index_a_cut == num_shell_index_b_cut - 1
-        assert num_exponent_a_cut == num_exponent_b_cut - 1
-        assert num_coefficient_a_cut == num_coefficient_b_cut - 1
-        assert num_prim_factor_a_cut == num_prim_factor_b_cut - 1
+        check_flags = (
+            num_shell_index_a_cut == num_exponent_a_cut,
+            num_shell_index_a_cut == num_coefficient_a_cut,
+            num_shell_index_a_cut == num_prim_factor_a_cut,
+        )
+        if not all(check_flags):
+            raise ValueError
+
+        check_flags = (
+            num_shell_index_a_cut == num_shell_index_b_cut - 1,
+            num_exponent_a_cut == num_exponent_b_cut - 1,
+            num_coefficient_a_cut == num_coefficient_b_cut - 1,
+            num_prim_factor_a_cut == num_prim_factor_b_cut - 1,
+        )
 
         if flag_remove_primitive_basis:
-            assert num_nucleus_index_a_cut == num_nucleus_index_b_cut - 1
-            assert num_shell_ang_mom_a_cut == num_shell_ang_mom_b_cut - 1
-            assert (
-                num_shell_ang_mom_turbo_notation_a_cut
-                == num_shell_ang_mom_turbo_notation_b_cut - 1
+            check_flags = (
+                num_nucleus_index_a_cut == num_nucleus_index_b_cut - 1,
+                num_shell_ang_mom_a_cut == num_shell_ang_mom_b_cut - 1,
+                (
+                    num_shell_ang_mom_turbo_notation_a_cut
+                    == num_shell_ang_mom_turbo_notation_b_cut - 1
+                ),
+                num_shell_factor_a_cut == num_shell_factor_b_cut - 1,
             )
-            assert num_shell_factor_a_cut == num_shell_factor_b_cut - 1
+            if not all(check_flags):
+                raise ValueError
         else:
-            assert num_nucleus_index_a_cut == num_nucleus_index_b_cut
-            assert num_shell_ang_mom_a_cut == num_shell_ang_mom_b_cut
-            assert (
-                num_shell_ang_mom_turbo_notation_a_cut
-                == num_shell_ang_mom_turbo_notation_b_cut
+            check_flags = (
+                num_nucleus_index_a_cut == num_nucleus_index_b_cut,
+                num_shell_ang_mom_a_cut == num_shell_ang_mom_b_cut,
+                (
+                    num_shell_ang_mom_turbo_notation_a_cut
+                    == num_shell_ang_mom_turbo_notation_b_cut
+                ),
+                num_shell_factor_a_cut == num_shell_factor_b_cut,
             )
-            assert num_shell_factor_a_cut == num_shell_factor_b_cut
-
-        logger.debug("All assertions are OK.")
+            if not all(check_flags):
+                raise ValueError
 
     def contracted_to_uncontracted(self):
         """
@@ -395,7 +408,8 @@ class Basis_sets:
         logger.debug(self.coefficient_imag)
         logger.debug(self.prim_factor)
 
-        assert len(self.exponent) == len(self.coefficient)
+        if not len(self.exponent) == len(self.coefficient):
+            raise ValueError
         nucleus_index = []
         shell_ang_mom = []
         shell_ang_mom_turbo_notation = []
@@ -409,9 +423,7 @@ class Basis_sets:
         for nuc in range(len(set(self.nucleus_index))):
             exponent_nuc = []
             shell_ang_mom_nuc = []
-            shell_index_list = [
-                i for i, x in enumerate(self.nucleus_index) if x == nuc
-            ]
+            shell_index_list = [i for i, x in enumerate(self.nucleus_index) if x == nuc]
 
             for i_shell in shell_index_list:
                 prim_index_list = [
@@ -426,21 +438,20 @@ class Basis_sets:
                 prim_factor_n = [self.prim_factor[i] for i in prim_index_list]
 
                 shell_ang_mom_n = self.shell_ang_mom[i_shell]
-                shell_ang_mom_turbo_notation_n = (
-                    self.shell_ang_mom_turbo_notation[i_shell]
-                )
+                shell_ang_mom_turbo_notation_n = self.shell_ang_mom_turbo_notation[
+                    i_shell
+                ]
                 shell_factor_n = self.shell_factor[i_shell]
 
-                assert len(exponent_n) == len(coefficient_n)
+                if not len(exponent_n) == len(coefficient_n):
+                    raise ValueError
                 prim_num = len(exponent_n)
                 for p in range(prim_num):
                     if exponent_n[p] not in exponent_nuc:
                         store = True
                     else:  # exponent_n[p] in exponent:
                         e_index_list = [
-                            i
-                            for i, x in enumerate(exponent_nuc)
-                            if x == exponent_n[p]
+                            i for i, x in enumerate(exponent_nuc) if x == exponent_n[p]
                         ]
                         if all(
                             [
@@ -469,9 +480,7 @@ class Basis_sets:
                         shell_factor.append(None)
                         shell_ang_mom.append(shell_ang_mom_n)
                         shell_ang_mom_turbo_notation.append(
-                            turbo_prim_orb_type_num(
-                                return_orbchr(shell_ang_mom_n)
-                            )
+                            turbo_prim_orb_type_num(return_orbchr(shell_ang_mom_n))
                         )
 
         self.nucleus_index = nucleus_index
@@ -578,15 +587,9 @@ class Basis_sets:
         for nuc_i, text in enumerate(texts):
 
             if format == "gamess":
-                basis_set = (
-                    Basis_set.parse_basis_set_info_from_gamess_format_text(
-                        text
-                    )
-                )
+                basis_set = Basis_set.parse_basis_set_info_from_gamess_format_text(text)
             elif format == "eCEPP":
-                basis_set = (
-                    Basis_set.parse_basis_set_info_from_eCEPP_format_text(text)
-                )
+                basis_set = Basis_set.parse_basis_set_info_from_eCEPP_format_text(text)
             else:
                 logger.error(f"format = {format} is not implemented")
                 raise NotImplementedError
@@ -612,15 +615,11 @@ class Basis_sets:
 
             if contraction:
                 shell_ang_mom_turbo_notation.append(
-                    turbo_cont_orb_type_num(
-                        orb_type_chr=return_orbchr(ang_mom=ang_mom)
-                    )
+                    turbo_cont_orb_type_num(orb_type_chr=return_orbchr(ang_mom=ang_mom))
                 )
             else:
                 shell_ang_mom_turbo_notation.append(
-                    turbo_prim_orb_type_num(
-                        orb_type_chr=return_orbchr(ang_mom=ang_mom)
-                    )
+                    turbo_prim_orb_type_num(orb_type_chr=return_orbchr(ang_mom=ang_mom))
                 )
 
         return cls(
@@ -645,9 +644,9 @@ class Basis_set:
     Attributes:
         shell_ang_mom (list): One-to-one correspondence between shells and angular momenta. Dimensions=shell_num.
         shell_index (list): One-to-one correspondence between primitives and shell index. Dimensions=prim_num.
-        exponent (list): Exponents of the primitives. Dimensions=prim_num.
-        coefficient (list): Coefficients of the primitives (real part). Dimensions=prim_num.
-        coefficient_imag (list): Coefficients of the primitives (imaginary part). Dimensions=prim_num.
+        exponent_list (list): Exponents of the primitives. Dimensions=prim_num.
+        coefficient_list (list): Coefficients of the primitives (real part). Dimensions=prim_num.
+        coefficient_imag_list (list): Coefficients of the primitives (imaginary part). Dimensions=prim_num.
     """
 
     def __init__(
@@ -683,12 +682,16 @@ class Basis_set:
         logger.debug(self.coefficient_imag_list)
 
         # assertion!
-        assert len(self.exponent_list) == len(self.coefficient_list)
-        assert len(self.exponent_list) == len(self.shell_index)
-        assert (
-            len(self.coefficient_list) == len(self.coefficient_imag_list)
-            or len(self.coefficient_imag_list) == 0
+        check_flags = (
+            len(self.exponent_list) == len(self.coefficient_list),
+            len(self.exponent_list) == len(self.shell_index),
+            (
+                len(self.coefficient_list) == len(self.coefficient_imag_list)
+                or len(self.coefficient_imag_list) == 0
+            ),
         )
+        if not all(check_flags):
+            raise ValueError
 
     @property
     def prim_num(self):
@@ -844,12 +847,8 @@ class Basis_set:
                 else:
                     raise ValueError("The pseudo potential format seems wrong")
 
-                exponent = float(
-                    lines[i + 1].split()[stride + 0].replace("D", "E")
-                )
-                coefficient = float(
-                    lines[i + 1].split()[stride + 1].replace("D", "E")
-                )
+                exponent = float(lines[i + 1].split()[stride + 0].replace("D", "E"))
+                coefficient = float(lines[i + 1].split()[stride + 1].replace("D", "E"))
 
                 shell_ang_mom.append(ang_mom)
                 shell_index.append(shell_num)
@@ -878,27 +877,13 @@ class Basis_set:
                         # gaussian format
                         stride = 0
                     else:
-                        raise ValueError(
-                            "The pseudo potential format seems wrong"
-                        )
+                        raise ValueError("The pseudo potential format seems wrong")
 
                     exponent_list_.append(
-                        float(
-                            float(
-                                lines[i + j]
-                                .split()[stride + 0]
-                                .replace("D", "E")
-                            )
-                        )
+                        float(float(lines[i + j].split()[stride + 0].replace("D", "E")))
                     )
                     coefficient_list_.append(
-                        float(
-                            float(
-                                lines[i + j]
-                                .split()[stride + 1]
-                                .replace("D", "E")
-                            )
-                        )
+                        float(float(lines[i + j].split()[stride + 1].replace("D", "E")))
                     )
                     shell_index.append(shell_num)
 
@@ -926,17 +911,14 @@ class Basis_set:
         """
         text = ""
         for yy, ang_mom in enumerate(self.shell_ang_mom):
-            t_shell_index = [
-                i for i, x in enumerate(self.shell_index) if x == yy
-            ]
+            t_shell_index = [i for i, x in enumerate(self.shell_index) if x == yy]
             line = f"{return_orbchr(ang_mom=ang_mom).upper()}   {len(t_shell_index)}\n"
             text += line
 
             t_exponent_list = [self.exponent_list[i] for i in t_shell_index]
-            t_coefficient_list = [
-                self.coefficient_list[i] for i in t_shell_index
-            ]
-            assert len(t_exponent_list) == len(t_coefficient_list)
+            t_coefficient_list = [self.coefficient_list[i] for i in t_shell_index]
+            if not len(t_exponent_list) == len(t_coefficient_list):
+                raise ValueError
 
             for kk, (exponent, coefficient) in enumerate(
                 zip(t_exponent_list, t_coefficient_list)
@@ -959,17 +941,14 @@ class Basis_set:
         """
         text = ""
         for yy, ang_mom in enumerate(self.shell_ang_mom):
-            t_shell_index = [
-                i for i, x in enumerate(self.shell_index) if x == yy
-            ]
+            t_shell_index = [i for i, x in enumerate(self.shell_index) if x == yy]
             line = f"{element} {return_orbchr(ang_mom=ang_mom).upper()}\n"
             text += line
 
             t_exponent_list = [self.exponent_list[i] for i in t_shell_index]
-            t_coefficient_list = [
-                self.coefficient_list[i] for i in t_shell_index
-            ]
-            assert len(t_exponent_list) == len(t_coefficient_list)
+            t_coefficient_list = [self.coefficient_list[i] for i in t_shell_index]
+            if not len(t_exponent_list) == len(t_coefficient_list):
+                raise ValueError
 
             for kk, (exponent, coefficient) in enumerate(
                 zip(t_exponent_list, t_coefficient_list)
@@ -1074,15 +1053,11 @@ class Det_Basis_sets(Basis_sets):
         self.hyb_nucleus_index = hyb_nucleus_index
         self.hyb_param_num = hyb_param_num
         self.hyb_shell_ang_mom = hyb_shell_ang_mom
-        self.hyb_shell_ang_mom_turbo_notation = (
-            hyb_shell_ang_mom_turbo_notation
-        )
+        self.hyb_shell_ang_mom_turbo_notation = hyb_shell_ang_mom_turbo_notation
         self.hyb_prim_index = hyb_prim_index
         self.hyb_coefficient = hyb_coefficient
         self.hyb_coefficient_imag = hyb_coefficient_imag
-        self.number_of_additional_hybrid_orbitals = (
-            number_of_additional_hybrid_orbitals
-        )
+        self.number_of_additional_hybrid_orbitals = number_of_additional_hybrid_orbitals
 
 
 class Jas_Basis_sets(Basis_sets):
@@ -1150,9 +1125,7 @@ class Jas_Basis_sets(Basis_sets):
             prim_factor=prim_factor,
         )
 
-        self.number_of_additional_hybrid_orbitals = (
-            number_of_additional_hybrid_orbitals
-        )
+        self.number_of_additional_hybrid_orbitals = number_of_additional_hybrid_orbitals
 
 
 if __name__ == "__main__":
@@ -1160,9 +1133,7 @@ if __name__ == "__main__":
     logger.setLevel("DEBUG")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

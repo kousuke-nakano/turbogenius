@@ -80,4 +80,5 @@ jobs:
     - name: Test TurboGenius with pytest
       working-directory: turbogenius
       run: |
+        export TURBORVB_ROOT=$GITHUB_WORKSPACE/turborvb
         pytest

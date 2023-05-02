@@ -1,24 +1,15 @@
 #!python
 # -*- coding: utf-8 -*-
 import os
-import shutil
 from turbogenius.pyturbo.basis_set import Basis_set, Basis_sets
-from turbogenius.utils_workflows.env import turbo_genius_root
 
-prefix = "basis_sets"
-test_root_dir = os.path.join(turbo_genius_root, "tests", "pyturbo_tests")
-if os.path.isdir(os.path.join(test_root_dir, prefix)):
-    shutil.rmtree(os.path.join(test_root_dir, prefix))
-shutil.copytree(
-    os.path.join(test_root_dir, "all_input_files", prefix),
-    os.path.join(test_root_dir, prefix),
-)
-basis_sets_test_dir = os.path.join(test_root_dir, prefix)
+data_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_basis_set():
-    os.chdir(basis_sets_test_dir)
-    basis_set = Basis_set.parse_basis_set_info_from_gamess_format_file("C_cc-pVDZ.bas")
+    basis_set = Basis_set.parse_basis_set_info_from_gamess_format_file(
+        os.path.join(data_dir, "C_cc-pVDZ.bas")
+    )
     shell_ang_mom_test = basis_set.shell_ang_mom
     shell_index_test = basis_set.shell_index
     exponent_list_test = basis_set.exponent_list
@@ -120,7 +111,10 @@ def test_basis_set():
 
 def test_basis_sets():
     basis_sets = Basis_sets.parse_basis_sets_from_gamess_format_files(
-        files=["C_cc-pVDZ.bas", "H_cc-pVTZ.bas"]
+        files=[
+            os.path.join(data_dir, "C_cc-pVDZ.bas"),
+            os.path.join(data_dir, "H_cc-pVTZ.bas"),
+        ]
     )
 
     nuclei_num_test = basis_sets.nuclei_num

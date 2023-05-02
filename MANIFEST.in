@@ -1,5 +1,4 @@
 include LICENSE
 include README.md
 recursive-include turbogenius/pyturbo/data/ *
-recursive-include tests/pyturbo_tests/all_input_files *
-recursive-include tests/turbogenius_test/all_input_files *
+recursive-include tests/ *

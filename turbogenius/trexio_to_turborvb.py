@@ -203,9 +203,7 @@ def trexio_to_turborvb_wf(
             [complex(i, j) for i, j in zip(mo_real, mo_imag)]
             for mo_real, mo_imag in zip(mo_coefficient, mo_coefficient_imag)
         ]
-    if all([spin == 0 for spin in mo_spin]) or all(
-        [spin == 1 for spin in mo_spin]
-    ):
+    if all([spin == 0 for spin in mo_spin]) or all([spin == 1 for spin in mo_spin]):
         logger.info("MOs are spin-restricted (i.e., alpha==beta).")
         spin_restricted = True
     elif all([spin == 0 or spin == 1 for spin in mo_spin]):
@@ -215,16 +213,14 @@ def trexio_to_turborvb_wf(
         raise ValueError
 
     # spin unrestricted is supported only with trexio >= 1.3.0
-    if not spin_restricted and not trexio.__version__ >= '1.3.0':
+    if not spin_restricted and not trexio.__version__ >= "1.3.0":
         logger.error("spin unrestricted is supported only with trexio >= 1.3.0")
         raise NotImplementedError
 
     # check if the num. of MOs for alpha and beta are the same.
     if not spin_restricted:
         if list(mo_spin).count(0) != list(mo_spin).count(1):
-            logger.error(
-                "The number of alpha- and beta-MOs are not consistent!!"
-            )
+            logger.error("The number of alpha- and beta-MOs are not consistent!!")
             raise ValueError
 
     # At present, this python script assumes that MOs are [alpha, alpha..... alpha, beta....beta] for
@@ -233,15 +229,10 @@ def trexio_to_turborvb_wf(
         if not (
             all([spin == 0 for spin in mo_spin[0 : int(len(mo_spin) / 2)]])
             and all(
-                [
-                    spin == 1
-                    for spin in mo_spin[int(len(mo_spin) / 2) : len(mo_spin)]
-                ]
+                [spin == 1 for spin in mo_spin[int(len(mo_spin) / 2) : len(mo_spin)]]
             )
         ):
-            logger.error(
-                "The MOs ordering is not [alpha, ... alpha, beta, .... beta]"
-            )
+            logger.error("The MOs ordering is not [alpha, ... alpha, beta, .... beta]")
             raise NotImplementedError
 
     # At present, this python script assumes that the occupation is in the descending order. check it.
@@ -262,9 +253,7 @@ def trexio_to_turborvb_wf(
                 mo_occ == mo_occ_sorted
                 for mo_occ, mo_occ_sorted in zip(
                     mo_occupation[0 : int(len(mo_spin) / 2)],
-                    sorted(
-                        mo_occupation[0 : int(len(mo_spin) / 2)], reverse=True
-                    ),
+                    sorted(mo_occupation[0 : int(len(mo_spin) / 2)], reverse=True),
                 )
             ]
         ):
@@ -375,21 +364,13 @@ def trexio_to_turborvb_wf(
         )
 
     else:
-        logger.error(
-            "phase up is not equal to +1 * phase up and -1 * phase dn"
-        )
+        logger.error("phase up is not equal to +1 * phase up and -1 * phase dn")
         raise ValueError
 
     # phase-up and phase-dn
-    namelist.set_parameter(
-        parameter="phase(1)", value=phase_up[0], namelist="&system"
-    )
-    namelist.set_parameter(
-        parameter="phase(2)", value=phase_up[1], namelist="&system"
-    )
-    namelist.set_parameter(
-        parameter="phase(3)", value=phase_up[2], namelist="&system"
-    )
+    namelist.set_parameter(parameter="phase(1)", value=phase_up[0], namelist="&system")
+    namelist.set_parameter(parameter="phase(2)", value=phase_up[1], namelist="&system")
+    namelist.set_parameter(parameter="phase(3)", value=phase_up[2], namelist="&system")
     namelist.set_parameter(
         parameter="phasedo(1)", value=phase_dn[0], namelist="&system"
     )
@@ -487,9 +468,7 @@ def trexio_to_turborvb_wf(
                         break
                 mo_num_use = len(mo_used_index)
             else:  # spin-unresticted
-                logger.info(
-                    f"mo_occ_thr={max_occ_conv} both for alpha and beta spins."
-                )
+                logger.info(f"mo_occ_thr={max_occ_conv} both for alpha and beta spins.")
                 # spin-up (alpha)
                 for i in range(0, int(len(mo_occupation) / 2)):
                     mo_used_index.append(i)  # alpha spin
@@ -499,9 +478,7 @@ def trexio_to_turborvb_wf(
                         mo_occupation[i] >= max_occ_conv
                         and mo_occupation[i + 1] < max_occ_conv
                     ):
-                        logger.info(
-                            f"mo_occ(alpha) < {max_occ_conv} is 1-{i + 1}"
-                        )
+                        logger.info(f"mo_occ(alpha) < {max_occ_conv} is 1-{i + 1}")
                         break
                 # spin-dn (beta)
                 mo_used_index = mo_used_index + [
@@ -524,15 +501,11 @@ def trexio_to_turborvb_wf(
                 mo_num_use = mo_num_conv
                 mo_coefficient = (
                     mo_coefficient[0:mo_num_use]
-                    + mo_coefficient[
-                        int(mo_num / 2) : int(mo_num / 2) + mo_num_use
-                    ]
+                    + mo_coefficient[int(mo_num / 2) : int(mo_num / 2) + mo_num_use]
                 )
                 mo_occupation = (
                     mo_occupation[0:mo_num_use]
-                    + mo_occupation[
-                        int(mo_num / 2) : int(mo_num / 2) + mo_num_use
-                    ]
+                    + mo_occupation[int(mo_num / 2) : int(mo_num / 2) + mo_num_use]
                 )
                 mo_spin = (
                     mo_spin[0:mo_num_use]
@@ -630,23 +603,15 @@ def trexio_to_turborvb_wf(
 
                     if ao_cartesian != 0:
                         logger.debug("p shell/no permutation is needed.")
-                        logger.debug(
-                            "(trexio  notation): px(m=+1), py(m=-1), pz(m=0)"
-                        )
-                        logger.debug(
-                            "(makefun notation): px(m=+1), py(m=-1), pz(m=0)"
-                        )
+                        logger.debug("(trexio  notation): px(m=+1), py(m=-1), pz(m=0)")
+                        logger.debug("(makefun notation): px(m=+1), py(m=-1), pz(m=0)")
                         reorder_index = [0, 1, 2]
                         reorder_m_list = [+1, -1, 0]
                         reorder_l_list = [1] * 3
                     else:
                         logger.debug("p shell/permutation is needed.")
-                        logger.debug(
-                            "(trexio  notation): pz(m=0), px(m=+1), py(m=-1)"
-                        )
-                        logger.debug(
-                            "(makefun notation): px(m=+1), py(m=-1), pz(m=0)"
-                        )
+                        logger.debug("(trexio  notation): pz(m=0), px(m=+1), py(m=-1)")
+                        logger.debug("(makefun notation): px(m=+1), py(m=-1), pz(m=0)")
                         reorder_index = [1, 2, 0]
                         reorder_m_list = [+1, -1, 0]
                         reorder_l_list = [1] * 3
@@ -797,9 +762,7 @@ def trexio_to_turborvb_wf(
                     raise NotImplementedError
 
                 basis_index_list = [
-                    n
-                    for n, v in enumerate(basis_shell_index)
-                    if v == shell_index
+                    n for n, v in enumerate(basis_shell_index) if v == shell_index
                 ]
 
                 mo_coeff_local_buffer = []
@@ -813,19 +776,13 @@ def trexio_to_turborvb_wf(
                         mo_coefficient[mo_i_shifted][ao_i]
                         * basis_coefficient[basis_index]
                     )
-                    mo_exponent_local_buffer.append(
-                        basis_exponent[basis_index]
-                    )
+                    mo_exponent_local_buffer.append(basis_exponent[basis_index])
                     mo_nucleus_index_local_buffer.append(
                         basis_nucleus_index[shell_index]
                     )
 
-                mo_coefficient_list_for_reordering.append(
-                    mo_coeff_local_buffer
-                )
-                mo_exponent_list_for_reordering.append(
-                    mo_exponent_local_buffer
-                )
+                mo_coefficient_list_for_reordering.append(mo_coeff_local_buffer)
+                mo_exponent_list_for_reordering.append(mo_exponent_local_buffer)
                 mo_nucleus_index_list_for_reordering.append(
                     mo_nucleus_index_local_buffer
                 )
@@ -834,23 +791,16 @@ def trexio_to_turborvb_wf(
                 if len(mo_coefficient_list_for_reordering) == multiplicity:
                     logger.debug("--write MOs!!--")
                     mo_coeff_list_reordered = [
-                        mo_coefficient_list_for_reordering[i]
-                        for i in reorder_index
+                        mo_coefficient_list_for_reordering[i] for i in reorder_index
                     ]
                     mo_exp_list_reordered = [
-                        mo_exponent_list_for_reordering[i]
-                        for i in reorder_index
+                        mo_exponent_list_for_reordering[i] for i in reorder_index
                     ]
                     mo_nucleus_index_list_reordered = [
-                        mo_nucleus_index_list_for_reordering[i]
-                        for i in reorder_index
+                        mo_nucleus_index_list_for_reordering[i] for i in reorder_index
                     ]
-                    mo_m_list_reordered = reorder_m_list * len(
-                        basis_index_list
-                    )
-                    mo_l_list_reordered = reorder_l_list * len(
-                        basis_index_list
-                    )
+                    mo_m_list_reordered = reorder_m_list * len(basis_index_list)
+                    mo_l_list_reordered = reorder_l_list * len(basis_index_list)
 
                     # reordered again is needed here for contracted shell!
                     # because order is not px ... py ... pz but px,py,pz,px,py,pz ...
@@ -864,9 +814,7 @@ def trexio_to_turborvb_wf(
                         for (
                             mo_nucleus_index_reordered
                         ) in mo_nucleus_index_list_reordered:
-                            mo_nucleus_index_list.append(
-                                mo_nucleus_index_reordered[ii]
-                            )
+                            mo_nucleus_index_list.append(mo_nucleus_index_reordered[ii])
                     """
                     for ii in range(len(mo_m_list_reordered[0])):
                         for mo_m_reordered in mo_m_list_reordered:
@@ -919,8 +867,7 @@ def trexio_to_turborvb_wf(
                             if x == unique_exp
                         ]
                         mo_e_list_u = [
-                            mo_exponent_list_nucleus[i]
-                            for i in unique_exponent_index
+                            mo_exponent_list_nucleus[i] for i in unique_exponent_index
                         ]
                         assert len(set(mo_e_list_u)) == 1
                         mo_l_list_u = [
@@ -957,9 +904,7 @@ def trexio_to_turborvb_wf(
                                 else:
                                     if mo_l_ref == mo_l and mo_m_ref == mo_m:
                                         removed_uu_list.append(uu)
-                                        removed_exponent_index_list_.append(
-                                            e_i
-                                        )
+                                        removed_exponent_index_list_.append(e_i)
 
                             logger.debug(removed_uu_list)
                             for kk in reversed(sorted(removed_uu_list)):
@@ -967,9 +912,7 @@ def trexio_to_turborvb_wf(
                                 mo_l_list_u.pop(kk)
                                 mo_m_list_u.pop(kk)
 
-                            ref_exponent_index_list.append(
-                                mo_nucleus_index[ref_e_i]
-                            )
+                            ref_exponent_index_list.append(mo_nucleus_index[ref_e_i])
                             removed_exponent_index_list.append(
                                 [
                                     mo_nucleus_index[pp]
@@ -990,9 +933,9 @@ def trexio_to_turborvb_wf(
                 ref_exponent_index_list, removed_exponent_index_list
             ):
                 for r_index in reversed(sorted(removed_exponent_index)):
-                    mo_coefficient_list[
-                        ref_exponent_index
-                    ] += mo_coefficient_list[r_index]
+                    mo_coefficient_list[ref_exponent_index] += mo_coefficient_list[
+                        r_index
+                    ]
                     pop_index_list.append(r_index)
 
             for pop_index in reversed(sorted(pop_index_list)):
@@ -1023,8 +966,7 @@ def trexio_to_turborvb_wf(
         # # [a,a,a... (paired),a,a (unpaired)]
         mo_coefficient_turbo_unpaired = []
         pop_lst = [
-            num_ele_dn + nel_diff
-            for nel_diff in range(0, num_ele_up - num_ele_dn)
+            num_ele_dn + nel_diff for nel_diff in range(0, num_ele_up - num_ele_dn)
         ]
         for p in reversed(pop_lst):
             mo_coefficient_turbo_unpaired.append(mo_coefficient_turbo.pop(p))
@@ -1040,20 +982,19 @@ def trexio_to_turborvb_wf(
         mo_coefficient_turbo_unpaired = []
         # alpha spins
         pop_lst = [
-            num_ele_dn + nel_diff
-            for nel_diff in range(0, num_ele_up - num_ele_dn)
+            num_ele_dn + nel_diff for nel_diff in range(0, num_ele_up - num_ele_dn)
         ]
 
         for p in reversed(pop_lst):
             mo_coefficient_turbo_unpaired.append(mo_coefficient_turbo.pop(p))
         # beta spins
-        # note!! 
-        # there are two choices which MOs are removed in the beta spins 
+        # note!!
+        # there are two choices which MOs are removed in the beta spins
         # 1. the last 'nel_diff' beta orbitals are removed.
         # 2. the beta MOs corresponding to unpaired alpha MOs are removed.
-        #for _ in range(0, num_ele_up - num_ele_dn): # this is the choice 1.
+        # for _ in range(0, num_ele_up - num_ele_dn): # this is the choice 1.
         #    mo_coefficient_turbo.pop(-1)
-        for _ in range(0, num_ele_up - num_ele_dn): # this is the choice 2.
+        for _ in range(0, num_ele_up - num_ele_dn):  # this is the choice 2.
             mo_coefficient_turbo.pop(mo_num_use - len(pop_lst) + num_ele_dn)
         # reordering alpha and beta spins
         mo_coefficient_turbo_new = []
@@ -1061,9 +1002,7 @@ def trexio_to_turborvb_wf(
             mo_coefficient_turbo_new.append(
                 mo_coefficient_turbo[i + int(len(mo_coefficient_turbo) / 2)]
             )  # beta spin
-            mo_coefficient_turbo_new.append(
-                mo_coefficient_turbo[i + 0]
-            )  # alpha spin
+            mo_coefficient_turbo_new.append(mo_coefficient_turbo[i + 0])  # alpha spin
         mo_coefficient_turbo = mo_coefficient_turbo_new
         for m in reversed(mo_coefficient_turbo_unpaired):
             mo_coefficient_turbo.append(m)
@@ -1085,7 +1024,7 @@ def trexio_to_turborvb_wf(
             for coeff in mo__:
                 mo_real_b.append(coeff.real)
                 mo_imag_b.append(coeff.imag)
-            
+
             if spin_restricted:
                 mo_real_b_up = list(np.array(mo_real_b) * +1)
                 mo_imag_b_up = list(np.array(mo_imag_b) * +1)  # up phase is +
@@ -1099,22 +1038,24 @@ def trexio_to_turborvb_wf(
                 mo_coefficient_turbo_imag.append(mo_imag_b_dn)  # dn
                 # because mo_dn is not needed for unpaired MOs.
                 # if num_ele_up - num_ele_dn == 0: the following condition is always true.
-                if (len(mo_coefficient_turbo) - (num_ele_up - num_ele_dn)) >= mo_counter + 1:
+                if (
+                    len(mo_coefficient_turbo) - (num_ele_up - num_ele_dn)
+                ) >= mo_counter + 1:
                     mo_coefficient_turbo_real.append(mo_real_b_up)  # up
                     mo_coefficient_turbo_imag.append(mo_imag_b_up)  # up
-            else: # if spin_restricted==False
+            else:  # if spin_restricted==False
                 mo_coefficient_turbo_real.append(mo_real_b)
                 mo_coefficient_turbo_imag.append(mo_imag_b)
 
         logger.debug(mo_coefficient_turbo)
         logger.info(f"fort10mo_real={len(io_fort10.f10detbasissets.mo_coefficient)}")
         logger.info(f"trexmo_real={len(mo_coefficient_turbo_real)}")
-        logger.info(f"fort10mo_real={len(io_fort10.f10detbasissets.mo_coefficient_imag)}")
+        logger.info(
+            f"fort10mo_real={len(io_fort10.f10detbasissets.mo_coefficient_imag)}"
+        )
         logger.info(f"trexmo_real={len(mo_coefficient_turbo_imag)}")
         io_fort10.f10detbasissets.mo_coefficient = mo_coefficient_turbo_real
-        io_fort10.f10detbasissets.mo_coefficient_imag = (
-            mo_coefficient_turbo_imag
-        )
+        io_fort10.f10detbasissets.mo_coefficient_imag = mo_coefficient_turbo_imag
 
     # clean up
     if cleanup:
@@ -1210,12 +1151,20 @@ def main():
     if args.twist_average:
         with open(os.path.join(os.getcwd(), "kp_info.dat"), "r") as f:
             lines = f.readlines()
-        k_num = len(lines)
+        k_num = len(lines) - 1
     else:
         k_num = 1
 
     for num in range(k_num):
-        trexio_r = Trexio_wrapper_r(trexio_file=args.trexio_file)
+        if args.twist_average:
+            trexio_file = os.path.join(
+                os.path.dirname(args.trexio_file),
+                f"k{num}_" + os.path.basename(args.trexio_file),
+            )
+        else:
+            trexio_file = args.trexio_file
+        logger.info(trexio_file)
+        trexio_r = Trexio_wrapper_r(trexio_file=trexio_file)
         element_symbols = trexio_r.labels_r
 
         # jastrow setting
@@ -1228,9 +1177,7 @@ def main():
                 data_sets_list, element, data_choice, prefix="basis_set"
             ):
                 if len(data_sets_list) == 0:
-                    logger.error(
-                        f"The chosen {prefix} is not found in the database!!"
-                    )
+                    logger.error(f"The chosen {prefix} is not found in the database!!")
                     raise NotImplementedError
                 elif len(data_sets_list) == 1:
                     data_set_found = data_sets_list[0]
@@ -1293,10 +1240,8 @@ def main():
                     prefix="basis_set",
                 )
                 jas_basis_files.append(jas_basis_chosen)
-            jas_basis_sets = (
-                Jas_Basis_sets.parse_basis_sets_from_gamess_format_files(
-                    files=jas_basis_files
-                )
+            jas_basis_sets = Jas_Basis_sets.parse_basis_sets_from_gamess_format_files(
+                files=jas_basis_files
             )
 
             if not args.jas_contracted_flag:
@@ -1306,15 +1251,11 @@ def main():
                 # cut basis, jas_basis, according to max criteria, exponents > max (det part)
                 for nuc, element in enumerate(element_symbols):
                     # thr_exp = 8 * return_atomic_number(element) ** 2
-                    thr_exp = 4 * return_atomic_number(
-                        element
-                    )  # not 8*Z**2 but 4*Z
+                    thr_exp = 4 * return_atomic_number(element)  # not 8*Z**2 but 4*Z
                     jas_basis_sets.cut_orbitals(
                         thr_exp=thr_exp, nucleus_index=nuc, method="larger"
                     )
-                    thr_angmom = jas_basis_sets.get_largest_angmom(
-                        nucleus_index=nuc
-                    )
+                    thr_angmom = jas_basis_sets.get_largest_angmom(nucleus_index=nuc)
                     jas_basis_sets.cut_orbitals(
                         thr_angmom=thr_angmom,
                         nucleus_index=nuc,
@@ -1328,27 +1269,23 @@ def main():
         # trexio -> turborvb_wf
         # conversion
         trexio_to_turborvb_wf(
-            trexio_file=args.trexio_file,
+            trexio_file=trexio_file,
             cleanup=args.cleanup,
             max_occ_conv=0.01,
             jas_basis_sets=jas_basis_sets,
         )
 
         if args.twist_average:
-            turborvb_scratch_dir = os.path.join(
-                os.getcwd(), "turborvb.scratch"
-            )
+            turborvb_scratch_dir = os.path.join(os.getcwd(), "turborvb.scratch")
             os.makedirs(turborvb_scratch_dir, exist_ok=True)
             shutil.move(
                 os.path.join(os.path.join(os.getcwd(), "fort.10")),
-                os.path.join(
-                    turborvb_scratch_dir, "fort.10_{:0>6}".format(num)
-                ),
+                os.path.join(turborvb_scratch_dir, "fort.10_{:0>6}".format(num)),
             )
 
     if args.twist_average:
         shutil.copy(
-            os.path.join(os.getcwd(), "fort.10_{:0>6}".format(0)),
+            os.path.join(turborvb_scratch_dir, "fort.10_{:0>6}".format(0)),
             os.path.join(os.getcwd(), "fort.10"),
         )
 
@@ -1358,9 +1295,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("INFO")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

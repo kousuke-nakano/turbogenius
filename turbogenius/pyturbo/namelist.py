@@ -29,15 +29,6 @@ logger = getLogger("pyturbo").getChild(__name__)
 
 
 class Namelist:
-    """
-    def __init__(self, namelist: Optional[OrderedDict] = None):
-        if namelist is None:
-            namelist = OrderedDict()
-        assert isinstance(
-            namelist, OrderedDict
-        ), "Please use OrderedDict() for the namelist!"
-    """
-
     def __init__(self, namelist: dict = None):
         if namelist is None:
             namelist = dict()

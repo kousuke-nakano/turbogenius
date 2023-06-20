@@ -5,12 +5,6 @@
 
 pyturbo: fortranIO abstract class
 
-Todo:
-    * docstrings are not completed.
-    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
-    * implementing __str__ method.
-    * implementing sanity_check method.
-
 """
 
 # python modules
@@ -24,6 +18,14 @@ logger = getLogger("pyturbo").getChild(__name__)
 
 # fortranIO abstract class
 class FortranIO(ABC):
+
+    """
+
+    This class is an abstract class for TurboRVB python wrappers.
+
+    Attributes:
+    """
+
     def __init__(
         self,
         # namelist=Namelist()
@@ -34,14 +36,10 @@ class FortranIO(ABC):
 
     # commom methods
     def set_parameter(self, parameter, value, namelist=None):
-        self.namelist.set_parameter(
-            parameter=parameter, value=value, namelist=namelist
-        )
+        self.namelist.set_parameter(parameter=parameter, value=value, namelist=namelist)
 
     def get_parameter(self, parameter, namelist=None):
-        return self.namelist.get_parameter(
-            parameter=parameter, namelist=namelist
-        )
+        return self.namelist.get_parameter(parameter=parameter, namelist=namelist)
 
     def comment_out(self, parameter):
         self.namelist.comment_out(parameter=parameter)

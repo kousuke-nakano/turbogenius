@@ -1,13 +1,7 @@
 # python
 # -*- coding: utf-8 -*-
 """
-pyturbo: io_fort10 related classes and methods, why??
-Todo:
-    * docstrings are not completed.
-    * refactoring assert sentences. The assert should not
-    * be used for any on-the-fly check.
-    * implementing __str__ method.
-    * implementing sanity_check method.
+pyturbo: io_fort10 related classes and methods
 """
 
 # python modules
@@ -19,7 +13,7 @@ import time
 import shutil
 import psutil
 import linecache
-from typing import Union
+from typing import Union, Optional
 from tqdm import tqdm
 
 # set logger
@@ -70,34 +64,79 @@ class TqdmToLogger(io.StringIO):
 
 
 class Value:
-    def __init__(self, value=None, lineno=0, index=0, file=None):
+    """
+
+    This class stores value, line No., index, and filename for a value in a file (fort.10).
+
+
+    Attributes:
+         value (str, int, float): value in a file
+         lineno (int): specifying the location of the value, line No.
+         index (int): specifying the location of the value, index No.
+         file (str): File name (typically, fort.10)
+
+    """
+
+    def __init__(
+        self,
+        value: Union[str, int, float, None] = None,
+        lineno: int = 0,
+        index: int = 0,
+        file: Optional[str] = None,
+    ):
         self.__value = value
         self.__lineno = lineno
         self.__index = index
         self.__file = file
 
-    def replace(self, value: Union[str, int, float], in_place: bool = True):
+    def replace(
+        self, value: Union[str, int, float, None], in_place: bool = True
+    ) -> None:
+        """
+        Replace a value
+
+        Args:
+            value (str, int, float): A new value
+            in_place (bool): If true, the file storing the value is updated.
+        Returns:
+            None
+        """
         self.__value = value
         if in_place:
             pysed_replace(self.__file, value, self.__lineno, self.__index)
 
     def type(self, cast):
+        """
+        cast the type of the stored value
+        """
         self.__value = cast(self.__value)
 
     @property
     def v(self):
+        """
+        Return value
+        """
         return self.__value
 
     @property
     def l(self):
+        """
+        Return line no.
+        """
         return self.__lineno
 
     @property
     def i(self):
+        """
+        Return index no.
+        """
         return self.__index
 
     @property
     def f(self):
+        """
+        Return file name
+        """
         return self.__file
 
 
@@ -105,49 +144,45 @@ class IO_fort10:
     """
     This class is a wrapper for python fort.10 file
 
-    Input:
-        fort.10 (str): the name of fort.10 WF file
-        in_place (bool): if True, fort.10 file is updated
-        whenever fort10 instance is updated.
-
     Attributes:
-         fort.10 (str): the name of fort.10 WF file
-         f10header (F10header): F10header instance
-         ...
+        fort.10 (str): the name of fort.10 WF file
+        in_place (bool): if True, fort.10 file is updated whenever fort10 instance is updated.
     """
 
-    f10structure_start_keyword = "Ion coordinates"
-    f10structure_end_keyword = "Constraints for forces"
-    f10forceconstraint_start_keyword = "Constraints for forces"
-    f10forceconstraint_end_keyword = "Parameters Jastrow two body *$"
-    f10jastwobody_start_keyword = "Parameters Jastrow two body"
-    f10jastwobody_end_keyword = "Parameters atomic wf"
-    f10detbasis_start_keyword = "Parameters atomic wf *$"
-    f10detbasis_end_keyword = "Parameters atomic Jastrow wf *$"
-    f10jasbasis_start_keyword = "Parameters atomic Jastrow wf *$"
-    f10jasbasis_end_keyword = "Occupation atomic orbitals *$"
-    f10detocc_start_keyword = "Occupation atomic orbitals *$"
-    f10detocc_end_keyword = "Occupation atomic orbitals  Jastrow *$"
-    f10jasocc_start_keyword = "Occupation atomic orbitals  Jastrow *$"
-    f10jasocc_end_keyword = "Nonzero values of  detmat *$"
-    f10detmat_start_keyword = "Nonzero values of  detmat *$"
-    f10detmat_end_keyword = "Grouped par.  in the chosen ordered basis *$"
-    f10detmatsym_start_keyword = "Grouped par.  in the chosen ordered basis *$"
-    f10detmatsym_end_keyword = "Nonzero values of  jasmat *$"
-    f10jasmat_start_keyword = "Nonzero values of  jasmat *$"
-    f10jasmat_end_keyword = "Eq. par. in the 3-body Jastrow in the chosen basis *$"
-    f10jasmatsym_start_keyword = "Eq. par. in the 3-body Jastrow in the chosen basis *$"
-    f10jasmatsym_end_keyword = "Eq. par. in the atomic Det par.in the chosen basis *$"
-    f10detbasis_sym_start_keyword = (
+    __f10structure_start_keyword = "Ion coordinates"
+    __f10structure_end_keyword = "Constraints for forces"
+    __f10forceconstraint_start_keyword = "Constraints for forces"
+    __f10forceconstraint_end_keyword = "Parameters Jastrow two body *$"
+    __f10jastwobody_start_keyword = "Parameters Jastrow two body"
+    __f10jastwobody_end_keyword = "Parameters atomic wf"
+    __f10detbasis_start_keyword = "Parameters atomic wf *$"
+    __f10detbasis_end_keyword = "Parameters atomic Jastrow wf *$"
+    __f10jasbasis_start_keyword = "Parameters atomic Jastrow wf *$"
+    __f10jasbasis_end_keyword = "Occupation atomic orbitals *$"
+    __f10detocc_start_keyword = "Occupation atomic orbitals *$"
+    __f10detocc_end_keyword = "Occupation atomic orbitals  Jastrow *$"
+    __f10jasocc_start_keyword = "Occupation atomic orbitals  Jastrow *$"
+    __f10jasocc_end_keyword = "Nonzero values of  detmat *$"
+    __f10detmat_start_keyword = "Nonzero values of  detmat *$"
+    __f10detmat_end_keyword = "Grouped par.  in the chosen ordered basis *$"
+    __f10detmatsym_start_keyword = "Grouped par.  in the chosen ordered basis *$"
+    __f10detmatsym_end_keyword = "Nonzero values of  jasmat *$"
+    __f10jasmat_start_keyword = "Nonzero values of  jasmat *$"
+    __f10jasmat_end_keyword = "Eq. par. in the 3-body Jastrow in the chosen basis *$"
+    __f10jasmatsym_start_keyword = (
+        "Eq. par. in the 3-body Jastrow in the chosen basis *$"
+    )
+    __f10jasmatsym_end_keyword = "Eq. par. in the atomic Det par.in the chosen basis *$"
+    __f10detbasis_sym_start_keyword = (
         "Eq. par. in the atomic Det par.in the chosen basis *$"
     )
-    f10detbasis_sym_end_keyword = (
+    __f10detbasis_sym_end_keyword = (
         "Eq. par. in the atomic 3-body  par. in the chosen basis *$"
     )
-    f10jasbasis_sym_start_keyword = (
+    __f10jasbasis_sym_start_keyword = (
         "Eq. par. in the atomic 3-body  par. in the chosen basis *$"
     )
-    f10jasbasis_sym_end_keyword = "New parameters *$"
+    __f10jasbasis_sym_end_keyword = "New parameters *$"
 
     def __init__(self, fort10: str = "fort.10", in_place: bool = True):
 
@@ -159,24 +194,24 @@ class IO_fort10:
             fort10=self.fort10,
             Nel=self.f10header.nel,
             Ion=self.f10header.natom,
-            start_keyword=self.f10structure_start_keyword,
-            end_keyword=self.f10structure_end_keyword,
+            start_keyword=self.__f10structure_start_keyword,
+            end_keyword=self.__f10structure_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("structure")
         self.f10forceconstraint = F10forceconstraint(
             fort10=self.fort10,
             ieskinr=self.f10header.ieskinr,
-            start_keyword=self.f10forceconstraint_start_keyword,
-            end_keyword=self.f10forceconstraint_end_keyword,
+            start_keyword=self.__f10forceconstraint_start_keyword,
+            end_keyword=self.__f10forceconstraint_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10forceconstraint")
         self.f10jastwobody = F10jastwobody(
             fort10=self.fort10,
             jas_2body=self.f10header.jas_2body,
-            start_keyword=self.f10jastwobody_start_keyword,
-            end_keyword=self.f10jastwobody_end_keyword,
+            start_keyword=self.__f10jastwobody_start_keyword,
+            end_keyword=self.__f10jastwobody_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10jastwobody")
@@ -184,30 +219,30 @@ class IO_fort10:
             fort10=self.fort10,
             shell_det=self.f10header.shell_det,
             complex_flag=self.f10header.complex_flag,
-            start_keyword=self.f10detbasis_start_keyword,
-            end_keyword=self.f10detbasis_end_keyword,
+            start_keyword=self.__f10detbasis_start_keyword,
+            end_keyword=self.__f10detbasis_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10detbasissets")
         self.f10jasbasissets = F10jasbasissets(
             fort10=self.fort10,
             shell_jas=self.f10header.shell_jas,
-            start_keyword=self.f10jasbasis_start_keyword,
-            end_keyword=self.f10jasbasis_end_keyword,
+            start_keyword=self.__f10jasbasis_start_keyword,
+            end_keyword=self.__f10jasbasis_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10jasbasissets")
         self.f10detocc = F10occ(
             fort10=self.fort10,
-            start_keyword=self.f10detocc_start_keyword,
-            end_keyword=self.f10detocc_end_keyword,
+            start_keyword=self.__f10detocc_start_keyword,
+            end_keyword=self.__f10detocc_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10detocc")
         self.f10jasocc = F10occ(
             fort10=self.fort10,
-            start_keyword=self.f10jasocc_start_keyword,
-            end_keyword=self.f10jasocc_end_keyword,
+            start_keyword=self.__f10jasocc_start_keyword,
+            end_keyword=self.__f10jasocc_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10jasocc")
@@ -215,48 +250,48 @@ class IO_fort10:
             fort10=self.fort10,
             detmat=self.f10header.det_mat_nonzero,
             complex_flag=self.f10header.complex_flag,
-            start_keyword=self.f10detmat_start_keyword,
-            end_keyword=self.f10jasmat_start_keyword,
+            start_keyword=self.__f10detmat_start_keyword,
+            end_keyword=self.__f10detmat_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("ff10detmatrix")
         self.f10detmat_sym = F10matsymmetry(
             fort10=self.fort10,
             num_component=self.f10header.iessw,
-            start_keyword=self.f10detmatsym_start_keyword,
-            end_keyword=self.f10detmatsym_end_keyword,
+            start_keyword=self.__f10detmatsym_start_keyword,
+            end_keyword=self.__f10detmatsym_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10detmat_sym")
         self.f10jasmatrix = F10jasmat(
             fort10=self.fort10,
             jasmat=self.f10header.jas_mat_nonzero,
-            start_keyword=self.f10jasmat_start_keyword,
-            end_keyword=self.f10jasmat_end_keyword,
+            start_keyword=self.__f10jasmat_start_keyword,
+            end_keyword=self.__f10jasmat_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10jasmatrix")
         self.f10jasmat_sym = F10matsymmetry(
             fort10=self.fort10,
             num_component=self.f10header.iesfree,
-            start_keyword=self.f10jasmatsym_start_keyword,
-            end_keyword=self.f10jasmatsym_end_keyword,
+            start_keyword=self.__f10jasmatsym_start_keyword,
+            end_keyword=self.__f10jasmatsym_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10jasmat_sym")
         self.f10detbasis_sym = F10basissymmetry(
             fort10=self.fort10,
             num_component=self.f10header.eq_det_atomic_par,
-            start_keyword=self.f10detbasis_sym_start_keyword,
-            end_keyword=self.f10detbasis_sym_end_keyword,
+            start_keyword=self.__f10detbasis_sym_start_keyword,
+            end_keyword=self.__f10detbasis_sym_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10detbasis_sym")
         self.f10jasbasis_sym = F10basissymmetry(
             fort10=self.fort10,
             num_component=self.f10header.eq_3_body_atomic_par,
-            start_keyword=self.f10jasbasis_sym_start_keyword,
-            end_keyword=self.f10jasbasis_sym_end_keyword,
+            start_keyword=self.__f10jasbasis_sym_start_keyword,
+            end_keyword=self.__f10jasbasis_sym_end_keyword,
             in_place=self.in_place,
         )
         # logger.debug("f10jasbasis_sym")
@@ -264,7 +299,10 @@ class IO_fort10:
 
     # properties!!
     @property
-    def pp_flag(self):
+    def pp_flag(self) -> bool:
+        """
+        Flag for Pseudo Potential. True -> WF with PP, False -> all-electron WF
+        """
         # logger.debug("pseudo_check")
         atomic_numbers = self.f10structure.atomic_numbers
         valence_electrons = self.f10structure.valence_electrons
@@ -275,11 +313,18 @@ class IO_fort10:
             return False
 
     @property
-    def pbc_flag(self):
+    def pbc_flag(self) -> bool:
+        """
+        True -> PBC (Crystal or Surface), False -> Open system (molecule)
+        """
         return self.f10structure.pbc_flag
 
     @property
-    def det_contraction_flag(self):
+    def det_contraction_flag(self) -> bool:
+        """
+        True -> basis sets for the determinant part is contracted.
+        False -> basis sets for the determinant part is uncontracted.
+        """
         logger.debug("contraction_check")
         shell_index = self.f10detbasissets.shell_index
         if len(shell_index) != len(list(set(shell_index))):
@@ -288,11 +333,25 @@ class IO_fort10:
             return False
 
     @property
-    def complex_flag(self):
+    def complex_flag(self) -> bool:
+        """
+        True -> WF is complex, False -> WF is real
+        """
         return self.f10header.complex_flag
 
     @property
-    def ansatz_type(self):
+    def ansatz_type(self) -> str:
+        """
+        Return the anstaz type of WF
+
+        "sd": Single Slater Determinant,
+        "agps": AGP with singlet correlation,
+        "agpu": AGP with singlet + triplet correlation,
+        "agpn": AGP with molecular orbitals,
+        "pf": Pfaffian,
+        "pfn": Pfaffian with molecular orbitals
+
+        """
         ansatz_list = ["sd", "agps", "agpu", "agpn", "pf", "pfn"]
         if self.f10header.nel > 0:
             # agp

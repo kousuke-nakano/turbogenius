@@ -118,6 +118,9 @@ class Basis_sets:
         if not all(check_flags):
             raise ValueError
 
+    def __str__(self) -> str:
+        return str(f"{self.__class__.__name__} class")
+
     @property
     def prim_num(self):
         return len(self.exponent)
@@ -137,7 +140,7 @@ class Basis_sets:
         else:
             return True
 
-    def real_to_complex(self):
+    def real_to_complex(self) -> None:
         """
         Convert the basis set from real to complex (i.e., initializing the imaginary part with 0.0.)
 
@@ -391,7 +394,7 @@ class Basis_sets:
             if not all(check_flags):
                 raise ValueError
 
-    def contracted_to_uncontracted(self):
+    def contracted_to_uncontracted(self) -> None:
         """
         Convert the stored basis set to uncontracted one.
 
@@ -692,6 +695,9 @@ class Basis_set:
         )
         if not all(check_flags):
             raise ValueError
+
+    def __str__(self) -> str:
+        return str(f"{self.__class__.__name__} class")
 
     @property
     def prim_num(self):
@@ -1059,6 +1065,9 @@ class Det_Basis_sets(Basis_sets):
         self.hyb_coefficient_imag = hyb_coefficient_imag
         self.number_of_additional_hybrid_orbitals = number_of_additional_hybrid_orbitals
 
+    def __str__(self) -> str:
+        return str(f"{self.__class__.__name__} class")
+
 
 class Jas_Basis_sets(Basis_sets):
     """
@@ -1126,6 +1135,9 @@ class Jas_Basis_sets(Basis_sets):
         )
 
         self.number_of_additional_hybrid_orbitals = number_of_additional_hybrid_orbitals
+
+    def __str__(self) -> str:
+        return str(f"{self.__class__.__name__} class")
 
 
 if __name__ == "__main__":

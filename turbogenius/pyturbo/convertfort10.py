@@ -5,11 +5,6 @@
 
 pyturbo: convertfort10 related classes and methods
 
-Todo:
-    * refactoring assert sentences. The assert should not be used for any on-the-fly check.
-    * implementing __str__ method.
-    * implementing sanity_check method.
-
 """
 
 # python modules
@@ -92,7 +87,7 @@ class Convertfort10(FortranIO):
         self,
         input_name: str = "convertfort10.input",
         output_name: str = "out_conv",
-    ):
+    ) -> None:
         """
         Run the command.
 
@@ -106,7 +101,7 @@ class Convertfort10(FortranIO):
             output_name=output_name,
         )
 
-    def check_results(self, output_names: Optional[list] = None) -> bool:
+    def check_results(self, output_names: Optional[list] = None) -> list:
         """
         Check the result.
 
@@ -144,9 +139,7 @@ class Convertfort10(FortranIO):
         convertfort10_default_file = os.path.join(
             pyturbo_data_dir, "convertfort10", "convertfort10.input"
         )
-        namelist = Namelist.parse_namelist_from_file(
-            convertfort10_default_file
-        )
+        namelist = Namelist.parse_namelist_from_file(convertfort10_default_file)
         # To be implemented
         # set ax,ay,az,nx,ny,nz, depending of fort.10s
         return namelist
@@ -177,12 +170,8 @@ class Convertfort10(FortranIO):
         Returns:
             cls: cls with default namelist values taken from the database
         """
-        namelist = cls.read_default_namelist(
-            in_fort10=in_fort10, out_fort10=out_fort10
-        )
-        return cls(
-            in_fort10=in_fort10, out_fort10=out_fort10, namelist=namelist
-        )
+        namelist = cls.read_default_namelist(in_fort10=in_fort10, out_fort10=out_fort10)
+        return cls(in_fort10=in_fort10, out_fort10=out_fort10, namelist=namelist)
 
     @classmethod
     def parse_from_file(
@@ -202,9 +191,7 @@ class Convertfort10(FortranIO):
             cls: cls with namelist values read from the specified file
         """
         namelist = Namelist.parse_namelist_from_file(file)
-        return cls(
-            in_fort10=in_fort10, out_fort10=out_fort10, namelist=namelist
-        )
+        return cls(in_fort10=in_fort10, out_fort10=out_fort10, namelist=namelist)
 
 
 if __name__ == "__main__":
@@ -212,9 +199,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

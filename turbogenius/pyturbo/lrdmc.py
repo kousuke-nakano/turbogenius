@@ -5,13 +5,6 @@
 
 pyturbo: lrdmc related classes and methods
 
-Todo:
-    * docstrings are not completed.
-    * refactoring assert sentences. The assert should not be used \
-        for any on-the-fly check.
-    * implementing __str__ method.
-    * implementing sanity_check method.
-
 """
 
 # python modules
@@ -87,9 +80,7 @@ class LRDMC(FortranIO):
             parameter="yes_kpoints", value=".true.", namelist="&parameters"
         )
         # self.namelist.set_parameter(parameter="yeswrite10", value=".true.", namelist="&optimization")
-        self.namelist.set_parameter(
-            parameter="kp_type", value=2, namelist="&kpoints"
-        )
+        self.namelist.set_parameter(parameter="kp_type", value=2, namelist="&kpoints")
         self.namelist.set_parameter(
             parameter="nk1", value=len(kpoints_up), namelist="&kpoints"
         )
@@ -116,8 +107,7 @@ class LRDMC(FortranIO):
             with open(input_name, "r") as f:
                 lines = f.readlines()
             kpoint_index = [
-                True if re.match(r".*&kpoints.*", line) else False
-                for line in lines
+                True if re.match(r".*&kpoints.*", line) else False for line in lines
             ].index(True)
             insert_lineno = -1
             for i, line in enumerate(lines[kpoint_index + 1 :]):
@@ -162,17 +152,13 @@ class LRDMC(FortranIO):
             file_check(output_name)
             with open(output_name, "r") as f:
                 lines = f.readlines()
-            if any(
-                [re.match(r".*TurboRVB.*profiling.*", line) for line in lines]
-            ):
+            if any([re.match(r".*TurboRVB.*profiling.*", line) for line in lines]):
                 flags.append(True)
             else:
                 flags.append(False)
         return flags
 
-    def get_estimated_time_for_1_generation(
-        self, output_names: Optional[list] = None
-    ):
+    def get_estimated_time_for_1_generation(self, output_names: Optional[list] = None):
         if output_names is None:
             output_names = ["out_fn"]
 
@@ -187,15 +173,11 @@ class LRDMC(FortranIO):
                 [
                     i.split()[5]
                     for i in out_min
-                    if re.match(
-                        r".*Average.*time.*for.*1000.*generations.*", i
-                    )
+                    if re.match(r".*Average.*time.*for.*1000.*generations.*", i)
                 ],
             )
         )
-        ave_time_1_generation = (
-            np.mean(np.array(ave_time_1000_generations)) / 1000
-        )
+        ave_time_1_generation = np.mean(np.array(ave_time_1000_generations)) / 1000
 
         return ave_time_1_generation  # sec.
 
@@ -289,37 +271,23 @@ class LRDMC(FortranIO):
         )
 
         for num_force in range(fort10.f10forceconstraint.ieskinr):
-            constraint_num = fort10.f10forceconstraint.constraint_num[
-                num_force
-            ]
+            constraint_num = fort10.f10forceconstraint.constraint_num[num_force]
 
             # reading force from force_fn.dat
             if self.twist_average:  # with k point
                 force_element = float(force_dat[num_force].split()[5])
-                force_element_error_bar = float(
-                    force_dat[num_force].split()[7]
-                )
+                force_element_error_bar = float(force_dat[num_force].split()[7])
             else:  # gamma point
                 # since the number of intervals depends on compiler...
                 start_index = force_dat.index(
-                    [
-                        s
-                        for s in force_dat
-                        if re.match(".*Force component.*", s)
-                    ][0]
+                    [s for s in force_dat if re.match(".*Force component.*", s)][0]
                 )
                 end_index = force_dat.index(
-                    [
-                        s
-                        for s in force_dat
-                        if re.match(".*<OH>.*-.*<O><H>.*", s)
-                    ][0]
+                    [s for s in force_dat if re.match(".*<OH>.*-.*<O><H>.*", s)][0]
                 )
                 interval = end_index - start_index + 1
 
-                force_element = float(
-                    force_dat[1 + interval * num_force].split()[2]
-                )
+                force_element = float(force_dat[1 + interval * num_force].split()[2])
                 force_element_error_bar = float(
                     force_dat[1 + interval * num_force].split()[3]
                 )
@@ -334,9 +302,7 @@ class LRDMC(FortranIO):
             # check if the selected sym element list includes minus signs.
             nindex_list = [
                 i
-                for i, x in enumerate(
-                    fort10.f10forceconstraint.constraint_index
-                )
+                for i, x in enumerate(fort10.f10forceconstraint.constraint_index)
                 if x == num_force
             ]
 
@@ -350,9 +316,7 @@ class LRDMC(FortranIO):
                 else:
                     pass
 
-                force_matrix[
-                    np.abs(atom_label) - 1, direction - 1
-                ] = force_element
+                force_matrix[np.abs(atom_label) - 1, direction - 1] = force_element
                 force_matrix_error_bar[
                     np.abs(atom_label) - 1, direction - 1
                 ] = force_element_error_bar
@@ -394,9 +358,7 @@ class LRDMC(FortranIO):
 
     @staticmethod
     def read_default_namelist():
-        lrdmc_default_file = os.path.join(
-            pyturbo_data_dir, "lrdmc", "datasfn.input"
-        )
+        lrdmc_default_file = os.path.join(pyturbo_data_dir, "lrdmc", "datasfn.input")
         namelist = Namelist.parse_namelist_from_file(lrdmc_default_file)
         return namelist
 
@@ -410,9 +372,7 @@ class LRDMC(FortranIO):
         cls, in_fort10: str = "fort.10", twist_average: bool = False
     ):
         namelist = cls.read_default_namelist()
-        return cls(
-            in_fort10=in_fort10, namelist=namelist, twist_average=twist_average
-        )
+        return cls(in_fort10=in_fort10, namelist=namelist, twist_average=twist_average)
 
     @classmethod
     def parse_from_file(
@@ -420,9 +380,7 @@ class LRDMC(FortranIO):
     ):
         namelist = Namelist.parse_namelist_from_file(file)
         logger.debug("parse from file, lrdmc.py")
-        return cls(
-            in_fort10=in_fort10, namelist=namelist, twist_average=twist_average
-        )
+        return cls(in_fort10=in_fort10, namelist=namelist, twist_average=twist_average)
 
 
 if __name__ == "__main__":
@@ -430,9 +388,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

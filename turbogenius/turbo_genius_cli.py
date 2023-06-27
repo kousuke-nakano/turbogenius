@@ -1564,7 +1564,7 @@ def convertwf(
     number_of_additional_hybrid_orbitals = list(map(int, hybrid_orbitals))
 
     wavefunction = Wavefunction()
-    wavefunction.from_fort10(fort10="fort.10")
+    wavefunction.read_from_fort10(fort10="fort.10")
 
     if to_ansatz == "agps":
         logger.info("convert the wf to agps")

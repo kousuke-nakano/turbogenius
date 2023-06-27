@@ -81,8 +81,8 @@ class ccECP:
             element = str(p.parent.parent.name)
             typ = str(p.parent.name)
             typ_core = typ.replace("ccECP", "")
-            logger.info(typ)
-            logger.info(typ_core)
+            logger.debug(typ)
+            logger.debug(typ_core)
             # element_path = p.parent.parent
 
             typ = str(p.parent.name)
@@ -103,7 +103,7 @@ class ccECP:
                         if basis_list is not None:
                             if basis_name not in basis_list:
                                 continue
-                        logger.info(element)
+                        logger.debug(element)
                         name = f"{basis_name}{typ_core}.basis"
                         with open(r, "r") as fhandle:
                             with open(
@@ -129,14 +129,14 @@ class ccECP:
                 element = str(p.parent.parent.name)
                 typ = str(p.parent.name)
                 typ_core = typ.replace("ccECP", "")
-                logger.info(typ)
-                logger.info(typ_core)
+                logger.debug(typ)
+                logger.debug(typ_core)
 
                 if element_list is not None:
                     if element not in element_list:
                         continue
-                logger.info(p.name)
-                logger.info(p.name.replace(".ccECP.gamess", ""))
+                logger.debug(p.name)
+                logger.debug(p.name.replace(".ccECP.gamess", ""))
                 with open(p, "r") as fhandle:
                     with open(
                         os.path.join(
@@ -148,9 +148,7 @@ class ccECP:
                         fhandle_out.write(fhandle.read())
 
     def all_to_file(self, sleep_time: float = 1):
-        self.to_file(
-            element_list=chemical_symbols, basis_list=self.list_of_basis_all
-        )
+        self.to_file(element_list=chemical_symbols, basis_list=self.list_of_basis_all)
 
 
 class BSE:
@@ -194,16 +192,12 @@ class BSE:
                 if m:
                     bas = m.group(1)
                     with open(
-                        os.path.join(
-                            self.basis_sets_output_dir, f"{e}_{b}.basis"
-                        ),
+                        os.path.join(self.basis_sets_output_dir, f"{e}_{b}.basis"),
                         "w",
                     ) as fhandle:
                         fhandle.write(bas)
             except KeyError:
-                logger.debug(
-                    f"element={e}, basis={b} do not exist in the database."
-                )
+                logger.debug(f"element={e}, basis={b} do not exist in the database.")
 
     def all_to_file(self, sleep_time: float = 1):
         self.to_file(
@@ -260,14 +254,10 @@ class BFD:
                     if self.ecp_output_dir is not None:
                         flag_downloaded = (
                             os.path.isfile(
-                                os.path.join(
-                                    self.ecp_output_dir, f"{e}_BFD.pseudo"
-                                )
+                                os.path.join(self.ecp_output_dir, f"{e}_BFD.pseudo")
                             )
                             or os.path.isfile(
-                                os.path.join(
-                                    self.ecp_output_dir, f"{e}_BFD.NaN"
-                                )
+                                os.path.join(self.ecp_output_dir, f"{e}_BFD.NaN")
                             )
                         ) and (
                             os.path.isfile(
@@ -277,27 +267,19 @@ class BFD:
                                 )
                             )
                             or os.path.isfile(
-                                os.path.join(
-                                    self.basis_sets_output_dir, f"{e}_{b}.NaN"
-                                )
+                                os.path.join(self.basis_sets_output_dir, f"{e}_{b}.NaN")
                             )
                         )
                     else:
                         flag_downloaded = os.path.isfile(
-                            os.path.join(
-                                self.basis_sets_output_dir, f"{e}_{b}.basis"
-                            )
+                            os.path.join(self.basis_sets_output_dir, f"{e}_{b}.basis")
                         ) or os.path.isfile(
-                            os.path.join(
-                                self.basis_sets_output_dir, f"{e}_{b}.NaN"
-                            )
+                            os.path.join(self.basis_sets_output_dir, f"{e}_{b}.NaN")
                         )
                 else:
                     if self.ecp_output_dir is not None:
                         flag_downloaded = os.path.isfile(
-                            os.path.join(
-                                self.ecp_output_dir, f"{e}_BFD.pseudo"
-                            )
+                            os.path.join(self.ecp_output_dir, f"{e}_BFD.pseudo")
                         ) or os.path.isfile(
                             os.path.join(self.ecp_output_dir, f"{e}_BFD.NaN")
                         )
@@ -326,17 +308,13 @@ class BFD:
                     m = pat.match(x)
                     if m:
                         bas = m.group(1)
-                        bas = "\n".join(
-                            [i for i in bas.split("\n")[1:]]
-                        ).rstrip(
+                        bas = "\n".join([i for i in bas.split("\n")[1:]]).rstrip(
                             "\n"
                         )  # remove the first line.
                         ecp = m.group(2)  # ECP is OK.
                         if self.ecp_output_dir is not None:
                             with open(
-                                os.path.join(
-                                    self.ecp_output_dir, f"{e}_BFD.pseudo"
-                                ),
+                                os.path.join(self.ecp_output_dir, f"{e}_BFD.pseudo"),
                                 "w",
                             ) as fo:
                                 # logger.info(f"ecp -> {os.path.join(self.ecp_output_dir, f'{e}_BFD.pseudo')}")
@@ -368,9 +346,7 @@ class BFD:
                         ) as fo:
                             fo.write("NA in database")
                         with open(
-                            os.path.join(
-                                self.basis_sets_output_dir, f"{e}_{b}.NaN"
-                            ),
+                            os.path.join(self.basis_sets_output_dir, f"{e}_{b}.NaN"),
                             "w",
                         ) as fo:
                             fo.write("NA in database")
@@ -393,9 +369,7 @@ if __name__ == "__main__":
     logger.setLevel("DEBUG")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

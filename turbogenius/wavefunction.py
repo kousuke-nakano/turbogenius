@@ -221,7 +221,7 @@ class Wavefunction:
         # check if the wf is polarized or not.
         if self.io_fort10.f10header.nelup == self.io_fort10.f10header.neldn:
             logger.info("non-spin polarized case")
-            self.io_fort10.to_agp(
+            self.to_agp(
                 triplet=True,
                 pfaffian_flag=True,
                 grid_size=grid_size,

@@ -38,13 +38,15 @@ class Convertpfaff_genius(GeniusIO):
         in_fort10: str = "fort.10_in",
         out_fort10: str = "fort.10_out",
     ):
-
         self.in_fort10 = in_fort10
         self.out_fort10 = out_fort10
 
         self.convertpfaff = Convertpfaff.parse_from_default_namelist(
             in_fort10=in_fort10, out_fort10=out_fort10
         )
+
+    def generate_input(self):
+        pass
 
     def run_all(
         self,
@@ -117,9 +119,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

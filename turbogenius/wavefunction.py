@@ -541,10 +541,10 @@ class Wavefunction:
             shutil.copy("fort.10_in", "fort.10_new")
             copy_jastrow(fort10_to="fort.10", fort10_from="fort.10_new")
 
-        if clean_flag:
-            os.remove("fort.10_new")
-            os.remove("fort.10_in")
-            os.remove("fort.10_out")
+            if clean_flag:
+                os.remove("fort.10_new")
+                os.remove("fort.10_in")
+                os.remove("fort.10_out")
 
     def add_MOs(
         self,

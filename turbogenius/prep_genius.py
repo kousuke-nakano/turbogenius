@@ -136,42 +136,22 @@ class DFT_genius(GeniusIO):
 
         # set L_box
         if io_fort10.f10structure.pbc_flag:
-            self.prep.set_parameter(
-                parameter="nx", value=self.nx, namelist="&molecul"
-            )
-            self.prep.set_parameter(
-                parameter="ny", value=self.ny, namelist="&molecul"
-            )
-            self.prep.set_parameter(
-                parameter="nz", value=self.nz, namelist="&molecul"
-            )
+            self.prep.set_parameter(parameter="nx", value=self.nx, namelist="&molecul")
+            self.prep.set_parameter(parameter="ny", value=self.ny, namelist="&molecul")
+            self.prep.set_parameter(parameter="nz", value=self.nz, namelist="&molecul")
             self.prep.comment_out(parameter="ax")
             self.prep.comment_out(parameter="ay")
             self.prep.comment_out(parameter="az")
         else:
-            self.prep.set_parameter(
-                parameter="ax", value=self.ax, namelist="&molecul"
-            )
-            self.prep.set_parameter(
-                parameter="ay", value=self.ay, namelist="&molecul"
-            )
-            self.prep.set_parameter(
-                parameter="az", value=self.az, namelist="&molecul"
-            )
-            self.prep.set_parameter(
-                parameter="nx", value=self.nx, namelist="&molecul"
-            )
-            self.prep.set_parameter(
-                parameter="ny", value=self.ny, namelist="&molecul"
-            )
-            self.prep.set_parameter(
-                parameter="nz", value=self.nz, namelist="&molecul"
-            )
+            self.prep.set_parameter(parameter="ax", value=self.ax, namelist="&molecul")
+            self.prep.set_parameter(parameter="ay", value=self.ay, namelist="&molecul")
+            self.prep.set_parameter(parameter="az", value=self.az, namelist="&molecul")
+            self.prep.set_parameter(parameter="nx", value=self.nx, namelist="&molecul")
+            self.prep.set_parameter(parameter="ny", value=self.ny, namelist="&molecul")
+            self.prep.set_parameter(parameter="nz", value=self.nz, namelist="&molecul")
 
         # pseudo integration
-        self.prep.set_parameter(
-            parameter="npsamax", value=4, namelist="&pseudo"
-        )
+        self.prep.set_parameter(parameter="npsamax", value=4, namelist="&pseudo")
 
         # &dft part
 
@@ -188,13 +168,9 @@ class DFT_genius(GeniusIO):
         # xc
         assert self.xc in {"lda", "lsda"}
         if self.xc == "lda":
-            self.prep.set_parameter(
-                parameter="typedft", value=1, namelist="&dft"
-            )
+            self.prep.set_parameter(parameter="typedft", value=1, namelist="&dft")
         elif self.xc == "lsda":
-            self.prep.set_parameter(
-                parameter="typedft", value=4, namelist="&dft"
-            )
+            self.prep.set_parameter(parameter="typedft", value=4, namelist="&dft")
         else:
             logger.error(f"self.xc ={self.xc} is not implemented in TurboRVB.")
             raise NotImplementedError
@@ -210,20 +186,14 @@ class DFT_genius(GeniusIO):
             )
 
         # maxit
-        self.prep.set_parameter(
-            parameter="maxit", value=self.maxit, namelist="&dft"
-        )
+        self.prep.set_parameter(parameter="maxit", value=self.maxit, namelist="&dft")
 
         # dft convergence thr
-        self.prep.set_parameter(
-            parameter="epsdft", value=self.epsdft, namelist="&dft"
-        )
+        self.prep.set_parameter(parameter="epsdft", value=self.epsdft, namelist="&dft")
 
         # smearing!
         if self.smearing == 0.0:
-            self.prep.set_parameter(
-                parameter="optocc", value=0, namelist="&dft"
-            )
+            self.prep.set_parameter(parameter="optocc", value=0, namelist="&dft")
             self.prep.set_parameter(
                 parameter="epsshell", value=self.smearing, namelist="&dft"
             )
@@ -258,9 +228,7 @@ class DFT_genius(GeniusIO):
                 self.prep.neloccdn_list = neloccdn_list
 
         else:
-            self.prep.set_parameter(
-                parameter="optocc", value=1, namelist="&dft"
-            )
+            self.prep.set_parameter(parameter="optocc", value=1, namelist="&dft")
             self.prep.set_parameter(
                 parameter="epsshell", value=self.smearing, namelist="&dft"
             )
@@ -275,25 +243,16 @@ class DFT_genius(GeniusIO):
             self.prep.set_parameter(
                 parameter="h_field", value=self.h_field, namelist="&dft"
             )
-            self.prep.set_parameter(
-                parameter="nxs", value=self.nxs, namelist="&dft"
-            )
-            self.prep.set_parameter(
-                parameter="nys", value=self.nys, namelist="&dft"
-            )
-            self.prep.set_parameter(
-                parameter="nzs", value=self.nzs, namelist="&dft"
-            )
+            self.prep.set_parameter(parameter="nxs", value=self.nxs, namelist="&dft")
+            self.prep.set_parameter(parameter="nys", value=self.nys, namelist="&dft")
+            self.prep.set_parameter(parameter="nzs", value=self.nzs, namelist="&dft")
 
             assert len(self.magnetic_moment_list) == io_fort10.f10header.natom
 
-            self.prep.magnetic_moments_3d_array = (
-                self.get_mangetic_moments_3d_array()
-            )
+            self.prep.magnetic_moments_3d_array = self.get_mangetic_moments_3d_array()
 
         # kpoints
         if self.twist_average:  # not 0 (= not False)!!
-
             if (
                 self.independent_kpoints
             ):  # True case, independent k calculation, i.e., decoupled_run = True, in Turbo.
@@ -325,24 +284,12 @@ class DFT_genius(GeniusIO):
                 self.prep.set_parameter(
                     parameter="kp_type", value=1, namelist="&kpoints"
                 )
-                self.prep.set_parameter(
-                    parameter="nk1", value=nkx, namelist="&kpoints"
-                )
-                self.prep.set_parameter(
-                    parameter="nk2", value=nky, namelist="&kpoints"
-                )
-                self.prep.set_parameter(
-                    parameter="nk3", value=nkz, namelist="&kpoints"
-                )
-                self.prep.set_parameter(
-                    parameter="k1", value=kx, namelist="&kpoints"
-                )
-                self.prep.set_parameter(
-                    parameter="k2", value=ky, namelist="&kpoints"
-                )
-                self.prep.set_parameter(
-                    parameter="k3", value=kz, namelist="&kpoints"
-                )
+                self.prep.set_parameter(parameter="nk1", value=nkx, namelist="&kpoints")
+                self.prep.set_parameter(parameter="nk2", value=nky, namelist="&kpoints")
+                self.prep.set_parameter(parameter="nk3", value=nkz, namelist="&kpoints")
+                self.prep.set_parameter(parameter="k1", value=kx, namelist="&kpoints")
+                self.prep.set_parameter(parameter="k2", value=ky, namelist="&kpoints")
+                self.prep.set_parameter(parameter="k3", value=kz, namelist="&kpoints")
                 self.prep.set_parameter(
                     parameter="skip_equivalence",
                     value=".true.",
@@ -463,7 +410,7 @@ class DFT_genius(GeniusIO):
 
         io_fort10 = IO_fort10(self.fort10)
 
-        if io_fort10.f10structure.ortho_flag:
+        if not io_fort10.f10structure.ortho_flag:
             logger.error(
                 "Sorry, set magnetic moment is not implemented for a non-orthorhombic case."
             )
@@ -595,25 +542,19 @@ class DFT_genius(GeniusIO):
                             # return 1
                             logger.debug("inside radius!! sys.exit()")
                             # sys.exit()
-                            magnetic_moment_list.append(
-                                self.magnetic_moment_list[num]
-                            )
+                            magnetic_moment_list.append(self.magnetic_moment_list[num])
 
                     # check if unique!!
                     # if not, it means that the same grid belongs to more than two atoms with diffeerent moments.
                     # try increase the mesh_factor (i.e., larger nxs, nyx, and nyz)
                     if len(set(magnetic_moment_list)) == 0:
-                        mangnetic_moments_3d_array[
-                            z_index, y_index, x_index
-                        ] = 0
+                        mangnetic_moments_3d_array[z_index, y_index, x_index] = 0
                     elif len(set(magnetic_moment_list)) == 1:
                         mangnetic_moments_3d_array[
                             z_index, y_index, x_index
                         ] = magnetic_moment_list[0]
                     else:
-                        logger.error(
-                            "the same grid belongs to more than two atoms."
-                        )
+                        logger.error("the same grid belongs to more than two atoms.")
                         logger.error("try increase nx, ny, and nz)")
                         raise ValueError
 
@@ -628,9 +569,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

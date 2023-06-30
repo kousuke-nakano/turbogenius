@@ -134,9 +134,7 @@ def turbo_prim_orb_type_num(orb_type_chr):
         return 73
     else:
         logger.error(f"orb_type_chr={orb_type_chr} is not implemented.")
-        raise NotImplementedError(
-            f"Not implemented orb_type_chr={orb_type_chr}"
-        )
+        raise NotImplementedError(f"Not implemented orb_type_chr={orb_type_chr}")
 
 
 def turbo_cont_orb_type_num(orb_type_chr):
@@ -156,9 +154,7 @@ def turbo_cont_orb_type_num(orb_type_chr):
         return 900
     else:
         logger.error(f"orb_type_chr={orb_type_chr} is not implemented.")
-        raise NotImplementedError(
-            f"Not implemented orb_type_chr={orb_type_chr}"
-        )
+        raise NotImplementedError(f"Not implemented orb_type_chr={orb_type_chr}")
 
 
 def return_ang_mom(orb_typ_chr):
@@ -178,9 +174,7 @@ def return_ang_mom(orb_typ_chr):
         return 6
     else:
         logger.error(f"orb_type={orb_typ_chr} is not implemented.")
-        raise NotImplementedError(
-            f"orb_type={orb_typ_chr} is not implemented."
-        )
+        raise NotImplementedError(f"orb_type={orb_typ_chr} is not implemented.")
 
 
 def return_orbchr(ang_mom):
@@ -238,10 +232,10 @@ def return_contraction_flag(orb_type_num):
 
 
 def return_num_twobody_and_flag_onebody(jastrow_type):
-    if jastrow_type in {-15, -22, -26}:
+    if jastrow_type in {-15, -22}:
         num_twobody = 1
         flag_onebody = True
-    elif jastrow_type in {-27}:
+    elif jastrow_type in {-26, -27}:
         num_twobody = 2
         flag_onebody = True
     elif jastrow_type in {-5, -6}:
@@ -251,9 +245,7 @@ def return_num_twobody_and_flag_onebody(jastrow_type):
         num_twobody = 0
         flag_onebody = False
     else:
-        raise NotImplementedError(
-            f"Jastrow = {jastrow_type} is not implemented."
-        )
+        raise NotImplementedError(f"Jastrow = {jastrow_type} is not implemented.")
 
     return num_twobody, flag_onebody
 
@@ -275,9 +267,7 @@ def pysed_replace(file, value, lineno, index, inplace=False):
     if platform.system() == "Darwin":
         if shutil.which("gsed") is None:
             logger.error("The BSD sed on MacOS is not supported.")
-            logger.error(
-                "Pls. install gsed via homebrew, i.e., brew install gnu-sed"
-            )
+            logger.error("Pls. install gsed via homebrew, i.e., brew install gnu-sed")
             raise NotImplementedError
         else:
             sed = "gsed"
@@ -313,13 +303,10 @@ def pysed_replace(file, value, lineno, index, inplace=False):
 def pysed_replace_lines(
     file, lineno_list, value_list, index_list, inplace=False, cmd_chunk_num=10
 ):
-
     if platform.system() == "Darwin":
         if shutil.which("gsed") is None:
             logger.error("The BSD sed on MacOS is not supported.")
-            logger.error(
-                "Pls. install gsed via homebrew, i.e., brew install gnu-sed"
-            )
+            logger.error("Pls. install gsed via homebrew, i.e., brew install gnu-sed")
             raise NotImplementedError
         else:
             sed = "gsed"
@@ -339,9 +326,7 @@ def pysed_replace_lines(
 
     counter = 0
     cmds = []
-    for value_list_l, index_list_l, lineno in zip(
-        value_list, index_list, lineno_list
-    ):
+    for value_list_l, index_list_l, lineno in zip(value_list, index_list, lineno_list):
         lineno += 1  # because, grep starts from 1, but python starts from 0
 
         cmds += [f"line=`{sed} -n {lineno}p {file}`"]
@@ -360,9 +345,7 @@ def pysed_replace_lines(
             replaced += f"${index+1}={value};"
             # index+1 # because, grep starts from 1,
             # but python starts from 0
-        cmds += [
-            f'line=`echo $line |  {awk} \'{{FS=" ";OFS=" "}}{{{replaced}}}1\'`'
-        ]
+        cmds += [f'line=`echo $line |  {awk} \'{{FS=" ";OFS=" "}}{{{replaced}}}1\'`']
         # """
 
         # without IOs -> ToDo avoid repating sed!!
@@ -398,7 +381,6 @@ def pygetline(
 
 
 def remove_new_parameter_lines_in_fort10():
-
     output_buffer = [
         "#!/bin/bash",
         "line_num_key=`grep 'new parameters' -n fort.10 | \
@@ -424,9 +406,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

@@ -13,14 +13,10 @@ Todo:
 # python modules
 import os
 import re
-from urllib.request import urlopen
 import git
 import tempfile
 import pathlib
 import itertools
-import time
-from tqdm import tqdm
-from tqdm.contrib import itertools as titertools
 from typing import Optional
 
 # pymatgen
@@ -208,9 +204,8 @@ class BSE:
 
 
 class BFD:
-    U = "http://burkatzki.com/pseudos/step4.2.php?format=gamess&element={e}&basis={b}"
+    C_URL = "https://github.com/TREX-CoE/BFD-ECP.git"
     list_of_basis_all = [f"v{s}z" for s in "dtq56"]
-    # list_of_basis_all += [f"{x}_ano" for x in list_of_basis_all]
 
     def __init__(
         self,
@@ -230,138 +225,56 @@ class BFD:
         self,
         element_list: Optional[list] = None,
         basis_list: Optional[list] = None,
-        sleep_time: float = 1.5,
     ):
         if element_list is None:
             element_list = []
         if basis_list is None:
             basis_list = []
-        if self.basis_sets_output_dir is None and self.ecp_output_dir is None:
-            return
         if self.basis_sets_output_dir is not None:
             os.makedirs(self.basis_sets_output_dir, exist_ok=True)
         if self.ecp_output_dir is not None:
             os.makedirs(self.ecp_output_dir, exist_ok=True)
-        if "X" in element_list:
-            element_list.remove("X")
-        with tqdm(titertools.product(element_list, basis_list)) as pbar:
-            for i, (e, b) in enumerate(pbar):
-                logger.debug(f"b={b:s}")
-                logger.debug(f"[BFD] e={e:s} b={b:s}")
 
-                # check already downloaded or not.
-                if self.basis_sets_output_dir is not None:
-                    if self.ecp_output_dir is not None:
-                        flag_downloaded = (
-                            os.path.isfile(
-                                os.path.join(self.ecp_output_dir, f"{e}_BFD.pseudo")
-                            )
-                            or os.path.isfile(
-                                os.path.join(self.ecp_output_dir, f"{e}_BFD.NaN")
-                            )
-                        ) and (
-                            os.path.isfile(
-                                os.path.join(
-                                    self.basis_sets_output_dir,
-                                    f"{e}_{b}.basis",
-                                )
-                            )
-                            or os.path.isfile(
-                                os.path.join(self.basis_sets_output_dir, f"{e}_{b}.NaN")
-                            )
-                        )
-                    else:
-                        flag_downloaded = os.path.isfile(
-                            os.path.join(self.basis_sets_output_dir, f"{e}_{b}.basis")
-                        ) or os.path.isfile(
-                            os.path.join(self.basis_sets_output_dir, f"{e}_{b}.NaN")
-                        )
-                else:
-                    if self.ecp_output_dir is not None:
-                        flag_downloaded = os.path.isfile(
-                            os.path.join(self.ecp_output_dir, f"{e}_BFD.pseudo")
-                        ) or os.path.isfile(
-                            os.path.join(self.ecp_output_dir, f"{e}_BFD.NaN")
-                        )
+        # clone the git repository.
+        tempdir = pathlib.Path(tempfile.mkdtemp())
+        git.Repo.clone_from(self.C_URL, tempdir)
 
-                    else:
-                        raise ValueError
-
-                if not flag_downloaded:
-                    logger.debug(f"b={b:s}")
-                    pbar.set_description(f"[BFD] e={e:s} b={b:s}")
-                    time.sleep(sleep_time)
-                    logger.debug(self.U.format(b=b, e=e))
-                    source = urlopen(self.U.format(b=b, e=e)).read()
-                    source = str(source)
-                    logger.debug(source)
-                    pat = re.compile("^.*?(" + e + "\s0.*$)", re.M | re.DOTALL)
-                    x = pat.sub("\g<1>", source)
-                    x = re.sub("\<br\s*/\>", "\n", x)
-                    x = re.sub("\&nbsp", "", x)
-                    x = re.sub("\&nbsp", "", x)
-                    x = re.sub(".*html.*$", "", x)
-                    pat = re.compile(
-                        "^.*?(" + e + "\s\d.*)(" + e + ".*QMC.*)$",
-                        re.M | re.DOTALL,
-                    )
-                    m = pat.match(x)
-                    if m:
-                        bas = m.group(1)
-                        bas = "\n".join([i for i in bas.split("\n")[1:]]).rstrip(
-                            "\n"
-                        )  # remove the first line.
-                        ecp = m.group(2)  # ECP is OK.
-                        if self.ecp_output_dir is not None:
-                            with open(
-                                os.path.join(self.ecp_output_dir, f"{e}_BFD.pseudo"),
-                                "w",
-                            ) as fo:
-                                # logger.info(f"ecp -> {os.path.join(self.ecp_output_dir, f'{e}_BFD.pseudo')}")
-                                fo.write(ecp)
-                        if self.basis_sets_output_dir is not None:
-                            if len(bas) > 15:
-                                with open(
-                                    os.path.join(
-                                        self.basis_sets_output_dir,
-                                        f"{e}_{b}.basis",
-                                    ),
-                                    "w",
-                                ) as fo:
-                                    # logger.info(f"basis -> {os.path.join(self.basis_sets_output_dir, f'{e}_{b}.basis')}")
-                                    fo.write(bas)
-                            else:
-                                with open(
-                                    os.path.join(
-                                        self.basis_sets_output_dir,
-                                        f"{e}_{b}.NaN",
-                                    ),
-                                    "w",
-                                ) as fo:
-                                    fo.write("NA in database")
-                    else:
+        # basis
+        for p in (tempdir / "BASIS" / "GAMESS").glob("*/*"):
+            if self.basis_sets_output_dir is None:
+                break
+            for element, basis in itertools.product(element_list, basis_list):
+                if re.match(element, str(p.name)) and re.match(
+                    basis, str(p.parent.name)
+                ):
+                    with open(p, "r") as fhandle:
                         with open(
-                            os.path.join(self.ecp_output_dir, f"{e}_BFD.NaN"),
+                            os.path.join(
+                                self.basis_sets_output_dir,
+                                str(p.name) + f"_{str(p.parent.name)}.basis",
+                            ),
                             "w",
-                        ) as fo:
-                            fo.write("NA in database")
-                        with open(
-                            os.path.join(self.basis_sets_output_dir, f"{e}_{b}.NaN"),
-                            "w",
-                        ) as fo:
-                            fo.write("NA in database")
-                else:
-                    logger.info(
-                        f"e={e:s} b={b:s} already downloaded or NaN in the database"
-                    )
+                        ) as fhandle_out:
+                            fhandle_out.write(fhandle.read())
 
-    def all_to_file(self, sleep_time: float = 1.5):
-        logger.debug(self.list_of_basis_all)
-        self.to_file(
-            basis_list=self.list_of_basis_all,
-            element_list=chemical_symbols,
-            sleep_time=sleep_time,
-        )
+        # ecp
+        for p in (tempdir / "ECP" / "GAMESS").glob("*"):
+            if self.ecp_output_dir is None:
+                break
+            for element in element_list:
+                if re.match(element, str(p.name)):
+                    with open(p, "r") as fhandle:
+                        with open(
+                            os.path.join(
+                                self.ecp_output_dir,
+                                str(p.name) + "_BFD.pseudo",
+                            ),
+                            "w",
+                        ) as fhandle_out:
+                            fhandle_out.write(fhandle.read())
+
+    def all_to_file(self, sleep_time: float = 1):
+        self.to_file(element_list=chemical_symbols, basis_list=self.list_of_basis_all)
 
 
 if __name__ == "__main__":

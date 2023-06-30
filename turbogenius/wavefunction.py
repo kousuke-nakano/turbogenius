@@ -395,6 +395,16 @@ class Wavefunction:
             logger.warning("WF file is not read yet! Please read a WF file first.")
             return
 
+        if os.path.isfile("fort.10_new"):
+            logger.warning("The existing fort.10_new is removed.")
+            os.remove("fort.10_new")
+        if os.path.isfile("fort.10_in"):
+            logger.warning("The existing fort.10_in is removed.")
+            os.remove("fort.10_in")
+        if os.path.isfile("fort.10_out"):
+            logger.warning("The existing fort.10_out is removed.")
+            os.remove("fort.10_out")
+
         shutil.copy(self.io_fort10.fort10, "fort.10_in")
 
         if pfaffian_flag:
@@ -413,20 +423,25 @@ class Wavefunction:
             logger.info("spin-depenedent jastrow is recommended.")
             if jastrow_type in {0}:
                 pass
+                jastrow_copy_flag = False
             elif jastrow_type in {-15}:
                 jastrow_type = -22
                 logger.info(f"jastrow_type is set to {jastrow_type}")
+                jastrow_copy_flag = False
             elif jastrow_type in {-5, -6}:
                 jastrow_type = -26
                 logger.info(f"jastrow_type is set to {jastrow_type}")
+                jastrow_copy_flag = False
             elif jastrow_type in {-22, -26, -27}:
-                pass
+                jastrow_copy_flag = True
             else:
                 logger.error(
                     f"jastrow_type = {jastrow_type} is not supported. only 0,-5,-6,-15,-22,-26,-27 are expected."
                 )
         else:
             logger.info("AGPs anstaz!!")
+            jastrow_copy_flag = True
+
         namelist = Makefort10.read_default_namelist(
             structure=structure, jastrow_type=jastrow_type
         )
@@ -539,7 +554,13 @@ class Wavefunction:
             shutil.move(self.io_fort10.fort10, "fort.10_bak")
             shutil.move("fort.10_new", "fort.10")
             shutil.copy("fort.10_in", "fort.10_new")
-            copy_jastrow(fort10_to="fort.10", fort10_from="fort.10_new")
+
+            if jastrow_copy_flag:
+                copy_jastrow(fort10_to="fort.10", fort10_from="fort.10_new")
+            else:
+                logger.warning(
+                    "Jastrow factors are initialized since the Jastrow types are imcompatible."
+                )
 
             if clean_flag:
                 os.remove("fort.10_new")
@@ -575,9 +596,10 @@ class Wavefunction:
             input_name="convertfort10mol.input", output_name="out_mol"
         )
 
+        shutil.move("fort.10", "fort.10_bak")
+        shutil.move("fort.10_new", "fort.10")
+
         if clean_flag:
-            remove_file("fort.10")
-            shutil.move("fort.10_new", "fort.10")
             remove_file("fort.10_in")
             remove_file("convertfort10.input")
             remove_file("out_conv")

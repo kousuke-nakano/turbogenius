@@ -46,6 +46,7 @@ class DFT_genius(GeniusIO):
          xc (str): Exchange correlation functionals, lda or lsda
          twist_average (bool): Twist average flag, True or False.
          independent_kpoints (bool): Independent kpoint calculation, True or False
+         thr_lindep (float) : inverse of the condition number of basis sets. prep cuts the redundancy.
          kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
     """
 
@@ -64,6 +65,7 @@ class DFT_genius(GeniusIO):
         xc: str = "lda",  # lda or lsda
         twist_average: bool = False,
         independent_kpoints: bool = False,
+        thr_lindep: float = 1.0e-13,
         kpoints: Optional[list] = None,
     ):
         if grid_size is None:
@@ -88,6 +90,7 @@ class DFT_genius(GeniusIO):
         self.xc = xc
         self.twist_average = twist_average
         self.independent_kpoints = independent_kpoints
+        self.thr_lindep = thr_lindep
         self.kpoints = kpoints
 
         io_fort10 = IO_fort10(self.fort10)
@@ -190,6 +193,11 @@ class DFT_genius(GeniusIO):
 
         # dft convergence thr
         self.prep.set_parameter(parameter="epsdft", value=self.epsdft, namelist="&dft")
+
+        # dft linear dependency
+        self.prep.set_parameter(
+            parameter="epsover", value=self.thr_lindep, namelist="&dft"
+        )
 
         # smearing!
         if self.smearing == 0.0:

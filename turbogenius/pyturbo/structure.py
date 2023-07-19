@@ -48,6 +48,12 @@ class Cell:
         if vec_c is None:
             vec_c = [0.0, 0.0, 0.0]  # bohr
 
+        if vec_a[1] > 1.0e-12 or vec_a[2] > 1.0e-10:
+            logger.error("The lattice vector a is not on the x axis.")
+            logger.error("TurboRVB assumes that vec_a = [a, 0.0, 0.0]")
+            logger.error("Please convert lattice vectors and structures.")
+            raise ValueError
+
         # cell vectors (the units are bohr)
         self.__vec_a = np.array(vec_a, dtype=float)
         self.__vec_b = np.array(vec_b, dtype=float)
@@ -76,7 +82,6 @@ class Cell:
             self.__celldm_6 = 0.0
 
         else:  # self.pbc_flag==True:
-
             # convert vec_x,y,z to celldm_1 - celldm_6
 
             # compute cos
@@ -189,7 +194,6 @@ class Cell:
     def parse_cell_from_celldm(
         cls, celldm_1, celldm_2, celldm_3, celldm_4, celldm_5, celldm_6
     ):
-
         # note! the definition of celldm 4-6 are different from QE
         alpha = celldm_4
         beta = celldm_5
@@ -220,10 +224,7 @@ class Cell:
                     c
                     * np.sqrt(
                         1
-                        + 2
-                        * math.cos(alpha)
-                        * math.cos(beta)
-                        * math.cos(gamma)
+                        + 2 * math.cos(alpha) * math.cos(beta) * math.cos(gamma)
                         - math.cos(alpha) ** 2
                         - math.cos(beta) ** 2
                         - math.cos(gamma) ** 2
@@ -242,7 +243,7 @@ class Structure:
         cell: Optional[Cell] = None,
         atomic_numbers: Optional[list] = None,
         element_symbols: Optional[list] = None,
-        positions: Optional[list] = None,  # 3 * N matrix, the unit is bohr!!
+        positions: Optional[np.ndarray] = None,  # 3 * N matrix, the unit is bohr!!
     ):
         if cell is None:
             cell = Cell()
@@ -331,6 +332,21 @@ class Structure:
             vec_a = ase_atom.get_cell()[0] * Angstrom
             vec_b = ase_atom.get_cell()[1] * Angstrom
             vec_c = ase_atom.get_cell()[2] * Angstrom
+
+            # check if vec_a is on the x axis; otherwise,
+            # they should be rorated.
+            if vec_a[1] > 1.0e-10 or vec_a[2] > 1.0e-10:
+                logger.warning("The lattice vector a is not on the x axis")
+                logger.warning(
+                    "TurboGenius rotates the lattice vectors and atomic positions."
+                )
+                # ase_atom is overwritten
+                vec_a__ = ase_atom.get_cell()[0]
+                ase_atom.rotate(a=vec_a__, v=(LA.norm(vec_a__), 0, 0), rotate_cell=True)
+                vec_a = ase_atom.get_cell()[0] * Angstrom
+                vec_b = ase_atom.get_cell()[1] * Angstrom
+                vec_c = ase_atom.get_cell()[2] * Angstrom
+
             cell = Cell(vec_a=vec_a, vec_b=vec_b, vec_c=vec_c)
         else:
             cell = Cell()
@@ -348,9 +364,7 @@ class Structure:
 
     @classmethod
     def parse_structure_from_file(cls, file):
-        logger.info(
-            f"Structure is read from {file} using the ASE read function."
-        )
+        logger.info(f"Structure is read from {file} using the ASE read function.")
         atoms = read(file)
         return cls.parse_structure_from_ase_atom(atoms)
 
@@ -364,9 +378,7 @@ if __name__ == "__main__":
     log.setLevel("DEBUG")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     log.addHandler(stream_handler)
 

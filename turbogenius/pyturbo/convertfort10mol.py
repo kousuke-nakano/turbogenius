@@ -41,7 +41,6 @@ class Convertfort10mol(FortranIO):
         in_fort10: str = "fort.10_in",
         namelist: Optional[Namelist] = None,
     ):
-
         if namelist is None:
             namelist = Namelist()
 
@@ -60,7 +59,7 @@ class Convertfort10mol(FortranIO):
 
     def sanity_check(self) -> None:
         """
-        Sanity check
+        Sanity check (to be implemented.)
 
         """
         pass

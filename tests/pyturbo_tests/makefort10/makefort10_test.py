@@ -9,7 +9,6 @@ from turbogenius.pyturbo.structure import Structure
 from turbogenius.pyturbo.pseudopotentials import Pseudopotentials
 from turbogenius.pyturbo.basis_set import Jas_Basis_sets, Det_Basis_sets
 from turbogenius.pyturbo.utils.downloader import BSE, BFD, ccECP
-from turbogenius.utils_workflows.env import turbo_genius_root
 
 root_dir = os.path.dirname(__file__)
 

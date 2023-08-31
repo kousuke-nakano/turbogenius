@@ -81,7 +81,6 @@ class Makefort10_genius(GeniusIO):
         same_phase_up_dn: bool = False,
         neldiff: int = 0,
     ):
-
         if supercell is None:
             supercell = [1, 1, 1]
         if phase_up is None:
@@ -134,13 +133,9 @@ class Makefort10_genius(GeniusIO):
         else:
             raise ValueError
 
-        def database_founder(
-            data_sets_list, element, data_choice, prefix="basis_set"
-        ):
+        def database_founder(data_sets_list, element, data_choice, prefix="basis_set"):
             if len(data_sets_list) == 0:
-                logger.error(
-                    f"The chosen {prefix} is not found in the database!!"
-                )
+                logger.error(f"The chosen {prefix} is not found in the database!!")
                 raise NotImplementedError
             elif len(data_sets_list) == 1:
                 data_set_found = data_sets_list[0]
@@ -231,10 +226,8 @@ class Makefort10_genius(GeniusIO):
                     )
                 det_basis_files.append(det_basis_chosen)
 
-            det_basis_sets = (
-                Det_Basis_sets.parse_basis_sets_from_gamess_format_files(
-                    files=det_basis_files
-                )
+            det_basis_sets = Det_Basis_sets.parse_basis_sets_from_gamess_format_files(
+                files=det_basis_files
             )
 
         elif isinstance(det_basis_set, list):
@@ -300,10 +293,8 @@ class Makefort10_genius(GeniusIO):
                         )
                 jas_basis_files.append(jas_basis_chosen)
 
-            jas_basis_sets = (
-                Jas_Basis_sets.parse_basis_sets_from_gamess_format_files(
-                    files=jas_basis_files
-                )
+            jas_basis_sets = Jas_Basis_sets.parse_basis_sets_from_gamess_format_files(
+                files=jas_basis_files
             )
 
         elif isinstance(jas_basis_set, list):
@@ -321,8 +312,10 @@ class Makefort10_genius(GeniusIO):
             pp_choice = {}
             for element in element_symbols_supercell:
                 pp_files.append(None)
-            pseudo_potentials = Pseudopotentials.parse_pseudopotential_from_gamess_format_files(
-                pp_files
+            pseudo_potentials = (
+                Pseudopotentials.parse_pseudopotential_from_gamess_format_files(
+                    pp_files
+                )
             )
 
         else:
@@ -349,13 +342,17 @@ class Makefort10_genius(GeniusIO):
                             prefix="pseudo_potential",
                         )
                     pp_files.append(pp_chosen)
-                pseudo_potentials = Pseudopotentials.parse_pseudopotential_from_gamess_format_files(
-                    pp_files
+                pseudo_potentials = (
+                    Pseudopotentials.parse_pseudopotential_from_gamess_format_files(
+                        pp_files
+                    )
                 )
 
             elif isinstance(pseudo_potential, list):
-                pseudo_potentials = Pseudopotentials.parse_pseudopotential_from_gamess_format_texts(
-                    texts=pseudo_potential
+                pseudo_potentials = (
+                    Pseudopotentials.parse_pseudopotential_from_gamess_format_texts(
+                        texts=pseudo_potential
+                    )
                 )
 
             else:
@@ -396,15 +393,11 @@ class Makefort10_genius(GeniusIO):
             # cut basis, jas_basis, according to max criteria, exponents > max (det part)
             for nuc, element in enumerate(structure.element_symbols):
                 # to be refactored!! Is this appropriate for the Jastrow part??
-                thr_exp = 4 * return_atomic_number(
-                    element
-                )  # not 8*Z**2 but 4*Z
+                thr_exp = 4 * return_atomic_number(element)  # not 8*Z**2 but 4*Z
                 jas_basis_sets.cut_orbitals(
                     thr_exp=thr_exp, nucleus_index=nuc, method="larger"
                 )
-                thr_angmom = jas_basis_sets.get_largest_angmom(
-                    nucleus_index=nuc
-                )
+                thr_angmom = jas_basis_sets.get_largest_angmom(nucleus_index=nuc)
                 jas_basis_sets.cut_orbitals(
                     thr_angmom=thr_angmom,
                     nucleus_index=nuc,
@@ -426,8 +419,8 @@ class Makefort10_genius(GeniusIO):
             if all(np.array(self.phase_up) == np.array([0, 0, 0])):
                 logger.info("phases up and dn are Gamma points")
                 if self.same_phase_up_dn:
-                    logger.warning("same_phase_up_dn has been set True.")
-                    logger.warning("forcesymm option will be activated.")
+                    logger.info("same_phase_up_dn has been set True.")
+                    logger.info("forcesymm option will be activated.")
                     namelist.set_parameter(
                         parameter="forcesymm",
                         value=".true.",
@@ -442,7 +435,7 @@ class Makefort10_genius(GeniusIO):
 
             else:
                 logger.info("phase up == phase dn")
-                logger.warning("forcesymm option will be activated.")
+                logger.info("forcesymm option will be activated.")
                 namelist.set_parameter(
                     parameter="forcesymm",
                     value=".true.",
@@ -451,15 +444,13 @@ class Makefort10_genius(GeniusIO):
 
         elif all(np.array(self.phase_up) == -1 * np.array(self.phase_dn)):
             logger.info("phase up == -1 * phase dn")
-            logger.warning("forcesymm option will be deactivated.")
+            logger.info("forcesymm option will be deactivated.")
             namelist.set_parameter(
                 parameter="forcesymm", value=".false.", namelist="&symmetries"
             )
 
         else:
-            logger.error(
-                "phase up is not equal to +1 * phase up and -1 * phase dn"
-            )
+            logger.error("phase up is not equal to +1 * phase up and -1 * phase dn")
             raise ValueError
 
         namelist.set_parameter(
@@ -574,9 +565,7 @@ if __name__ == "__main__":
     logger_p.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("INFO")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
     logger_p.addHandler(stream_handler)

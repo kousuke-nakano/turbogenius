@@ -53,49 +53,61 @@ else:
 if "TURBOMAKEFORT10_RUN_COMMAND" in os.environ:
     turbo_makefort10_run_command = os.environ["TURBOMAKEFORT10_RUN_COMMAND"]
 else:
-    turbo_makefort10_run_command = "makefort10.x"
+    turbo_makefort10_run_command = os.path.join(turborvb_bin_root, "makefort10.x")
 if "TURBOCONVERTFORT10_RUN_COMMAND" in os.environ:
     turbo_convertfort10_run_command = os.environ["TURBOCONVERTFORT10_RUN_COMMAND"]
 else:
-    turbo_convertfort10_run_command = "convertfort10-serial.x"
+    turbo_convertfort10_run_command = os.path.join(
+        turborvb_bin_root, "convertfort10-serial.x"
+    )
 if "TURBOCONVERTFORT10MOL_RUN_COMMAND" in os.environ:
     turbo_convertfort10mol_run_command = os.environ["TURBOCONVERTFORT10MOL_RUN_COMMAND"]
 else:
-    turbo_convertfort10mol_run_command = "convertfort10mol-serial.x"
+    turbo_convertfort10mol_run_command = os.path.join(
+        turborvb_bin_root, "convertfort10mol-serial.x"
+    )
 if "TURBOPREP_RUN_COMMAND" in os.environ:
     turbo_prep_run_command = os.environ["TURBOPREP_RUN_COMMAND"]
 else:
-    turbo_prep_run_command = "prep-serial.x"
+    turbo_prep_run_command = os.path.join(turborvb_bin_root, "prep-serial.x")
 if "TURBOREADFORWARD_RUN_COMMAND" in os.environ:
     turbo_readforward_run_command = os.environ["TURBOREADFORWARD_RUN_COMMAND"]
 else:
-    turbo_readforward_run_command = "readforward-serial.x"
+    turbo_readforward_run_command = os.path.join(
+        turborvb_bin_root, "readforward-serial.x"
+    )
 if "TURBOVMC_RUN_COMMAND" in os.environ:
     turbo_qmc_run_command = os.environ["TURBOVMC_RUN_COMMAND"]
 else:
-    turbo_qmc_run_command = "turborvb-serial.x"
+    turbo_qmc_run_command = os.path.join(turborvb_bin_root, "turborvb-serial.x")
 if "TURBOFORCEVMC_RUN_COMMAND" in os.environ:
     turbo_forcevmc_run_command = os.environ["TURBOFORCEVMC_RUN_COMMAND"]
 else:
-    turbo_forcevmc_run_command = "forcevmc.sh"
+    turbo_forcevmc_run_command = os.path.join(turborvb_bin_root, "forcevmc.sh")
 if "TURBOFORCEVMC_KPOINTS_RUN_COMMAND" in os.environ:
     turbo_forcevmc_kpoints_run_command = os.environ["TURBOFORCEVMC_KPOINTS_RUN_COMMAND"]
 else:
-    turbo_forcevmc_kpoints_run_command = "forcevmc_kpoints.sh"
+    turbo_forcevmc_kpoints_run_command = os.path.join(
+        turborvb_bin_root, "forcevmc_kpoints.sh"
+    )
 if "TURBOFORCEVMC_KPOINTS_PARA_RUN_COMMAND" in os.environ:
     turbo_forcevmc_kpoints_para_run_command = os.environ[
         "TURBOFORCEVMC_KPOINTS_PARA_RUN_COMMAND"
     ]
 else:
-    turbo_forcevmc_kpoints_para_run_command = "forcevmc_kpoints_parallel.sh"
+    turbo_forcevmc_kpoints_para_run_command = os.path.join(
+        turborvb_bin_root, "forcevmc_kpoints_parallel.sh"
+    )
 if "TURBOFORCEFN_RUN_COMMAND" in os.environ:
     turbo_forcefn_run_command = os.environ["TURBOFORCEFN_RUN_COMMAND"]
 else:
-    turbo_forcefn_run_command = "forcefn.sh"
+    turbo_forcefn_run_command = os.path.join(turborvb_bin_root, "forcefn.sh")
 if "TURBOFORCEFN_KPOINTS_RUN_COMMAND" in os.environ:
     turbo_forcefn_kpoints_run_command = os.environ["TURBOFORCEFN_KPOINTS_RUN_COMMAND"]
 else:
-    turbo_forcefn_kpoints_run_command = "forcefn_kpoints.sh"
+    turbo_forcefn_kpoints_run_command = os.path.join(
+        turborvb_bin_root, "forcefn_kpoints.sh"
+    )
 if "TURBOFORCEFN_KPOINTS_PARA_RUN_COMMAND" in os.environ:
     turbo_forcefn_kpoints_para_run_command = os.environ[
         "TURBOFORCEFN_KPOINTS_PARA_RUN_COMMAND"
@@ -105,8 +117,10 @@ else:
 if "TURBOCOPYJAS_RUN_COMMAND" in os.environ:
     turbo_copyjas_command = os.environ["TURBOCOPYJAS_RUN_COMMAND"]
 else:
-    turbo_copyjas_command = "copyjas.x"
+    turbo_copyjas_command = os.path.join(turborvb_bin_root, "copyjas.x")
 if "TURBOCONVERTPFAFF_RUN_COMMAND" in os.environ:
     turbo_convertfortpfaff_run_command = os.environ["TURBOCONVERTPFAFF_RUN_COMMAND"]
 else:
-    turbo_convertfortpfaff_run_command = "convertpfaff.x"
+    turbo_convertfortpfaff_run_command = os.path.join(
+        turborvb_bin_root, "convertpfaff.x"
+    )

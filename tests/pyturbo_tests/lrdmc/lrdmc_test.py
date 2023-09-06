@@ -6,6 +6,9 @@ import numpy as np
 # pyturbo modules
 from turbogenius.pyturbo.lrdmc import LRDMC
 
+root_dir = os.path.dirname(__file__)
+os.chdir(root_dir)
+
 namelist = LRDMC.read_default_namelist()
 namelist.set_parameter(parameter="ngen", value=500)
 namelist.set_parameter(parameter="alat", value=0.5)

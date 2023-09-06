@@ -8,6 +8,9 @@ import numpy as np
 from turbogenius.pyturbo.namelist import Namelist
 from turbogenius.pyturbo.vmc import VMC
 
+root_dir = os.path.dirname(__file__)
+os.chdir(root_dir)
+
 # VMC
 input_parameters = {
     "&simulation": {

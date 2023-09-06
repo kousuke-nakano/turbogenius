@@ -8,6 +8,9 @@ from ase.spacegroup import crystal
 from turbogenius.pyturbo.structure import Cell
 from turbogenius.pyturbo.structure import Structure
 
+root_dir = os.path.dirname(__file__)
+os.chdir(root_dir)
+
 # unit conversion
 ref_BOHR = 0.529177210903
 

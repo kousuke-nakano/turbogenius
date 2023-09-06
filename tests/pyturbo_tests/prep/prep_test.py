@@ -4,6 +4,9 @@ import os, sys
 import numpy as np
 from turbogenius.pyturbo.prep import Prep
 
+root_dir = os.path.dirname(__file__)
+os.chdir(root_dir)
+
 namelist = Prep.read_default_namelist()
 
 # open boundary condition

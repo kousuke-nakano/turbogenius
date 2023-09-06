@@ -11,6 +11,7 @@ from turbogenius.pyturbo.basis_set import Jas_Basis_sets, Det_Basis_sets
 from turbogenius.pyturbo.utils.downloader import BSE, BFD, ccECP
 
 root_dir = os.path.dirname(__file__)
+os.chdir(root_dir)
 
 # Hydrogen dimer, ccECP
 str_input = "H2.xyz"

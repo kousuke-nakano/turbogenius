@@ -9,6 +9,7 @@ from turbogenius.pyturbo.utils.downloader import BFD, ccECP
 
 # basis sets
 root_dir = os.path.dirname(__file__)
+os.chdir(root_dir)
 
 # BFD pseudo potential
 bfd = BFD(pseudo_potential_output_dir=root_dir)

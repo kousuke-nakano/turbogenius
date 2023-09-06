@@ -6,6 +6,9 @@ import shutil
 import numpy as np
 from turbogenius.pyturbo.vmcopt import VMCopt
 
+root_dir = os.path.dirname(__file__)
+os.chdir(root_dir)
+
 shutil.copyfile("fort.10_ori", "fort.10")
 namelist = VMCopt.read_default_namelist()
 vmcopt = VMCopt(

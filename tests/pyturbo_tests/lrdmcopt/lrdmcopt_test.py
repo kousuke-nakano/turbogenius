@@ -8,6 +8,9 @@ import numpy as np
 # pyturbo modules
 from turbogenius.pyturbo.lrdmcopt import LRDMCopt
 
+root_dir = os.path.dirname(__file__)
+os.chdir(root_dir)
+
 shutil.copyfile("fort.10_ori", "fort.10")
 namelist = LRDMCopt.read_default_namelist()
 namelist.set_parameter(parameter="ngen", value=500)

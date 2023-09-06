@@ -38,8 +38,8 @@
     !iread=2
 /
 &parameters
-    !iesd=1
-    !iesfree=1
+    iesd=0
+    iesfree=0
     iessw=1
     !iesup=1
     !iesm=1

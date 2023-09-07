@@ -12,6 +12,8 @@ root_dir = os.path.dirname(__file__)
 
 # VMC
 def test_vmc_genius_basic():
+    os.chdir(root_dir)
+
     # create a vmc_genius instance
     vmc_genius = VMC_genius(
         fort10="fort.10",  # WF file of the H2 dimer

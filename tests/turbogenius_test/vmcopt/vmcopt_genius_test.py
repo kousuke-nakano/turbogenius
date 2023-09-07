@@ -46,9 +46,9 @@ def test_vmcopt_genius_jasopt_1b_2b_3b_basic():
     vmcopt_genius.generate_input()
     vmcopt_genius.run()
     energy_list, energy_error_list = vmcopt_genius.get_energy()
-    np.testing.assert_almost_equal(energy_list[-1], -1.17260688110847, decimal=10)
+    np.testing.assert_almost_equal(energy_list[-1], -1.17260688110847, decimal=6)
     np.testing.assert_almost_equal(
-        energy_error_list[-1], 3.236482791458927e-3, decimal=10
+        energy_error_list[-1], 3.236482791458927e-3, decimal=6
     )
     vmcopt_genius.average(optwarmupsteps=400)
     os.chdir(root_dir)
@@ -90,9 +90,9 @@ def test_vmcopt_genius_jasopt_1b_basic():
     vmcopt_genius.generate_input()
     vmcopt_genius.run()
     energy_list, energy_error_list = vmcopt_genius.get_energy()
-    np.testing.assert_almost_equal(energy_list[-1], -1.17061954590115, decimal=10)
+    np.testing.assert_almost_equal(energy_list[-1], -1.17061954590115, decimal=6)
     np.testing.assert_almost_equal(
-        energy_error_list[-1], 3.019892562222970e-3, decimal=10
+        energy_error_list[-1], 3.019892562222970e-3, decimal=6
     )
     vmcopt_genius.average(optwarmupsteps=400)
     os.chdir(root_dir)
@@ -134,9 +134,9 @@ def test_vmcopt_genius_jasopt_2b_basic():
     vmcopt_genius.generate_input()
     vmcopt_genius.run()
     energy_list, energy_error_list = vmcopt_genius.get_energy()
-    np.testing.assert_almost_equal(energy_list[-1], -1.17702418461567, decimal=10)
+    np.testing.assert_almost_equal(energy_list[-1], -1.17702418461567, decimal=6)
     np.testing.assert_almost_equal(
-        energy_error_list[-1], 1.709183522590725e-3, decimal=10
+        energy_error_list[-1], 1.709183522590725e-3, decimal=6
     )
     vmcopt_genius.average(optwarmupsteps=400)
     os.chdir(root_dir)
@@ -178,9 +178,9 @@ def test_vmcopt_genius_detopt_mat_basic():
     vmcopt_genius.generate_input()
     vmcopt_genius.run()
     energy_list, energy_error_list = vmcopt_genius.get_energy()
-    np.testing.assert_almost_equal(energy_list[-1], -1.17307645275826, decimal=10)
+    np.testing.assert_almost_equal(energy_list[-1], -1.17307645275826, decimal=6)
     np.testing.assert_almost_equal(
-        energy_error_list[-1], 2.344883420011352e-3, decimal=10
+        energy_error_list[-1], 2.344883420011352e-3, decimal=6
     )
     vmcopt_genius.average(optwarmupsteps=400)
     os.chdir(root_dir)

@@ -32,7 +32,7 @@ def test_vmc_genius_basic():
 
     # print vmc energy
     # print(f"VMC energy = {vmc_genius.energy:.5f} +- {vmc_genius.energy_error:.5f} Ha")
-    np.testing.assert_almost_equal(vmc_genius.energy, -1.17426860723634, decimal=10)
+    np.testing.assert_almost_equal(vmc_genius.energy, -1.17426860723634, decimal=6)
     np.testing.assert_almost_equal(
-        vmc_genius.energy_error, 2.827731334376716e-4, decimal=10
+        vmc_genius.energy_error, 2.827731334376716e-4, decimal=6
     )

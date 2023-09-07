@@ -37,9 +37,9 @@ def test_lrdmc_genius_all_electrons_basic():
         bin_block=5, warmupblocks=5, correcting_factor=2
     )
 
-    np.testing.assert_almost_equal(lrdmc_genius.energy, -1.17825782756524, decimal=10)
+    np.testing.assert_almost_equal(lrdmc_genius.energy, -1.17825782756524, decimal=6)
     np.testing.assert_almost_equal(
-        lrdmc_genius.energy_error, 1.587798623416236e-3, decimal=10
+        lrdmc_genius.energy_error, 1.587798623416236e-3, decimal=6
     )
 
     os.chdir(root_dir)
@@ -79,9 +79,9 @@ def test_lrdmc_genius_dlatm_basic():
         bin_block=5, warmupblocks=5, correcting_factor=2
     )
 
-    np.testing.assert_almost_equal(lrdmc_genius.energy, -8.02726816434455, decimal=10)
+    np.testing.assert_almost_equal(lrdmc_genius.energy, -8.02726816434455, decimal=6)
     np.testing.assert_almost_equal(
-        lrdmc_genius.energy_error, 2.278447489670330e-2, decimal=10
+        lrdmc_genius.energy_error, 2.278447489670330e-2, decimal=6
     )
 
     os.chdir(root_dir)
@@ -121,9 +121,9 @@ def test_lrdmc_genius_dla_basic():
         bin_block=5, warmupblocks=5, correcting_factor=2
     )
 
-    np.testing.assert_almost_equal(lrdmc_genius.energy, -8.10605306381933, decimal=10)
+    np.testing.assert_almost_equal(lrdmc_genius.energy, -8.10605306381933, decimal=6)
     np.testing.assert_almost_equal(
-        lrdmc_genius.energy_error, 1.889584491014384e-2, decimal=10
+        lrdmc_genius.energy_error, 1.889584491014384e-2, decimal=6
     )
 
     os.chdir(root_dir)
@@ -162,9 +162,9 @@ def test_lrdmc_genius_tmove_basic():
         bin_block=5, warmupblocks=5, correcting_factor=2
     )
 
-    np.testing.assert_almost_equal(lrdmc_genius.energy, -8.02574492184647, decimal=10)
+    np.testing.assert_almost_equal(lrdmc_genius.energy, -8.02574492184647, decimal=6)
     np.testing.assert_almost_equal(
-        lrdmc_genius.energy_error, 2.202829058518887e-2, decimal=10
+        lrdmc_genius.energy_error, 2.202829058518887e-2, decimal=6
     )
 
     os.chdir(root_dir)

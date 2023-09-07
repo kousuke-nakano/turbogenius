@@ -18,6 +18,7 @@ from typing import Optional
 from logging import getLogger, StreamHandler, Formatter
 
 # turbogenius modules
+from turbogenius.pyturbo.io_fort10 import IO_fort10
 from turbogenius.pyturbo.lrdmc import LRDMC
 from turbogenius.utils_workflows.env import turbo_genius_root
 from turbogenius.utils_workflows.utility import get_nonlocalmoves_setting
@@ -87,22 +88,21 @@ class LRDMC_genius(GeniusIO):
                 parameter="nw", value=num_walkers, namelist="&simulation"
             )
 
-        self.lrdmc.set_parameter(
-            parameter="etry", value=etry, namelist="&dmclrdmc"
-        )
-        self.lrdmc.set_parameter(
-            parameter="alat", value=alat, namelist="&dmclrdmc"
-        )
+        self.lrdmc.set_parameter(parameter="etry", value=etry, namelist="&dmclrdmc")
+        self.lrdmc.set_parameter(parameter="alat", value=alat, namelist="&dmclrdmc")
         self.lrdmc.set_parameter(
             parameter="tbra", value=time_branching, namelist="&dmclrdmc"
         )
-        typereg, npow = get_nonlocalmoves_setting(nonlocalmoves=nonlocalmoves)
-        self.lrdmc.set_parameter(
-            parameter="typereg", value=typereg, namelist="&dmclrdmc"
-        )
-        self.lrdmc.set_parameter(
-            parameter="npow", value=npow, namelist="&dmclrdmc"
-        )
+        io_fort10 = IO_fort10(fort10=fort10)
+        if io_fort10.pp_flag:
+            typereg, npow = get_nonlocalmoves_setting(nonlocalmoves=nonlocalmoves)
+            self.lrdmc.set_parameter(
+                parameter="typereg", value=typereg, namelist="&dmclrdmc"
+            )
+            self.lrdmc.set_parameter(parameter="npow", value=npow, namelist="&dmclrdmc")
+        else:
+            self.lrdmc.comment_out(parameter="typereg")
+            self.lrdmc.comment_out(parameter="npow")
 
         # Do you want to compute forces?
         if not self.force_calc_flag:
@@ -112,9 +112,7 @@ class LRDMC_genius(GeniusIO):
                 parameter="ieskin", value=1, namelist="&parameters"
             )
             # to be arguments of the class
-            self.lrdmc.set_parameter(
-                parameter="parcutg", value=0, namelist="&dmclrdmc"
-            )
+            self.lrdmc.set_parameter(parameter="parcutg", value=0, namelist="&dmclrdmc")
             self.lrdmc.set_parameter(
                 parameter="true_wagner", value=1, namelist="&dmclrdmc"
             )
@@ -123,9 +121,7 @@ class LRDMC_genius(GeniusIO):
             )
 
         # pseudo integration
-        self.lrdmc.set_parameter(
-            parameter="npsamax", value=4, namelist="&pseudo"
-        )
+        self.lrdmc.set_parameter(parameter="npsamax", value=4, namelist="&pseudo")
 
         # kpoints
         if self.twist_average:  # not 0 (= not False)!!
@@ -150,15 +146,9 @@ class LRDMC_genius(GeniusIO):
                 self.lrdmc.set_parameter(
                     parameter="nk3", value=nkz, namelist="&kpoints"
                 )
-                self.lrdmc.set_parameter(
-                    parameter="k1", value=kx, namelist="&kpoints"
-                )
-                self.lrdmc.set_parameter(
-                    parameter="k2", value=ky, namelist="&kpoints"
-                )
-                self.lrdmc.set_parameter(
-                    parameter="k3", value=kz, namelist="&kpoints"
-                )
+                self.lrdmc.set_parameter(parameter="k1", value=kx, namelist="&kpoints")
+                self.lrdmc.set_parameter(parameter="k2", value=ky, namelist="&kpoints")
+                self.lrdmc.set_parameter(parameter="k3", value=kz, namelist="&kpoints")
                 self.lrdmc.set_parameter(
                     parameter="skip_equivalence",
                     value=".true.",
@@ -280,8 +270,8 @@ class LRDMC_genius(GeniusIO):
         """
         if output_names is None:
             output_names = ["out_fn"]
-        self.estimated_time_for_1_generation = (
-            self.get_estimated_time_for_1_generation(output_names=output_names)
+        self.estimated_time_for_1_generation = self.get_estimated_time_for_1_generation(
+            output_names=output_names
         )
         self.energy, self.energy_error = self.lrdmc.get_energy(
             init=warmupblocks,
@@ -327,9 +317,7 @@ class LRDMC_genius(GeniusIO):
         """
         if output_names is None:
             output_names = ["out_fn"]
-        return self.lrdmc.get_estimated_time_for_1_generation(
-            output_names=output_names
-        )
+        return self.lrdmc.get_estimated_time_for_1_generation(output_names=output_names)
 
     def check_results(self, output_names: Optional[list] = None) -> bool:
         """
@@ -350,9 +338,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("INFO")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

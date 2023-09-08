@@ -124,9 +124,9 @@ class Cell:
                 self.__celldm_1 = self.__norm_vec_a
                 self.__celldm_2 = self.__norm_vec_b / self.__celldm_1
                 self.__celldm_3 = self.__norm_vec_c / self.__celldm_1
-                self.__celldm_4 = 0.0
-                self.__celldm_5 = 0.0
-                self.__celldm_6 = 0.0
+                self.__celldm_4 = math.acos(self.__cos_alpha)
+                self.__celldm_5 = math.acos(self.__cos_beta)
+                self.__celldm_6 = math.acos(self.__cos_gamma)
 
     @property
     def vec_a(self):
@@ -192,12 +192,18 @@ class Cell:
 
     @classmethod
     def parse_cell_from_celldm(
-        cls, celldm_1, celldm_2, celldm_3, celldm_4, celldm_5, celldm_6
+        cls,
+        celldm_1: float = 0.0,
+        celldm_2: float = 0.0,
+        celldm_3: float = 0.0,
+        celldm_4: float = 0.0,
+        celldm_5: float = 0.0,
+        celldm_6: float = 0.0,
     ):
         # note! the definition of celldm 4-6 are different from QE
-        alpha = celldm_4
-        beta = celldm_5
-        gamma = celldm_6
+        alpha = celldm_4  # radian
+        beta = celldm_5  # radian
+        gamma = celldm_6  # radian
 
         if alpha == 0.0 and beta == 0.0 and gamma == 0.0:
             vec_a = np.array([celldm_1, 0.0, 0.0], dtype=float)
@@ -224,7 +230,10 @@ class Cell:
                     c
                     * np.sqrt(
                         1
-                        + 2 * math.cos(alpha) * math.cos(beta) * math.cos(gamma)
+                        + 2
+                        * math.cos(alpha)
+                        * math.cos(beta)
+                        * math.cos(gamma)
                         - math.cos(alpha) ** 2
                         - math.cos(beta) ** 2
                         - math.cos(gamma) ** 2
@@ -243,7 +252,9 @@ class Structure:
         cell: Optional[Cell] = None,
         atomic_numbers: Optional[list] = None,
         element_symbols: Optional[list] = None,
-        positions: Optional[np.ndarray] = None,  # 3 * N matrix, the unit is bohr!!
+        positions: Optional[
+            np.ndarray
+        ] = None,  # 3 * N matrix, the unit is bohr!!
     ):
         if cell is None:
             cell = Cell()
@@ -342,7 +353,9 @@ class Structure:
                 )
                 # ase_atom is overwritten
                 vec_a__ = ase_atom.get_cell()[0]
-                ase_atom.rotate(a=vec_a__, v=(LA.norm(vec_a__), 0, 0), rotate_cell=True)
+                ase_atom.rotate(
+                    a=vec_a__, v=(LA.norm(vec_a__), 0, 0), rotate_cell=True
+                )
                 vec_a = ase_atom.get_cell()[0] * Angstrom
                 vec_b = ase_atom.get_cell()[1] * Angstrom
                 vec_c = ase_atom.get_cell()[2] * Angstrom
@@ -364,7 +377,9 @@ class Structure:
 
     @classmethod
     def parse_structure_from_file(cls, file):
-        logger.info(f"Structure is read from {file} using the ASE read function.")
+        logger.info(
+            f"Structure is read from {file} using the ASE read function."
+        )
         atoms = read(file)
         return cls.parse_structure_from_ase_atom(atoms)
 
@@ -378,7 +393,9 @@ if __name__ == "__main__":
     log.setLevel("DEBUG")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
+    handler_format = Formatter(
+        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
+    )
     stream_handler.setFormatter(handler_format)
     log.addHandler(stream_handler)
 

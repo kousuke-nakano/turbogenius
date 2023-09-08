@@ -103,9 +103,7 @@ class Prep(FortranIO):
         self.namelist.set_parameter(
             parameter="yeswrite10", value=".true.", namelist="&optimization"
         )
-        self.namelist.set_parameter(
-            parameter="kp_type", value=2, namelist="&kpoints"
-        )
+        self.namelist.set_parameter(parameter="kp_type", value=2, namelist="&kpoints")
         self.namelist.set_parameter(
             parameter="nk1", value=len(kpoints_up), namelist="&kpoints"
         )
@@ -122,16 +120,13 @@ class Prep(FortranIO):
                 nys = self.namelist.get_parameter(parameter="nys")
                 nzs = self.namelist.get_parameter(parameter="nzs")
             except KeyError:
-                logger.error(
-                    "nxs, nys, or nzs are not correctly set in namelist!"
-                )
+                logger.error("nxs, nys, or nzs are not correctly set in namelist!")
                 raise KeyError
             assert matrix.ndim == 3
             assert matrix.shape == (nzs, nys, nxs)
         self.__magnetic_moments_3d_array = matrix
 
     def __str__(self):
-
         output = [
             "TurboRVB prep python wrapper",
         ]
@@ -159,8 +154,7 @@ class Prep(FortranIO):
             with open(input_name, "r") as f:
                 lines = f.readlines()
             kpoint_index = [
-                True if re.match(r".*&kpoints.*", line) else False
-                for line in lines
+                True if re.match(r".*&kpoints.*", line) else False for line in lines
             ].index(True)
             insert_lineno = -1
             for i, line in enumerate(lines[kpoint_index + 1 :]):
@@ -195,22 +189,16 @@ class Prep(FortranIO):
                 f.write(line)
         if len(self.neloccdn_list) != 0:
             with open(input_name, "a") as f:
-                line = (
-                    "\n" + " ".join(list(map(str, self.neloccdn_list))) + "\n"
-                )
+                line = "\n" + " ".join(list(map(str, self.neloccdn_list))) + "\n"
                 f.write(line)
         if len(self.magnetic_moments_3d_array) != 0:
             # write magnetic fields
-            logger.info(
-                "Writing magnetic moments at the end of prep.input file ... \n"
-            )
+            logger.info("Writing magnetic moments at the end of prep.input file ... \n")
             with open(input_name, "a") as f:
                 f.write("\n")
                 nzs = self.namelist.get_parameter(parameter="nzs")
                 for z_index in range(nzs):
-                    np.savetxt(
-                        f, self.magnetic_moments_3d_array[z_index, :, :], "%d"
-                    )
+                    np.savetxt(f, self.magnetic_moments_3d_array[z_index, :, :], "%d")
                     f.write("\n")
             logger.info("Magnetic moments written. \n")
         logger.info(f"{input_name} has been generated. \n")
@@ -246,9 +234,7 @@ class Prep(FortranIO):
 
     @staticmethod
     def read_default_namelist(in_fort10: str = "fort.10"):
-        prep_default_file = os.path.join(
-            pyturbo_data_dir, "prep", "prep.input"
-        )
+        prep_default_file = os.path.join(pyturbo_data_dir, "prep", "prep.input")
         namelist = Namelist.parse_namelist_from_file(prep_default_file)
 
         # fort.10
@@ -337,9 +323,7 @@ class Prep(FortranIO):
     @classmethod
     def parse_from_file(cls, file: str, in_fort10: str = "fort.10"):
         namelist = Namelist.parse_namelist_from_file(file)
-        logger.warning(
-            f"nelocc_list and neloccdn_list are not read from {file}"
-        )
+        logger.warning(f"nelocc_list and neloccdn_list are not read from {file}")
         logger.warning(f"magnetic_moments_3d_array is not read from {file}")
         logger.warning(f"KPOINTS is not read from {file}")
         return cls(in_fort10=in_fort10, namelist=namelist)
@@ -350,9 +334,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

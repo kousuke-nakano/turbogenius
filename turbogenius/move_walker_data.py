@@ -3,7 +3,8 @@
 
 """
 
-
+A utility to move walker data (positions and local energies)
+to TREXIO file.
 
 """
 

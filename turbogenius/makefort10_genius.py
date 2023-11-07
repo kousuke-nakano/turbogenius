@@ -59,6 +59,7 @@ class Makefort10_genius(GeniusIO):
          phase_dn (list): 3-float numbers for the dn-phase [x, y, z].
          same_phase_up_dn (bool): forced phase up == phase dn (valid only for gamma point.) it is automatically detected for other points.
          neldiff (int): The number of difference between up and dn electrons.
+         symmetry (bool): if false, nosym=.true., meaning that no symmetry is used.
     """
 
     def __init__(
@@ -80,6 +81,7 @@ class Makefort10_genius(GeniusIO):
         phase_dn: Optional[list] = None,
         same_phase_up_dn: bool = False,
         neldiff: int = 0,
+        symmetry: bool = True,
     ):
         if supercell is None:
             supercell = [1, 1, 1]
@@ -102,6 +104,7 @@ class Makefort10_genius(GeniusIO):
         self.phase_up = phase_up
         self.phase_dn = phase_dn
         self.same_phase_up_dn = same_phase_up_dn
+        self.symmetry = symmetry
 
         # makefort10 class
         structure = Structure.parse_structure_from_file(file=structure_file)
@@ -110,7 +113,8 @@ class Makefort10_genius(GeniusIO):
         )
 
         # set supercell size
-        assert len(self.supercell) == 3
+        if not len(self.supercell) == 3:
+            raise ValueError
         namelist.set_parameter(
             parameter="nxyz(1)", value=self.supercell[0], namelist="&system"
         )
@@ -452,6 +456,16 @@ class Makefort10_genius(GeniusIO):
         else:
             logger.error("phase up is not equal to +1 * phase up and -1 * phase dn")
             raise ValueError
+        
+        #symmetry
+        if self.symmetry:
+            namelist.set_parameter(
+                parameter="nosym", value=".false.", namelist="&symmetries"
+            )
+        else:
+            namelist.set_parameter(
+                parameter="nosym", value=".true.", namelist="&symmetries"
+            )
 
         namelist.set_parameter(
             parameter="phase(1)", value=self.phase_up[0], namelist="&system"

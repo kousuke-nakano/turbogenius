@@ -21,6 +21,7 @@ from logging import getLogger, StreamHandler, Formatter
 from turbogenius.pyturbo.vmc import VMC
 from turbogenius.utils_workflows.env import turbo_genius_root
 from turbogenius.geniusIO import GeniusIO
+from turbogenius.pyturbo.io_fort10 import IO_fort10
 
 logger = getLogger("Turbo-Genius").getChild(__name__)
 
@@ -77,6 +78,8 @@ class VMC_genius(GeniusIO):
             self.vmc.set_parameter(
                 parameter="nw", value=num_walkers, namelist="&simulation"
             )
+        
+        self.io_fort10=IO_fort10(fort10)
 
         self.energy = None
         self.energy_error = None
@@ -99,6 +102,13 @@ class VMC_genius(GeniusIO):
             self.vmc.set_parameter(
                 parameter="ieskin", value=1, namelist="&parameters"
             )
+            if self.io_fort10.pbc_flag:
+                self.vmc.set_parameter(
+                    parameter="typedyncell", value=2, namelist="&parameters"
+                )
+                self.vmc.set_parameter(
+                    parameter="yespress", value='.true.', namelist="&parameters"
+                )
 
         # kpoints
         if self.twist_average:  # not 0 (= not False)!!

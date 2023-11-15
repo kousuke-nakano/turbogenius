@@ -23,6 +23,7 @@ from turbogenius.pyturbo.lrdmc import LRDMC
 from turbogenius.utils_workflows.env import turbo_genius_root
 from turbogenius.utils_workflows.utility import get_nonlocalmoves_setting
 from turbogenius.geniusIO import GeniusIO
+from turbogenius.pyturbo.io_fort10 import IO_fort10
 
 logger = getLogger("Turbo-Genius").getChild(__name__)
 
@@ -69,6 +70,8 @@ class LRDMC_genius(GeniusIO):
 
         self.estimated_time_for_1_generation = None
 
+        self.io_fort10=IO_fort10(fort10)
+
         self.energy = None
         self.energy_error = None
         self.forces = None  # np.array([[]]) # 3 * natom matrix
@@ -111,6 +114,13 @@ class LRDMC_genius(GeniusIO):
             self.lrdmc.set_parameter(
                 parameter="ieskin", value=1, namelist="&parameters"
             )
+            if self.io_fort10.pbc_flag:
+                self.lrdmc.set_parameter(
+                    parameter="typedyncell", value=2, namelist="&parameters"
+                )
+                self.lrdmc.set_parameter(
+                    parameter="yespress", value='.true.', namelist="&parameters"
+                )
             # to be arguments of the class
             self.lrdmc.set_parameter(parameter="parcutg", value=0, namelist="&dmclrdmc")
             self.lrdmc.set_parameter(

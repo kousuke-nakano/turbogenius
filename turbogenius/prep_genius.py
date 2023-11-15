@@ -110,6 +110,12 @@ class DFT_genius(GeniusIO):
             self.nx = int(self.Lx / self.ax)
             self.ny = int(self.Ly / self.ay)
             self.nz = int(self.Lz / self.az)
+            if self.nx%2 != 0:
+                self.nx+=1
+            if self.ny%2 != 0:
+                self.ny+=1
+            if self.nz%2 != 0:
+                self.nz+=1
         else:
             # +- 7.5 bohr from the edges.
             pos = io_fort10.f10structure.positions
@@ -126,6 +132,12 @@ class DFT_genius(GeniusIO):
             self.nx = int(self.Lx / self.ax)
             self.ny = int(self.Ly / self.ay)
             self.nz = int(self.Lz / self.az)
+            if self.nx%2 != 0:
+                self.nx+=1
+            if self.ny%2 != 0:
+                self.ny+=1
+            if self.nz%2 != 0:
+                self.nz+=1
             logger.info(f"nx={self.nx}, ny={self.ny}, nz={self.nz}")
 
         # self prep class!!

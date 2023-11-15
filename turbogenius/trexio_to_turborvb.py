@@ -61,6 +61,7 @@ def trexio_to_turborvb_wf(
     max_occ_conv: int = 0,
     mo_num_conv: int = -1,
     only_mol: bool = True,
+    nosymmetry: bool = False,
     cleanup: bool = True,
 ) -> None:
     """
@@ -72,6 +73,7 @@ def trexio_to_turborvb_wf(
         max_occ_conv (int): maximum occ used for the conv, not used with mo_num
         mo_num_conv (int): num mo used for the conv, not used with max occ
         only_mol (bool): if True, only moleculer orbitals option = True in convertfort10mol
+        nosymmetry (bool): if True, nosym option in makefort10 is activated. The generated fort.10 w/o symmetry.
         cleanup (bool): clean up temporary files
     """
     if jas_basis_sets is None:
@@ -380,7 +382,16 @@ def trexio_to_turborvb_wf(
     namelist.set_parameter(
         parameter="phasedo(3)", value=phase_dn[2], namelist="&system"
     )
-
+    
+    # symmetry in makefort10
+    if nosymmetry:
+        namelist.set_parameter(
+            parameter="nosym", value=".true.", namelist="&symmetries"
+        )
+    else:
+        namelist.set_parameter(
+            parameter="nosym", value=".false.", namelist="&symmetries"
+        )
     # spin-restricted or spin-unrestricted
     # =>
     # symmetrized AGP (AGPs) or unsymmetrized AGP (AGPu)

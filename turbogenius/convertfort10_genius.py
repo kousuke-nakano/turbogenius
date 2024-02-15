@@ -65,18 +65,21 @@ class Convertfort10_genius(GeniusIO):
             ax = self.grid_size
             ay = self.grid_size
             az = self.grid_size
-            self.convertfort10.set_parameter(
-                parameter="ax", value=ax, namelist="&mesh_info"
-            )
-            self.convertfort10.set_parameter(
-                parameter="ay", value=ay, namelist="&mesh_info"
-            )
-            self.convertfort10.set_parameter(
-                parameter="az", value=az, namelist="&mesh_info"
-            )
-            self.convertfort10.comment_out(parameter="nx")
-            self.convertfort10.comment_out(parameter="ny")
-            self.convertfort10.comment_out(parameter="nz")
+            nx = int(Lx / ax)
+            ny = int(Ly / ay)
+            nz = int(Lz / az)
+            if nx%2 != 0:
+                nx+=1
+            if ny%2 != 0:
+                ny+=1
+            if nz%2 != 0:
+                nz+=1
+            self.convertfort10.set_parameter(parameter="nx", value=nx, namelist="&mesh_info")
+            self.convertfort10.set_parameter(parameter="ny", value=ny, namelist="&mesh_info")
+            self.convertfort10.set_parameter(parameter="nz", value=nz, namelist="&mesh_info")
+            self.convertfort10.comment_out(parameter="ax")
+            self.convertfort10.comment_out(parameter="ay")
+            self.convertfort10.comment_out(parameter="az")
         else:
             pos = self.io_fort10.f10structure.positions
             Lx = np.max(pos[:, 0]) - np.min(pos[:, 0]) + 6.0
@@ -92,6 +95,12 @@ class Convertfort10_genius(GeniusIO):
             nx = int(Lx / ax)
             ny = int(Ly / ay)
             nz = int(Lz / az)
+            if nx%2 != 0:
+                nx+=1
+            if ny%2 != 0:
+                ny+=1
+            if nz%2 != 0:
+                nz+=1
             logger.info(f"nx={nx}, ny={ny}, nz={nz}")
             self.convertfort10.set_parameter(
                 parameter="ax", value=ax, namelist="&mesh_info"

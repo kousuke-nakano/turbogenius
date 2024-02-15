@@ -79,9 +79,7 @@ class Makefort10(FortranIO):
     def sanity_check(self):
         assert self.structure.natom == self.det_basis_sets.nuclei_num
 
-    def generate_input(
-        self, input_name: str, basis_sets_unique_element: bool = True
-    ):
+    def generate_input(self, input_name: str, basis_sets_unique_element: bool = True):
         # pseudo potential generation (pseudo.dat)
         self.pseudo_potentials.write_pseudopotential_turborvb_file()
 
@@ -101,7 +99,13 @@ class Makefort10(FortranIO):
 
         for num in range(self.structure.natom):
             atomic_number = self.structure.atomic_numbers[num]
-            x, y, z = self.structure.positions[num]
+
+            if self.structure.has_celldm:
+                logger.warning("Cartesian coord.")
+                x, y, z = self.structure.positions[num]
+            else:
+                logger.warning("Fractional coord.")
+                x, y, z = self.structure.positions_frac[num]
 
             # we need this operation even if basis_sets_unique_element is True
             # because special treaty is needed for PP case.
@@ -205,9 +209,7 @@ class Makefort10(FortranIO):
             ) + len(
                 [
                     i
-                    for i, x in enumerate(
-                        self.det_basis_sets.hyb_nucleus_index
-                    )
+                    for i, x in enumerate(self.det_basis_sets.hyb_nucleus_index)
                     if x == nucleus
                 ]
             )
@@ -219,19 +221,15 @@ class Makefort10(FortranIO):
                 ]
             )
             if det_add_hybridflag:
-                ndet_hyb = (
-                    self.det_basis_sets.number_of_additional_hybrid_orbitals[
-                        nucleus
-                    ]
-                )
+                ndet_hyb = self.det_basis_sets.number_of_additional_hybrid_orbitals[
+                    nucleus
+                ]
             else:
                 ndet_hyb = 0
             if jas_add_hybridflag:
-                njas_hyb = (
-                    self.jas_basis_sets.number_of_additional_hybrid_orbitals[
-                        nucleus
-                    ]
-                )
+                njas_hyb = self.jas_basis_sets.number_of_additional_hybrid_orbitals[
+                    nucleus
+                ]
             else:
                 njas_hyb = 0
             output.append(f"{label}\n")
@@ -244,24 +242,16 @@ class Makefort10(FortranIO):
                 output.append(f" njas_hyb={njas_hyb}\n")
             output.append("/\n")
 
-            for k, basis_sets in enumerate(
-                (self.det_basis_sets, self.jas_basis_sets)
-            ):
+            for k, basis_sets in enumerate((self.det_basis_sets, self.jas_basis_sets)):
                 # basis set
                 shell_index = [
-                    i
-                    for i, x in enumerate(basis_sets.nucleus_index)
-                    if x == nucleus
+                    i for i, x in enumerate(basis_sets.nucleus_index) if x == nucleus
                 ]
                 for shell in shell_index:
                     shell_ang_mom = basis_sets.shell_ang_mom[shell]
-                    shell_ang_mom_turbo = (
-                        basis_sets.shell_ang_mom_turbo_notation[shell]
-                    )
+                    shell_ang_mom_turbo = basis_sets.shell_ang_mom_turbo_notation[shell]
                     prim_index = [
-                        i
-                        for i, x in enumerate(basis_sets.shell_index)
-                        if x == shell
+                        i for i, x in enumerate(basis_sets.shell_index) if x == shell
                     ]
 
                     if len(prim_index) > 1:
@@ -275,8 +265,7 @@ class Makefort10(FortranIO):
                         ]
                         if basis_sets.complex_flag:
                             coefficient_imag_list = [
-                                basis_sets.coefficient_imag[prim]
-                                for prim in prim_index
+                                basis_sets.coefficient_imag[prim] for prim in prim_index
                             ]
                         logger.debug(exponent_list)
                         logger.debug(coefficient_list)
@@ -326,9 +315,7 @@ class Makefort10(FortranIO):
                         else:
                             nucleus_index_label = nucleus + 1
                         output.append(
-                            "  {:d}   {:.12f}\n".format(
-                                nucleus_index_label, exponent
-                            )
+                            "  {:d}   {:.12f}\n".format(nucleus_index_label, exponent)
                         )
 
                 # hybrid orbitals (k==0):
@@ -339,13 +326,9 @@ class Makefort10(FortranIO):
                         if x == nucleus
                     ]
                     for hyb_index in hyb_index_list:
-                        hyb_shell_ang_mom = basis_sets.hyb_shell_ang_mom[
-                            hyb_index
-                        ]
+                        hyb_shell_ang_mom = basis_sets.hyb_shell_ang_mom[hyb_index]
                         hyb_shell_ang_mom_turbo = (
-                            basis_sets.hyb_shell_ang_mom_turbo_notation[
-                                hyb_index
-                            ]
+                            basis_sets.hyb_shell_ang_mom_turbo_notation[hyb_index]
                         )
                         hyb_param_num = basis_sets.hyb_param_num[hyb_index]
 
@@ -366,13 +349,9 @@ class Makefort10(FortranIO):
                         min_hyb_prim_index = np.min(
                             basis_sets.hyb_prim_index[hyb_index]
                         )
-                        for hyb_prim_index in basis_sets.hyb_prim_index[
-                            hyb_index
-                        ]:
+                        for hyb_prim_index in basis_sets.hyb_prim_index[hyb_index]:
                             output.append(
-                                " {:d}".format(
-                                    hyb_prim_index - min_hyb_prim_index + 1
-                                )
+                                " {:d}".format(hyb_prim_index - min_hyb_prim_index + 1)
                             )
                         output.append("\n")
                         if basis_sets.complex_flag:  # complex case
@@ -387,9 +366,7 @@ class Makefort10(FortranIO):
                                 )
                             output.append("\n")
                         else:
-                            for coefficient in basis_sets.hyb_coefficient[
-                                hyb_index
-                            ]:
+                            for coefficient in basis_sets.hyb_coefficient[hyb_index]:
                                 output.append(" {:12f}".format(coefficient))
                             output.append("\n")
 
@@ -446,47 +423,90 @@ class Makefort10(FortranIO):
 
         namelist.set_parameter("natoms", structure.natom, "&system")
         namelist.set_parameter("ntyp", structure.ntyp, "&system")
-        namelist.set_parameter("posunits", "bohr", "&system")
 
         # PBC case
         if structure.pbc_flag:
+            # use celldm() notation for makefort10.input
+            if structure.has_celldm:
+                namelist.set_parameter("posunits", "bohr", "&system")
+                # non-orthorhombic cell
+                if structure.tilted_flag:
+                    namelist.set_parameter(
+                        "celldm(1)", structure.cell.celldm_1, "&system"
+                    )
+                    namelist.set_parameter(
+                        "celldm(2)", structure.cell.celldm_2, "&system"
+                    )
+                    namelist.set_parameter(
+                        "celldm(3)", structure.cell.celldm_3, "&system"
+                    )
+                    namelist.set_parameter(
+                        "celldm(4)", structure.cell.celldm_4, "&system"
+                    )
+                    namelist.set_parameter(
+                        "celldm(5)", structure.cell.celldm_5, "&system"
+                    )
+                    namelist.set_parameter(
+                        "celldm(6)", structure.cell.celldm_6, "&system"
+                    )
+                    namelist.set_parameter("yes_tilted", ".true.", "&system")
+                # orthorhomic cell
+                else:
+                    namelist.set_parameter(
+                        "celldm(1)", structure.cell.celldm_1, "&system"
+                    )
+                    namelist.set_parameter(
+                        "celldm(2)", structure.cell.celldm_2, "&system"
+                    )
+                    namelist.set_parameter(
+                        "celldm(3)", structure.cell.celldm_3, "&system"
+                    )
+                    namelist.comment_out("celldm(4)")
+                    namelist.comment_out("celldm(5)")
+                    namelist.comment_out("celldm(6)")
+                    namelist.set_parameter("yes_tilted", ".false.", "&system")
 
-            # non-orthorhombic cell
-            if structure.tilted_flag:
-                namelist.set_parameter(
-                    "celldm(1)", structure.cell.celldm_1, "&system"
-                )
-                namelist.set_parameter(
-                    "celldm(2)", structure.cell.celldm_2, "&system"
-                )
-                namelist.set_parameter(
-                    "celldm(3)", structure.cell.celldm_3, "&system"
-                )
-                namelist.set_parameter(
-                    "celldm(4)", structure.cell.celldm_4, "&system"
-                )
-                namelist.set_parameter(
-                    "celldm(5)", structure.cell.celldm_5, "&system"
-                )
-                namelist.set_parameter(
-                    "celldm(6)", structure.cell.celldm_6, "&system"
-                )
-                namelist.set_parameter("yes_tilted", ".true.", "&system")
-            # orthorhomic cell
+            # use at() notation for makefort10.input
             else:
-                namelist.set_parameter(
-                    "celldm(1)", structure.cell.celldm_1, "&system"
-                )
-                namelist.set_parameter(
-                    "celldm(2)", structure.cell.celldm_2, "&system"
-                )
-                namelist.set_parameter(
-                    "celldm(3)", structure.cell.celldm_3, "&system"
-                )
+                namelist.set_parameter("posunits", "crystal", "&system")
+                norm_ref = structure.cell.norm_vec_a  # bohr
+                at_1_1 = structure.cell.vec_a[0] / norm_ref
+                at_2_1 = structure.cell.vec_a[1] / norm_ref
+                at_3_1 = structure.cell.vec_a[2] / norm_ref
+
+                at_1_2 = structure.cell.vec_b[0] / norm_ref
+                at_2_2 = structure.cell.vec_b[1] / norm_ref
+                at_3_2 = structure.cell.vec_b[2] / norm_ref
+
+                at_1_3 = structure.cell.vec_c[0] / norm_ref
+                at_2_3 = structure.cell.vec_c[1] / norm_ref
+                at_3_3 = structure.cell.vec_c[2] / norm_ref
+
+                # Bohr
+                namelist.set_parameter("L_read", norm_ref, "&system")
+                namelist.set_parameter("at(1,1)", at_1_1, "&system")
+                namelist.set_parameter("at(2,1)", at_2_1, "&system")
+                namelist.set_parameter("at(3,1)", at_3_1, "&system")
+                namelist.set_parameter("at(1,2)", at_1_2, "&system")
+                namelist.set_parameter("at(2,2)", at_2_2, "&system")
+                namelist.set_parameter("at(3,2)", at_3_2, "&system")
+                namelist.set_parameter("at(1,3)", at_1_3, "&system")
+                namelist.set_parameter("at(2,3)", at_2_3, "&system")
+                namelist.set_parameter("at(3,3)", at_3_3, "&system")
+
+                namelist.comment_out("celldm(1)")
+                namelist.comment_out("celldm(2)")
+                namelist.comment_out("celldm(3)")
                 namelist.comment_out("celldm(4)")
                 namelist.comment_out("celldm(5)")
                 namelist.comment_out("celldm(6)")
-                namelist.set_parameter("yes_tilted", ".false.", "&system")
+
+                # non-orthorhombic cell
+                if structure.tilted_flag:
+                    namelist.set_parameter("yes_tilted", ".true.", "&system")
+                # orthorhomic cell
+                else:
+                    namelist.set_parameter("yes_tilted", ".false.", "&system")
 
             namelist.set_parameter("pbcfort10", ".true.", "&system")
             namelist.set_parameter("yes_crystal", ".true.", "&electrons")
@@ -499,6 +519,7 @@ class Makefort10(FortranIO):
 
         # Open system
         else:
+            namelist.set_parameter("posunits", "bohr", "&system")
             if complex_flag:
                 raise ValueError
             namelist.set_parameter("pbcfort10", ".false.", "&system")
@@ -515,9 +536,7 @@ class Makefort10(FortranIO):
         # onebody part
         if flag_onebody:
             for ntyp in range(structure.ntyp):
-                namelist.set_parameter(
-                    f"onebodypar({ntyp + 1})", 1.0, "&electrons"
-                )
+                namelist.set_parameter(f"onebodypar({ntyp + 1})", 1.0, "&electrons")
             namelist.comment_out("onebodypar")
         else:
             namelist.comment_out("onebodypar")
@@ -555,9 +574,7 @@ if __name__ == "__main__":
     logger.setLevel("DEBUG")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

@@ -2223,8 +2223,9 @@ class F10detmat:
 
     @row.setter
     def row(self, value_list):
-        assert len(self.__row) == len(value_list)
         self.read()
+        if len(self.__row) != len(value_list):
+            raise ValueError
         for row, value in zip(self.__row, value_list):
             if row.v != value:
                 row.replace(value=value, in_place=self.in_place)
@@ -2236,8 +2237,9 @@ class F10detmat:
 
     @col.setter
     def col(self, value_list):
-        assert len(self.__col) == len(value_list)
         self.read()
+        if len(self.__col) != len(value_list):
+            raise ValueError
         for col, value in zip(self.__col, value_list):
             if col.v != value:
                 col.replace(value=value, in_place=self.in_place)
@@ -2249,8 +2251,9 @@ class F10detmat:
 
     @coeff_real.setter
     def coeff_real(self, value_list):
-        assert len(self.__coeff_real) == len(value_list)
         self.read()
+        if len(self.__coeff_real) != len(value_list):
+            raise ValueError
         for coeff_real, value in zip(self.__coeff_real, value_list):
             if coeff_real.v != value:
                 coeff_real.replace(value=value, in_place=self.in_place)
@@ -2262,8 +2265,9 @@ class F10detmat:
 
     @coeff_imag.setter
     def coeff_imag(self, value_list):
-        assert len(self.__coeff_imag) == len(value_list)
         self.read()
+        if len(self.__coeff_imag) != len(value_list):
+            raise ValueError
         for coeff_imag, value in zip(self.__coeff_imag, value_list):
             if coeff_imag.v != value:
                 coeff_imag.replace(value=value, in_place=self.in_place)

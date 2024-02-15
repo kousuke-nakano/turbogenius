@@ -47,17 +47,17 @@ class Cell:
             vec_b = [0.0, 0.0, 0.0]  # bohr
         if vec_c is None:
             vec_c = [0.0, 0.0, 0.0]  # bohr
-
-        if vec_a[1] > 1.0e-12 or vec_a[2] > 1.0e-10:
-            logger.error("The lattice vector a is not on the x axis.")
-            logger.error("TurboRVB assumes that vec_a = [a, 0.0, 0.0]")
-            logger.error("Please convert lattice vectors and structures.")
-            raise ValueError
-
+        
         # cell vectors (the units are bohr)
         self.__vec_a = np.array(vec_a, dtype=float)
         self.__vec_b = np.array(vec_b, dtype=float)
         self.__vec_c = np.array(vec_c, dtype=float)
+
+        if np.abs(self.__vec_a[1]) > 1.0e-10 or np.abs(self.__vec_a[2]) > 1.0e-10:
+            logger.error("The lattice vector a is not on the x axis.")
+            logger.error("TurboRVB assumes that vec_a = [a, 0.0, 0.0]")
+            logger.error("Please convert lattice vectors and structures.")
+            raise ValueError
 
         # calc norm
         self.__norm_vec_a = LA.norm(self.__vec_a)

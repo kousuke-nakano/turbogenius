@@ -124,6 +124,10 @@ def trexio_to_turborvb_wf(
         phase_up = [+k1, +k2, +k3]
         phase_dn = [+k1, +k2, +k3]
 
+        if np.abs(cell_a[1]) > 1.0e-10 or np.abs(cell_a[2]) > 1.0e-10:
+            logger.error('TREXIO to TurboRVB conveter currently accepts only cell_a = [a, 0.0, 0.0].')
+            raise NotImplementedError
+
         cell = Cell(
             vec_a=cell_a,
             vec_b=cell_b,

@@ -23,6 +23,7 @@ from turbogenius.pyturbo.utils.utility import (
     turbo_prim_orb_type_num,
     turbo_cont_orb_type_num,
     return_orbchr,
+    turbo_conv_cont_to_prim_orb_type_num,
 )
 from turbogenius.pyturbo.utils.env import pyturbo_root
 
@@ -482,8 +483,13 @@ class Basis_sets:
                         # shell
                         shell_factor.append(None)
                         shell_ang_mom.append(shell_ang_mom_n)
+                        # shell_ang_mom_turbo_notation.append(
+                        #    turbo_prim_orb_type_num(return_orbchr(shell_ang_mom_n))
+                        # )
                         shell_ang_mom_turbo_notation.append(
-                            turbo_prim_orb_type_num(return_orbchr(shell_ang_mom_n))
+                            turbo_conv_cont_to_prim_orb_type_num(
+                                shell_ang_mom_turbo_notation_n
+                            )
                         )
 
         self.nucleus_index = nucleus_index
@@ -532,6 +538,7 @@ class Basis_sets:
 
         return cls.parse_basis_sets_from_texts(texts=texts, format="gamess")
 
+    '''
     @classmethod
     def parse_basis_sets_from_eCEPP_format_files(
         cls, files: Optional[list] = None
@@ -556,6 +563,7 @@ class Basis_sets:
             texts.append(text)
 
         return cls.parse_basis_sets_from_texts(texts=texts, format="eCEPP")
+    '''
 
     @classmethod
     def parse_basis_sets_from_texts(
@@ -591,14 +599,15 @@ class Basis_sets:
 
             if format == "gamess":
                 basis_set = Basis_set.parse_basis_set_info_from_gamess_format_text(text)
-            elif format == "eCEPP":
-                basis_set = Basis_set.parse_basis_set_info_from_eCEPP_format_text(text)
+            # elif format == "eCEPP":
+            #    basis_set = Basis_set.parse_basis_set_info_from_eCEPP_format_text(text)
             else:
                 logger.error(f"format = {format} is not implemented")
                 raise NotImplementedError
             # storing
             nucleus_index += [nuc_i] * basis_set.shell_num
             shell_ang_mom += basis_set.shell_ang_mom
+            shell_ang_mom_turbo_notation += basis_set.shell_ang_mom_turbo_notation
             shell_factor += [1.0] * basis_set.shell_num
             shell_index += list(np.array(basis_set.shell_index) + shell_num)
             exponent += basis_set.exponent_list
@@ -610,6 +619,7 @@ class Basis_sets:
             shell_num += basis_set.shell_num
             prim_num += basis_set.prim_num
 
+        """
         for i, ang_mom in enumerate(shell_ang_mom):
             if shell_index.count(i) > 1:
                 contraction = True
@@ -624,6 +634,7 @@ class Basis_sets:
                 shell_ang_mom_turbo_notation.append(
                     turbo_prim_orb_type_num(orb_type_chr=return_orbchr(ang_mom=ang_mom))
                 )
+        """
 
         return cls(
             nucleus_index=nucleus_index,
@@ -646,6 +657,7 @@ class Basis_set:
 
     Attributes:
         shell_ang_mom (list): One-to-one correspondence between shells and angular momenta. Dimensions=shell_num.
+        shell_ang_mom_turbo_notation (list): TurboRVB notations.
         shell_index (list): One-to-one correspondence between primitives and shell index. Dimensions=prim_num.
         exponent_list (list): Exponents of the primitives. Dimensions=prim_num.
         coefficient_list (list): Coefficients of the primitives (real part). Dimensions=prim_num.
@@ -655,6 +667,7 @@ class Basis_set:
     def __init__(
         self,
         shell_ang_mom: Optional[list] = None,
+        shell_ang_mom_turbo_notation: Optional[list] = None,
         shell_index: Optional[list] = None,
         exponent_list: Optional[list] = None,
         coefficient_list: Optional[list] = None,
@@ -662,6 +675,8 @@ class Basis_set:
     ):
         if shell_ang_mom is None:
             shell_ang_mom = []
+        if shell_ang_mom_turbo_notation is None:
+            shell_ang_mom_turbo_notation = []
         if shell_index is None:
             shell_index = []
         if exponent_list is None:
@@ -673,12 +688,14 @@ class Basis_set:
 
         # variables
         self.shell_ang_mom = shell_ang_mom
+        self.shell_ang_mom_turbo_notation = shell_ang_mom_turbo_notation
         self.shell_index = shell_index
         self.exponent_list = exponent_list
         self.coefficient_list = coefficient_list
         self.coefficient_imag_list = coefficient_imag_list
 
         logger.debug(self.shell_ang_mom)
+        logger.debug(self.shell_ang_mom_turbo_notation)
         logger.debug(self.shell_index)
         logger.debug(self.exponent_list)
         logger.debug(self.coefficient_list)
@@ -731,6 +748,7 @@ class Basis_set:
         text = "".join(text)
         return cls.parse_basis_set_info_from_gamess_format_text(text=text)
 
+    '''
     @classmethod
     def parse_basis_set_info_from_eCEPP_format_file(cls, file: str):  # -> cls
         """
@@ -761,6 +779,7 @@ class Basis_set:
 
         """
         shell_ang_mom = []
+        shell_ang_mom_turbo_notation = []
         shell_index = []
         exponent_list = []
         coefficient_list = []
@@ -793,17 +812,28 @@ class Basis_set:
                     logger.debug(r_coefficient_list)
                     r_shell_index = len(shell_ang_mom)
                     shell_ang_mom.append(ang_mom)
+                    if len(r_coefficient_list) > 1:
+                        ang_mom_turbo_notation = turbo_prim_orb_type_num(
+                            orb_typ_chr=l_str
+                        )
+                    else:
+                        ang_mom_turbo_notation = turbo_cont_orb_type_num(
+                            orb_typ_chr=l_str
+                        )
+                    shell_ang_mom_turbo_notation.append(ang_mom_turbo_notation)
                     for r_coefficient in r_coefficient_list:
                         shell_index.append(r_shell_index)
                         coefficient_list.append(r_coefficient)
 
         return cls(
             shell_ang_mom=shell_ang_mom,
+            shell_ang_mom_turbo_notation=shell_ang_mom_turbo_notation,
             shell_index=shell_index,
             exponent_list=exponent_list,
             coefficient_list=coefficient_list,
             coefficient_imag_list=coefficient_imag_list,
         )
+    '''
 
     @classmethod
     def parse_basis_set_info_from_gamess_format_text(cls, text: str):  # -> cls
@@ -818,6 +848,7 @@ class Basis_set:
 
         """
         shell_ang_mom = []
+        shell_ang_mom_turbo_notation = []
         shell_index = []
         exponent_list = []
         coefficient_list = []
@@ -843,7 +874,7 @@ class Basis_set:
             if num_contraction == 1:
                 orb_type_chr = str(orb_type)
                 ang_mom = int(return_ang_mom(orb_type_chr))
-
+                ang_mom_turbo_notation = turbo_prim_orb_type_num(orb_type_chr=orb_type)
                 if len(lines[i + 1].split()) == 3:
                     # gamess format
                     stride = 1
@@ -857,6 +888,7 @@ class Basis_set:
                 coefficient = float(lines[i + 1].split()[stride + 1].replace("D", "E"))
 
                 shell_ang_mom.append(ang_mom)
+                shell_ang_mom_turbo_notation.append(ang_mom_turbo_notation)
                 shell_index.append(shell_num)
                 exponent_list.append(exponent)
                 coefficient_list.append(coefficient)
@@ -871,8 +903,11 @@ class Basis_set:
 
                 orb_type_chr = str(orb_type)
                 ang_mom = int(return_ang_mom(orb_type_chr))
-
+                ang_mom_turbo_notation = turbo_cont_orb_type_num(
+                    orb_type_chr=orb_type_chr
+                )
                 shell_ang_mom.append(ang_mom)
+                shell_ang_mom_turbo_notation.append(ang_mom_turbo_notation)
 
                 for j in range(1, num_contraction + 1):
 
@@ -901,12 +936,14 @@ class Basis_set:
 
         return cls(
             shell_ang_mom=shell_ang_mom,
+            shell_ang_mom_turbo_notation=shell_ang_mom_turbo_notation,
             shell_index=shell_index,
             exponent_list=exponent_list,
             coefficient_list=coefficient_list,
             coefficient_imag_list=coefficient_imag_list,
         )
 
+    '''
     def to_text_gamess_format(self) -> str:
         """
         convert basis set to GAMESS format text
@@ -933,7 +970,9 @@ class Basis_set:
                 text += line
 
         return text
+    '''
 
+    '''
     def to_text_nwchem_format(self, element: str) -> str:
         """
         convert basis set to GAMESS format text
@@ -963,6 +1002,7 @@ class Basis_set:
                 text += line
 
         return text
+    '''
 
 
 class Det_Basis_sets(Basis_sets):

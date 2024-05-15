@@ -536,14 +536,14 @@ class Makefort10(FortranIO):
         # onebody part
         if flag_onebody:
             for ntyp in range(structure.ntyp):
-                namelist.set_parameter(f"onebodypar({ntyp + 1})", 1.0, "&electrons")
+                namelist.set_parameter(f"onebodypar({ntyp + 1})", 1.5, "&electrons")
             namelist.comment_out("onebodypar")
         else:
             namelist.comment_out("onebodypar")
 
         # twobody part
         for i in range(num_twobody):
-            namelist.set_parameter(f"twobodypar({i+1})", 1.0, "&electrons")
+            namelist.set_parameter(f"twobodypar({i+1})", 0.5, "&electrons")
         namelist.comment_out("twobodypar")
 
         # spin (i.e., neldiff)

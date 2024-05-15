@@ -1299,6 +1299,15 @@ class F10jastwobody:
         self.read()
         return [i.v for i in self.__onebody_list]
 
+    @onebody_list.setter
+    def onebody_list(self, value_list):
+        self.read()
+        if len(self.__onebody_list) != len(value_list):
+            raise ValueError
+        for onebody, value in zip(self.__onebody_list, value_list):
+            if onebody.v != value:
+                onebody.replace(value=value, in_place=self.in_place)
+
     @property
     def start_lineno(self):
         return pygrep_lineno(self.fort10, self.start_keyword) + 1

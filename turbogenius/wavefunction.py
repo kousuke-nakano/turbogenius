@@ -539,6 +539,14 @@ class Wavefunction:
 
         if only_generate_template:
             logger.warning("A template AGP file, fort.10_out, is generated.")
+            # convertfort10
+            convertfort10_genius = Convertfort10_genius(
+                in_fort10="fort.10_in",
+                out_fort10="fort.10_out",
+                grid_size=grid_size,
+            )
+
+            convertfort10_genius.generate_input(input_name="convertfort10.input")
         else:
             # convertfort10
             convertfort10_genius = Convertfort10_genius(

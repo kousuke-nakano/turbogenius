@@ -117,8 +117,16 @@ def get_str_variable_type_auto(variable):
 def turbo_prim_orb_type_num(orb_type_chr):
     if orb_type_chr == "s":
         return 16
+    elif orb_type_chr == "s100":
+        return 100
+    elif orb_type_chr == "s131":
+        return 131
     elif orb_type_chr == "p":
         return 36
+    elif orb_type_chr == "p103":
+        return 103
+    elif orb_type_chr == "p150":
+        return 150
     elif orb_type_chr == "d":
         return 37
         # 68 -> 37 !! 12/May/2022 because both are the same in makefun.f90
@@ -157,10 +165,30 @@ def turbo_cont_orb_type_num(orb_type_chr):
         raise NotImplementedError(f"Not implemented orb_type_chr={orb_type_chr}")
 
 
+def turbo_conv_cont_to_prim_orb_type_num(orb_type_int):
+    if orb_type_int in {16, 300}:
+        return 16
+    elif orb_type_int in {36, 400}:
+        return 36
+    elif orb_type_int in {37, 500}:
+        return 37
+    elif orb_type_int in {48, 600}:
+        return 48
+    elif orb_type_int in {51, 700}:
+        return 51
+    elif orb_type_int in {72, 800}:
+        return 72
+    elif orb_type_int in {73, 900}:
+        return 73
+    else:
+        logger.error(f"orb_type_int={orb_type_int} is not implemented.")
+        raise NotImplementedError(f"Not implemented orb_type_chr={orb_type_int}")
+
+
 def return_ang_mom(orb_typ_chr):
-    if orb_typ_chr in {"s"}:
+    if orb_typ_chr in {"s", "s100", "s131"}:
         return 0
-    elif orb_typ_chr in {"p"}:
+    elif orb_typ_chr in {"p", "p103", "p150"}:
         return 1
     elif orb_typ_chr in {"d"}:
         return 2
@@ -199,8 +227,16 @@ def return_orbchr(ang_mom):
 def return_orb_type_chr(num_orb_type):
     if num_orb_type in {16, 300}:
         return "s"
+    elif num_orb_type in {100}:
+        return "s100"
+    elif num_orb_type in {131}:
+        return "s131"
     elif num_orb_type in {36, 400}:
         return "p"
+    elif num_orb_type in {103}:
+        return "p103"
+    elif num_orb_type in {150}:
+        return "p150"
     elif num_orb_type in {37, 68, 500}:
         return "d"
     elif num_orb_type in {48, 600}:
@@ -222,7 +258,7 @@ def return_orb_type_chr(num_orb_type):
 
 
 def return_contraction_flag(orb_type_num):
-    if orb_type_num in {16, 100, 36, 37, 68, 48, 51, 72, 73}:
+    if orb_type_num in {16, 100, 131, 36, 103, 150, 37, 68, 48, 51, 72, 73}:
         contraction = False
     elif orb_type_num in {300, 400, 500, 600, 700, 800, 900}:
         contraction = True

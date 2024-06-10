@@ -91,7 +91,12 @@ class Pseudopotentials:
         logger.debug(f"power={self.power}")
 
         # assertion!!
-        assert len(set(self.nucleus_index)) == len(self.max_ang_mom_plus_1)
+        if len(set(self.nucleus_index)) != len(self.max_ang_mom_plus_1):
+            logger.error(f"set(self.nucleus_index) = {set(self.nucleus_index)}")
+            logger.error(f"len(self.max_ang_mom_plus_1) = {len(self.max_ang_mom_plus_1)}")
+            logger.error(f"self.nucleus_index = {self.nucleus_index}")
+            logger.error(f"self.max_ang_mom_plus_1 = {self.max_ang_mom_plus_1}")
+            raise ValueError
         assert len(set(self.nucleus_index)) == len(self.z_core)
         assert len(set(self.nucleus_index)) == len(self.cutoff)
         assert len(self.ang_mom) == len(self.exponent)

@@ -117,6 +117,17 @@ class Basis_sets:
         )
 
         if not all(check_flags):
+            logger.error(f'-------------they should be equal-------------')
+            logger.error(f'len(self.exponent) = {len(self.exponent)}')
+            logger.error(f'len(self.coefficient) = {len(self.coefficient)}')
+            logger.error(f'len(self.prim_factor) = {len(self.prim_factor)}')
+            logger.error(f'len(self.shell_index) = {len(self.shell_index)}')
+            logger.error(f'-------------they should be equal-------------')
+            logger.error(f'len(self.nucleus_index) = {len(self.nucleus_index)}')
+            logger.error(f'len(self.shell_ang_mom) = {len(self.shell_ang_mom)}')
+            logger.error(f'len(self.shell_ang_mom_turbo_notation) = {len(self.shell_ang_mom_turbo_notation)}')
+            logger.error(f'self.shell_ang_mom={self.shell_ang_mom}')
+            logger.error(f'self.shell_ang_mom_turbo_notation={self.shell_ang_mom_turbo_notation}')
             raise ValueError
 
     def __str__(self) -> str:

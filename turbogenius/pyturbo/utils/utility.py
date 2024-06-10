@@ -54,7 +54,12 @@ def return_element_symbol(atomic_number):
 
 def return_atomic_number(element):
     element = str(element)
-    return Element(element).number
+    try:
+        E = Element(element)
+        number = E.number
+    except ValueError:
+        number = 0.0
+    return number
 
 
 def remove_file(file):

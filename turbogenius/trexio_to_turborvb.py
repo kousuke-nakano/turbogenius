@@ -311,6 +311,7 @@ def trexio_to_turborvb_wf(
 
     # Pseudopotentials
     if has_ecp:
+        logger.info(f"ecp_z_core={ecp_z_core}")
         cutoff = [0.0] * len(ecp_z_core)
         pseudopotentials = Pseudopotentials(
             max_ang_mom_plus_1=ecp_max_ang_mom_plus_1,

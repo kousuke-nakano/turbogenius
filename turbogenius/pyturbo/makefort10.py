@@ -101,10 +101,10 @@ class Makefort10(FortranIO):
             atomic_number = self.structure.atomic_numbers[num]
 
             if self.structure.has_celldm:
-                logger.warning("Cartesian coord.")
+                #logger.warning("Cartesian coord.")
                 x, y, z = self.structure.positions[num]
             else:
-                logger.warning("Fractional coord.")
+                #logger.warning("Fractional coord.")
                 x, y, z = self.structure.positions_frac[num]
 
             # we need this operation even if basis_sets_unique_element is True
@@ -543,7 +543,12 @@ class Makefort10(FortranIO):
 
         # twobody part
         for i in range(num_twobody):
-            namelist.set_parameter(f"twobodypar({i+1})", 0.5, "&electrons")
+            if jastrow_type == -15:
+                namelist.set_parameter(f"twobodypar({i+1})", 0.5, "&electrons")
+            elif jastrow_type == -6:
+                namelist.set_parameter(f"twobodypar({i+1})", 1.0, "&electrons")
+            else:
+                namelist.set_parameter(f"twobodypar({i+1})", 0.5, "&electrons")
         namelist.comment_out("twobodypar")
 
         # spin (i.e., neldiff)

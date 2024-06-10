@@ -1637,6 +1637,8 @@ class F10detbasissets:
         # logger.debug(len(new_mo_coefficient))
         # logger.debug(len(self.__mo_coefficient))
         # logger.debug(new_mo_coefficient[0][-1])
+        logger.info(f'Replacing MO coeffs (real). num = {len(new_mo_coefficient)}')
+        logger.info(f'num total = {np.sum([len(mos) for mos in new_mo_coefficient])}')
         assert len(new_mo_coefficient) == len(self.__mo_coefficient)
         total_num_sed = len(new_mo_coefficient) * len(new_mo_coefficient[0])
         logger.debug(f"Total num sed = {total_num_sed}")
@@ -1657,6 +1659,8 @@ class F10detbasissets:
     @mo_coefficient_imag.setter
     def mo_coefficient_imag(self, new_mo_coefficient_imag):
         self.read()
+        logger.info(f'Replacing MO coeffs (imag). num = {len(new_mo_coefficient_imag)}')
+        logger.info(f'num total = {np.sum([len(mos) for mos in new_mo_coefficient_imag])}')
         # logger.debug(len(new_mo_coefficient))
         # logger.debug(len(self.__mo_coefficient_imag))
         # logger.debug(new_mo_coefficient[0][-1])
@@ -2002,7 +2006,7 @@ class F10jasbasissets:
 
                 orb_type_chr = str(return_orb_type_chr(shell_ang_mom_turbo_notation.v))
 
-                if orb_type_chr in {"s", "p", "d", "f", "g", "h", "i"}:
+                if orb_type_chr in {"s", "s100", "s131", "p", "p103", "p150", "d", "f", "g", "h", "i"}:
                     contraction_flag = return_contraction_flag(
                         shell_ang_mom_turbo_notation.v
                     )
@@ -2027,6 +2031,10 @@ class F10jasbasissets:
                     self.__shell_index.append(shell_index)
                     self.__exponent.append(Value())
                     self.__coefficient.append(Value())
+                
+                else:
+                    raise NotImplementedError
+
 
                 p = p[4 + param_num.v :]
 

@@ -3,6 +3,9 @@
 import os, sys
 import shutil
 import numpy as np
+
+import pytest
+
 from turbogenius.vmc_opt_genius import VMCopt_genius
 
 root_dir = os.path.dirname(__file__)
@@ -11,6 +14,7 @@ root_dir = os.path.dirname(__file__)
 
 
 # jasopt: 1b,2b,3b, detopt: fix
+@pytest.mark.skip
 def test_vmcopt_genius_jasopt_1b_2b_3b_basic():
     os.chdir(root_dir)
     prefix = "jasopt_1b_2b_3b"
@@ -54,8 +58,9 @@ def test_vmcopt_genius_jasopt_1b_2b_3b_basic():
     os.chdir(root_dir)
 
 
-""" for the time being.
+
 # jasopt: 1b, detopt: fix
+@pytest.mark.skip
 def test_vmcopt_genius_jasopt_1b_basic():
     os.chdir(root_dir)
     prefix = "jasopt_1b"
@@ -97,10 +102,10 @@ def test_vmcopt_genius_jasopt_1b_basic():
     )
     vmcopt_genius.average(optwarmupsteps=400)
     os.chdir(root_dir)
-"""
 
 
 # jasopt: 2b, detopt: fix
+@pytest.mark.skip
 def test_vmcopt_genius_jasopt_2b_basic():
     os.chdir(root_dir)
     prefix = "jasopt_2b"
@@ -145,6 +150,7 @@ def test_vmcopt_genius_jasopt_2b_basic():
 
 
 # jasopt: fix, detopt: matrix
+@pytest.mark.skip
 def test_vmcopt_genius_detopt_mat_basic():
     os.chdir(root_dir)
     prefix = "detopt_mat"

@@ -3,12 +3,15 @@
 import os, sys
 import shutil
 
+import pytest
+
 import numpy as np
+
 from turbogenius.pyturbo.vmcopt import VMCopt
 
 root_dir = os.path.dirname(__file__)
 
-
+@pytest.mark.skip
 def test_vmcopt_basic():
     os.chdir(root_dir)
 

@@ -107,7 +107,7 @@ and type `make html`. The document is generated in `docs/_build/html`.
 `index.html` is the main page.
 
 # Reference
-K. Nakano et. al in prepareation (2023).
+K. Nakano et al., [TurboGenius: Python suite for high-throughput calculations of ab initio quantum Monte Carlo methods](https://doi.org/10.1063/5.0179003), *J. Chem. Phys.* 159, 224801 (2023).
 
 # How to contribute
 

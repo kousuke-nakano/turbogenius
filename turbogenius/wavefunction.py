@@ -538,7 +538,7 @@ class Wavefunction:
         shutil.move("fort.10_new", "fort.10_out")
 
         if only_generate_template:
-            logger.warning("A template AGP file, fort.10_out, is generated.")
+            logger.info("A template AGP file, fort.10_out, is generated.")
             # convertfort10
             convertfort10_genius = Convertfort10_genius(
                 in_fort10="fort.10_in",

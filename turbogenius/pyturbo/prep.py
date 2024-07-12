@@ -233,7 +233,7 @@ class Prep(FortranIO):
         return flags
 
     @staticmethod
-    def read_default_namelist(in_fort10: str = "fort.10"):
+    def read_default_namelist(in_fort10: str = "fort.10", det_contraction_flag=None):
         prep_default_file = os.path.join(pyturbo_data_dir, "prep", "prep.input")
         namelist = Namelist.parse_namelist_from_file(prep_default_file)
 
@@ -241,9 +241,11 @@ class Prep(FortranIO):
         io_fort10 = IO_fort10(fort10=in_fort10)
         # ! right! we should keep io_fort10 "local".
         # It should not be an attrobute because it could be very large..
-
+        
+        if det_contraction_flag is None:
+            det_contraction_flag = io_fort10.det_contraction_flag
         # contraction
-        if io_fort10.det_contraction_flag:
+        if det_contraction_flag:
             namelist.set_parameter(
                 parameter="contracted_on", value=".true.", namelist="&dft"
             )
@@ -285,10 +287,11 @@ class Prep(FortranIO):
         in_fort10: str = "fort.10",
         magnetic_moments_3d_array: Optional[list] = None,
         twist_average: bool = False,
+        det_contraction_flag: Optional[bool] = None
     ):
         if magnetic_moments_3d_array is None:
             magnetic_moments_3d_array = []
-        namelist = cls.read_default_namelist(in_fort10=in_fort10)
+        namelist = cls.read_default_namelist(in_fort10=in_fort10, det_contraction_flag=det_contraction_flag)
         # fort10
         io_fort10 = IO_fort10(fort10=in_fort10)
         # occ

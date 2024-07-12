@@ -14,6 +14,7 @@ Todo:
 import os
 import numpy as np
 from typing import Optional
+import time
 
 # Logger
 from logging import getLogger, StreamHandler, Formatter
@@ -53,6 +54,7 @@ class DFT_genius(GeniusIO):
     def __init__(
         self,
         fort10: str = "fort.10",
+        det_contraction_flag: Optional[bool] = None,
         grid_size: Optional[list] = None,
         lbox: Optional[list] = None,
         smearing: float = 0.0,
@@ -92,10 +94,19 @@ class DFT_genius(GeniusIO):
         self.independent_kpoints = independent_kpoints
         self.thr_lindep = thr_lindep
         self.kpoints = kpoints
-
+        
         io_fort10 = IO_fort10(self.fort10)
         # self.io_fort10 = IO_fort10(self.fort10)
         # this should not be an attribute!! because fort.10 is sometimes very large.
+        
+        if det_contraction_flag is None:
+            logger.warning('det_contraction_flag is not set.')
+            logger.warning('det_contraction_flag is detected by reading fort.10, which will be slow for a big WF.')
+            det_contraction_flag = io_fort10.det_contraction_flag
+        else:
+            logger.info(f'det_contraction_flag = {det_contraction_flag}.')
+            time.sleep(5)
+        self.det_contraction_flag = det_contraction_flag
 
         if io_fort10.f10structure.pbc_flag:
             # for crystals, Lx, Ly, and Lz are cells
@@ -142,7 +153,7 @@ class DFT_genius(GeniusIO):
 
         # self prep class!!
         self.prep = Prep.parse_from_default_namelist(
-            in_fort10=fort10, twist_average=self.twist_average
+            in_fort10=fort10, twist_average=self.twist_average, det_contraction_flag=self.det_contraction_flag
         )
 
         self.prep.set_parameter(
@@ -171,7 +182,8 @@ class DFT_genius(GeniusIO):
         # &dft part
 
         # contraction
-        if io_fort10.det_contraction_flag:
+        #if io_fort10.det_contraction_flag: # very slow for a large WF
+        if self.det_contraction_flag:
             self.prep.set_parameter(
                 parameter="contracted_on", value=".true.", namelist="&dft"
             )
@@ -181,7 +193,6 @@ class DFT_genius(GeniusIO):
             )
 
         # xc
-        assert self.xc in {"lda", "lsda"}
         if self.xc == "lda":
             self.prep.set_parameter(parameter="typedft", value=1, namelist="&dft")
         elif self.xc == "lsda":
@@ -391,6 +402,7 @@ class DFT_genius(GeniusIO):
         if cont:
             self.prep.set_parameter("iopt", 0, "$systems")
         self.prep.generate_input(input_name=input_name)
+        logger.info('check: prep-input generation is done.')
 
     def run(
         self, input_name: str = "prep.input", output_name: str = "out_prep"

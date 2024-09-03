@@ -144,9 +144,7 @@ class ccECP:
                         fhandle_out.write(fhandle.read())
 
     def all_to_file(self, sleep_time: float = 1):
-        self.to_file(
-            element_list=chemical_symbols, basis_list=self.list_of_basis_all
-        )
+        self.to_file(element_list=chemical_symbols, basis_list=self.list_of_basis_all)
 
 
 class BSE:
@@ -190,16 +188,12 @@ class BSE:
                 if m:
                     bas = m.group(1)
                     with open(
-                        os.path.join(
-                            self.basis_sets_output_dir, f"{e}_{b}.basis"
-                        ),
+                        os.path.join(self.basis_sets_output_dir, f"{e}_{b}.basis"),
                         "w",
                     ) as fhandle:
                         fhandle.write(bas)
             except KeyError:
-                logger.debug(
-                    f"element={e}, basis={b} do not exist in the database."
-                )
+                logger.debug(f"element={e}, basis={b} do not exist in the database.")
 
     def all_to_file(self, sleep_time: float = 1):
         self.to_file(
@@ -282,9 +276,7 @@ class BFD:
                             fhandle_out.write(fhandle.read())
 
     def all_to_file(self, sleep_time: float = 1):
-        self.to_file(
-            element_list=chemical_symbols, basis_list=self.list_of_basis_all
-        )
+        self.to_file(element_list=chemical_symbols, basis_list=self.list_of_basis_all)
 
 
 if __name__ == "__main__":
@@ -292,9 +284,7 @@ if __name__ == "__main__":
     logger.setLevel("DEBUG")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

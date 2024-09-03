@@ -188,12 +188,8 @@ class LRDMCopt_genius(GeniusIO):
             parameter="iesm", value=iesm, namelist="&parameters"
         )
 
-        self.lrdmcopt.set_parameter(
-            parameter="alat", value=alat, namelist="&dmclrdmc"
-        )
-        self.lrdmcopt.set_parameter(
-            parameter="etry", value=etry, namelist="&dmclrdmc"
-        )
+        self.lrdmcopt.set_parameter(parameter="alat", value=alat, namelist="&dmclrdmc")
+        self.lrdmcopt.set_parameter(parameter="etry", value=etry, namelist="&dmclrdmc")
         self.lrdmcopt.set_parameter(
             parameter="tbra", value=time_branching, namelist="&dmclrdmc"
         )
@@ -202,15 +198,11 @@ class LRDMCopt_genius(GeniusIO):
         self.lrdmcopt.set_parameter(
             parameter="typereg", value=typereg, namelist="&dmclrdmc"
         )
-        self.lrdmcopt.set_parameter(
-            parameter="npow", value=npow, namelist="&dmclrdmc"
-        )
+        self.lrdmcopt.set_parameter(parameter="npow", value=npow, namelist="&dmclrdmc")
 
         # regularization
         # to be arguments of the class
-        self.lrdmcopt.set_parameter(
-            parameter="parcutg", value=0, namelist="&dmclrdmc"
-        )
+        self.lrdmcopt.set_parameter(parameter="parcutg", value=0, namelist="&dmclrdmc")
         self.lrdmcopt.set_parameter(
             parameter="true_wagner", value=1, namelist="&dmclrdmc"
         )
@@ -219,9 +211,7 @@ class LRDMCopt_genius(GeniusIO):
         )
 
         # pseudo integration
-        self.lrdmcopt.set_parameter(
-            parameter="npsamax", value=4, namelist="&pseudo"
-        )
+        self.lrdmcopt.set_parameter(parameter="npsamax", value=4, namelist="&pseudo")
 
         # kpoints
         if self.twist_average:  # not 0 (= not False)!!
@@ -361,11 +351,9 @@ class LRDMCopt_genius(GeniusIO):
         """
         if output_names is None:
             output_names = ["out_fn_opt"]
-        self.energy, self.energy_error = self.get_energy(
+        self.energy, self.energy_error = self.get_energy(output_names=output_names)
+        self.estimated_time_for_1_generation = self.get_estimated_time_for_1_generation(
             output_names=output_names
-        )
-        self.estimated_time_for_1_generation = (
-            self.get_estimated_time_for_1_generation(output_names=output_names)
         )
 
     def plot_energy_and_devmax(
@@ -472,9 +460,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("INFO")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

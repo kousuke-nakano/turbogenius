@@ -40,12 +40,16 @@ class Basis_sets:
         nucleus_index (list): One-to-one correspondence between shells and atomic indices. Dimensions=shell_num.
         shell_ang_mom (list): One-to-one correspondence between shells and angular momenta. Dimensions=shell_num.
         shell_ang_mom_turbo_notation (list): TurboRVB notations corresponding to shell_ang_mom. Dimensions=shell_num.
-        shell_factor (list): Normalization factor of each shell. Dimensions=shell_num.
         shell_index (list): One-to-one correspondence between primitives and shell index. Dimensions=prim_num.
         exponent (list): Exponents of the primitives. Dimensions=prim_num.
         coefficient (list): Coefficients of the primitives (real part). Dimensions=prim_num.
         coefficient_imag (list): Coefficients of the primitives (imaginary part). Dimensions=prim_num.
-        prim_factor (list): Normalization coefficients for the primitives. Dimensions=prim_num.
+
+    Notes:
+        Each primitive GTO is normalized inside the TurboRVB code. Therefore, the primitive normalization
+        factors should be removed in advance. There is no other normalization in TurboRVB. So, if the code
+        used for generating WFs considers another normalization factor (e.g., normalization of a contracted
+        basis), they should be considered in coefficient/coefficient_imag.
     """
 
     def __init__(
@@ -53,12 +57,10 @@ class Basis_sets:
         nucleus_index: Optional[list] = None,
         shell_ang_mom: Optional[list] = None,
         shell_ang_mom_turbo_notation: Optional[list] = None,
-        shell_factor: Optional[list] = None,
         shell_index: Optional[list] = None,
         exponent: Optional[list] = None,
         coefficient: Optional[list] = None,
         coefficient_imag: Optional[list] = None,
-        prim_factor: Optional[list] = None,
     ):
         if nucleus_index is None:
             nucleus_index = []
@@ -66,8 +68,6 @@ class Basis_sets:
             shell_ang_mom = []
         if shell_ang_mom_turbo_notation is None:
             shell_ang_mom_turbo_notation = []
-        if shell_factor is None:
-            shell_factor = []
         if shell_index is None:
             shell_index = []
         if exponent is None:
@@ -76,40 +76,32 @@ class Basis_sets:
             coefficient = []
         if coefficient_imag is None:
             coefficient_imag = []
-        if prim_factor is None:
-            prim_factor = []
 
         # variables
         self.nucleus_index = nucleus_index
         self.shell_ang_mom = shell_ang_mom
         self.shell_ang_mom_turbo_notation = shell_ang_mom_turbo_notation
-        self.shell_factor = shell_factor
         self.shell_index = shell_index
         self.exponent = exponent
         self.coefficient = coefficient
         self.coefficient_imag = coefficient_imag
-        self.prim_factor = prim_factor
 
         logger.debug(f"nucleus_index={self.nucleus_index}")
         logger.debug(f"shell_ang_mom={self.shell_ang_mom}")
         logger.debug(
             f"shell_ang_mom_turbo_notation={self.shell_ang_mom_turbo_notation}"
         )
-        logger.debug(f"shell_factor={self.shell_factor}")
         logger.debug(f"shell_index={self.shell_index}")
         logger.debug(f"exponent={self.exponent}")
         logger.debug(f"coefficient={self.coefficient}")
         logger.debug(f"coefficient_imag={self.coefficient_imag}")
-        logger.debug(f"prim_factor={self.prim_factor}")
 
         # consistency check
         check_flags = (
             len(self.exponent) == len(self.coefficient),
-            len(self.exponent) == len(self.prim_factor),
             len(self.exponent) == len(self.shell_index),
             len(self.nucleus_index) == len(self.shell_ang_mom),
             len(self.nucleus_index) == len(self.shell_ang_mom_turbo_notation),
-            len(self.nucleus_index) == len(self.shell_factor),
             (
                 len(self.coefficient) == len(self.coefficient_imag)
                 or len(self.coefficient_imag) == 0
@@ -117,17 +109,20 @@ class Basis_sets:
         )
 
         if not all(check_flags):
-            logger.error(f'-------------they should be equal-------------')
-            logger.error(f'len(self.exponent) = {len(self.exponent)}')
-            logger.error(f'len(self.coefficient) = {len(self.coefficient)}')
-            logger.error(f'len(self.prim_factor) = {len(self.prim_factor)}')
-            logger.error(f'len(self.shell_index) = {len(self.shell_index)}')
-            logger.error(f'-------------they should be equal-------------')
-            logger.error(f'len(self.nucleus_index) = {len(self.nucleus_index)}')
-            logger.error(f'len(self.shell_ang_mom) = {len(self.shell_ang_mom)}')
-            logger.error(f'len(self.shell_ang_mom_turbo_notation) = {len(self.shell_ang_mom_turbo_notation)}')
-            logger.error(f'self.shell_ang_mom={self.shell_ang_mom}')
-            logger.error(f'self.shell_ang_mom_turbo_notation={self.shell_ang_mom_turbo_notation}')
+            logger.error("-------------they should be equal-------------")
+            logger.error(f"len(self.exponent) = {len(self.exponent)}")
+            logger.error(f"len(self.coefficient) = {len(self.coefficient)}")
+            logger.error(f"len(self.shell_index) = {len(self.shell_index)}")
+            logger.error("-------------they should be equal-------------")
+            logger.error(f"len(self.nucleus_index) = {len(self.nucleus_index)}")
+            logger.error(f"len(self.shell_ang_mom) = {len(self.shell_ang_mom)}")
+            logger.error(
+                f"len(self.shell_ang_mom_turbo_notation) = {len(self.shell_ang_mom_turbo_notation)}"
+            )
+            logger.error(f"self.shell_ang_mom={self.shell_ang_mom}")
+            logger.error(
+                f"self.shell_ang_mom_turbo_notation={self.shell_ang_mom_turbo_notation}"
+            )
             raise ValueError
 
     def __str__(self) -> str:
@@ -202,18 +197,16 @@ class Basis_sets:
         logger.debug(self.nucleus_index)
         logger.debug(self.shell_ang_mom)
         logger.debug(self.shell_ang_mom_turbo_notation)
-        logger.debug(self.shell_factor)
         logger.debug(self.shell_index)
         logger.debug(self.exponent)
         logger.debug(self.coefficient)
         logger.debug(self.coefficient_imag)
-        logger.debug(self.prim_factor)
 
         if nucleus_index is None:
             nucleus_index = list(set(self.nucleus_index))
-        elif type(nucleus_index) == int:
+        elif type(nucleus_index) is int:
             nucleus_index = [nucleus_index]
-        elif type(nucleus_index) == list:
+        elif type(nucleus_index) is list:
             pass
         else:
             logger.error("type(nucleus_index) seems wrong.")
@@ -258,12 +251,10 @@ class Basis_sets:
         logger.debug(self.nucleus_index)
         logger.debug(self.shell_ang_mom)
         logger.debug(self.shell_ang_mom_turbo_notation)
-        logger.debug(self.shell_factor)
         logger.debug(self.shell_index)
         logger.debug(self.exponent)
         logger.debug(self.coefficient)
         logger.debug(self.coefficient_imag)
-        logger.debug(self.prim_factor)
 
     def remove_primitive_orbital(self, prim_index: int) -> None:
         """
@@ -279,22 +270,18 @@ class Basis_sets:
         logger.debug(self.nucleus_index)
         logger.debug(self.shell_ang_mom)
         logger.debug(self.shell_ang_mom_turbo_notation)
-        logger.debug(self.shell_factor)
 
         logger.debug(self.shell_index)
         logger.debug(self.exponent)
         logger.debug(self.coefficient)
         logger.debug(self.coefficient_imag)
-        logger.debug(self.prim_factor)
 
         num_nucleus_index_b_cut = len(self.nucleus_index)
         num_shell_ang_mom_b_cut = len(self.shell_ang_mom)
         num_shell_ang_mom_turbo_notation_b_cut = len(self.shell_ang_mom_turbo_notation)
-        num_shell_factor_b_cut = len(self.shell_factor)
         check_flags = (
             num_nucleus_index_b_cut == num_shell_ang_mom_b_cut,
             num_nucleus_index_b_cut == num_shell_ang_mom_turbo_notation_b_cut,
-            num_nucleus_index_b_cut == num_shell_factor_b_cut,
         )
         if not all(check_flags):
             raise ValueError
@@ -302,11 +289,9 @@ class Basis_sets:
         num_shell_index_b_cut = len(self.shell_index)
         num_exponent_b_cut = len(self.exponent)
         num_coefficient_b_cut = len(self.coefficient)
-        num_prim_factor_b_cut = len(self.prim_factor)
         check_flags = (
             num_shell_index_b_cut == num_exponent_b_cut,
             num_shell_index_b_cut == num_coefficient_b_cut,
-            num_shell_index_b_cut == num_prim_factor_b_cut,
         )
         if not all(check_flags):
             raise ValueError
@@ -315,7 +300,6 @@ class Basis_sets:
         self.coefficient.pop(prim_index)
         if self.complex_flag:
             self.coefficient_imag.pop(prim_index)
-        self.prim_factor.pop(prim_index)
 
         # whether or not the corresponding shell should be removed.
         shell_index = self.shell_index.pop(prim_index)
@@ -332,7 +316,6 @@ class Basis_sets:
             self.nucleus_index.pop(shell_index)
             self.shell_ang_mom.pop(shell_index)
             self.shell_ang_mom_turbo_notation.pop(shell_index)
-            self.shell_factor.pop(shell_index)
 
             for i in range(len(self.shell_index[prim_index:])):
                 self.shell_index[prim_index + i] -= 1
@@ -341,22 +324,18 @@ class Basis_sets:
         logger.debug(self.nucleus_index)
         logger.debug(self.shell_ang_mom)
         logger.debug(self.shell_ang_mom_turbo_notation)
-        logger.debug(self.shell_factor)
         logger.debug(self.shell_index)
         logger.debug(self.exponent)
         logger.debug(self.coefficient)
         logger.debug(self.coefficient_imag)
-        logger.debug(self.prim_factor)
 
         num_nucleus_index_a_cut = len(self.nucleus_index)
         num_shell_ang_mom_a_cut = len(self.shell_ang_mom)
         num_shell_ang_mom_turbo_notation_a_cut = len(self.shell_ang_mom_turbo_notation)
-        num_shell_factor_a_cut = len(self.shell_factor)
 
         check_flags = (
             num_nucleus_index_a_cut == num_shell_ang_mom_a_cut,
             num_nucleus_index_a_cut == num_shell_ang_mom_turbo_notation_a_cut,
-            num_nucleus_index_a_cut == num_shell_factor_a_cut,
         )
         if not all(check_flags):
             raise ValueError
@@ -364,12 +343,10 @@ class Basis_sets:
         num_shell_index_a_cut = len(self.shell_index)
         num_exponent_a_cut = len(self.exponent)
         num_coefficient_a_cut = len(self.coefficient)
-        num_prim_factor_a_cut = len(self.prim_factor)
 
         check_flags = (
             num_shell_index_a_cut == num_exponent_a_cut,
             num_shell_index_a_cut == num_coefficient_a_cut,
-            num_shell_index_a_cut == num_prim_factor_a_cut,
         )
         if not all(check_flags):
             raise ValueError
@@ -378,7 +355,6 @@ class Basis_sets:
             num_shell_index_a_cut == num_shell_index_b_cut - 1,
             num_exponent_a_cut == num_exponent_b_cut - 1,
             num_coefficient_a_cut == num_coefficient_b_cut - 1,
-            num_prim_factor_a_cut == num_prim_factor_b_cut - 1,
         )
 
         if flag_remove_primitive_basis:
@@ -389,7 +365,6 @@ class Basis_sets:
                     num_shell_ang_mom_turbo_notation_a_cut
                     == num_shell_ang_mom_turbo_notation_b_cut - 1
                 ),
-                num_shell_factor_a_cut == num_shell_factor_b_cut - 1,
             )
             if not all(check_flags):
                 raise ValueError
@@ -401,7 +376,6 @@ class Basis_sets:
                     num_shell_ang_mom_turbo_notation_a_cut
                     == num_shell_ang_mom_turbo_notation_b_cut
                 ),
-                num_shell_factor_a_cut == num_shell_factor_b_cut,
             )
             if not all(check_flags):
                 raise ValueError
@@ -416,24 +390,20 @@ class Basis_sets:
         logger.debug(self.nucleus_index)
         logger.debug(self.shell_ang_mom)
         logger.debug(self.shell_ang_mom_turbo_notation)
-        logger.debug(self.shell_factor)
         logger.debug(self.shell_index)
         logger.debug(self.exponent)
         logger.debug(self.coefficient)
         logger.debug(self.coefficient_imag)
-        logger.debug(self.prim_factor)
 
         if not len(self.exponent) == len(self.coefficient):
             raise ValueError
         nucleus_index = []
         shell_ang_mom = []
         shell_ang_mom_turbo_notation = []
-        shell_factor = []
         shell_index = []
         exponent = []
         coefficient = []
         coefficient_imag = []
-        prim_factor = []
 
         for nuc in range(len(set(self.nucleus_index))):
             exponent_nuc = []
@@ -450,13 +420,11 @@ class Basis_sets:
                     coefficient_imag_n = [
                         self.coefficient_imag[i] for i in prim_index_list
                     ]
-                prim_factor_n = [self.prim_factor[i] for i in prim_index_list]
 
                 shell_ang_mom_n = self.shell_ang_mom[i_shell]
                 shell_ang_mom_turbo_notation_n = self.shell_ang_mom_turbo_notation[
                     i_shell
                 ]
-                shell_factor_n = self.shell_factor[i_shell]
 
                 if not len(exponent_n) == len(coefficient_n):
                     raise ValueError
@@ -488,11 +456,9 @@ class Basis_sets:
                         coefficient.append(1.0)
                         if self.complex_flag:
                             coefficient_imag.append(0.0)
-                        prim_factor.append(prim_factor_n[p])
                         shell_index.append(len(shell_index))
 
                         # shell
-                        shell_factor.append(None)
                         shell_ang_mom.append(shell_ang_mom_n)
                         # shell_ang_mom_turbo_notation.append(
                         #    turbo_prim_orb_type_num(return_orbchr(shell_ang_mom_n))
@@ -507,9 +473,7 @@ class Basis_sets:
         self.exponent = exponent
         self.coefficient = coefficient
         self.coefficient_imag = coefficient_imag
-        self.prim_factor = prim_factor
         self.shell_index = shell_index
-        self.shell_factor = shell_factor
         self.shell_ang_mom = shell_ang_mom
         self.shell_ang_mom_turbo_notation = shell_ang_mom_turbo_notation
 
@@ -517,12 +481,10 @@ class Basis_sets:
         logger.debug(self.nucleus_index)
         logger.debug(self.shell_ang_mom)
         logger.debug(self.shell_ang_mom_turbo_notation)
-        logger.debug(self.shell_factor)
         logger.debug(self.shell_index)
         logger.debug(self.exponent)
         logger.debug(self.coefficient)
         logger.debug(self.coefficient_imag)
-        logger.debug(self.prim_factor)
 
     @classmethod
     def parse_basis_sets_from_gamess_format_files(
@@ -596,12 +558,10 @@ class Basis_sets:
         nucleus_index = []
         shell_ang_mom = []
         shell_ang_mom_turbo_notation = []
-        shell_factor = []
         shell_index = []
         exponent = []
         coefficient = []
         coefficient_imag = []
-        prim_factor = []
 
         shell_num = 0
         prim_num = 0
@@ -619,13 +579,11 @@ class Basis_sets:
             nucleus_index += [nuc_i] * basis_set.shell_num
             shell_ang_mom += basis_set.shell_ang_mom
             shell_ang_mom_turbo_notation += basis_set.shell_ang_mom_turbo_notation
-            shell_factor += [1.0] * basis_set.shell_num
             shell_index += list(np.array(basis_set.shell_index) + shell_num)
             exponent += basis_set.exponent_list
-            coefficient += basis_set.coefficient_list
-            prim_factor += [
-                1.0
-            ] * basis_set.prim_num  # for the time being. / this can be computed analytically.
+            coefficient += (
+                basis_set.coefficient_list
+            )  # this can be computed analytically.
 
             shell_num += basis_set.shell_num
             prim_num += basis_set.prim_num
@@ -651,12 +609,10 @@ class Basis_sets:
             nucleus_index=nucleus_index,
             shell_ang_mom=shell_ang_mom,
             shell_ang_mom_turbo_notation=shell_ang_mom_turbo_notation,
-            shell_factor=shell_factor,
             shell_index=shell_index,
             exponent=exponent,
             coefficient=coefficient,
             coefficient_imag=coefficient_imag,
-            prim_factor=prim_factor,
         )
 
 
@@ -1025,12 +981,10 @@ class Det_Basis_sets(Basis_sets):
         nucleus_index (list): See basis sets definition.
         shell_ang_mom (list): See basis sets definition.
         shell_ang_mom_turbo_notation (list): See basis sets definition.
-        shell_factor (list): See basis sets definition.
         shell_index (list): See basis sets definition.
         exponent (list): See basis sets definition.
         coefficient (list): See basis sets definition.
         coefficient_imag (list): See basis sets definition.
-        prim_factor (list): See basis sets definition.
         hyb_nucleus_index (list): for hybrid orbitals.
         hyb_param_num (list): for hybrid orbitals.
         hyb_shell_ang_mom (list): for hybrid orbitals.
@@ -1046,12 +1000,10 @@ class Det_Basis_sets(Basis_sets):
         nucleus_index: Optional[list] = None,
         shell_ang_mom: Optional[list] = None,
         shell_ang_mom_turbo_notation: Optional[list] = None,
-        shell_factor: Optional[list] = None,
         shell_index: Optional[list] = None,
         exponent: Optional[list] = None,
         coefficient: Optional[list] = None,
         coefficient_imag: Optional[list] = None,
-        prim_factor: Optional[list] = None,
         hyb_nucleus_index: Optional[list] = None,
         hyb_param_num: Optional[list] = None,
         hyb_shell_ang_mom: Optional[list] = None,
@@ -1067,8 +1019,6 @@ class Det_Basis_sets(Basis_sets):
             shell_ang_mom = []
         if shell_ang_mom_turbo_notation is None:
             shell_ang_mom_turbo_notation = []
-        if shell_factor is None:
-            shell_factor = []
         if shell_index is None:
             shell_index = []
         if exponent is None:
@@ -1077,8 +1027,6 @@ class Det_Basis_sets(Basis_sets):
             coefficient = []
         if coefficient_imag is None:
             coefficient_imag = []
-        if prim_factor is None:
-            prim_factor = []
         if hyb_nucleus_index is None:
             hyb_nucleus_index = []
         if hyb_nucleus_index is None:
@@ -1100,12 +1048,10 @@ class Det_Basis_sets(Basis_sets):
             nucleus_index=nucleus_index,
             shell_ang_mom=shell_ang_mom,
             shell_ang_mom_turbo_notation=shell_ang_mom_turbo_notation,
-            shell_factor=shell_factor,
             shell_index=shell_index,
             exponent=exponent,
             coefficient=coefficient,
             coefficient_imag=coefficient_imag,
-            prim_factor=prim_factor,
         )
         self.hyb_nucleus_index = hyb_nucleus_index
         self.hyb_param_num = hyb_param_num
@@ -1129,12 +1075,10 @@ class Jas_Basis_sets(Basis_sets):
         nucleus_index (list): See basis sets definition.
         shell_ang_mom (list): See basis sets definition.
         shell_ang_mom_turbo_notation (list): See basis sets definition.
-        shell_factor (list): See basis sets definition.
         shell_index (list): See basis sets definition.
         exponent (list): See basis sets definition.
         coefficient (list): See basis sets definition.
         coefficient_imag (list): See basis sets definition.
-        prim_factor (list): See basis sets definition.
         number_of_additional_hybrid_orbitals (list): the number of additional hybrid orbitals, used for makefort10.input.
     """
 
@@ -1143,12 +1087,10 @@ class Jas_Basis_sets(Basis_sets):
         nucleus_index: Optional[list] = None,
         shell_ang_mom: Optional[list] = None,
         shell_ang_mom_turbo_notation: Optional[list] = None,
-        shell_factor: Optional[list] = None,
         shell_index: Optional[list] = None,
         exponent: Optional[list] = None,
         coefficient: Optional[list] = None,
         coefficient_imag: Optional[list] = None,
-        prim_factor: Optional[list] = None,
         number_of_additional_hybrid_orbitals: Optional[list] = None,
     ):
         if nucleus_index is None:
@@ -1157,18 +1099,12 @@ class Jas_Basis_sets(Basis_sets):
             shell_ang_mom = []
         if shell_ang_mom_turbo_notation is None:
             shell_ang_mom_turbo_notation = []
-        if shell_factor is None:
-            shell_factor = []
-        if shell_factor is None:
-            shell_index = []
         if exponent is None:
             exponent = []
         if coefficient is None:
             coefficient = []
         if coefficient_imag is None:
             coefficient_imag = []
-        if prim_factor is None:
-            prim_factor = []
         if number_of_additional_hybrid_orbitals is None:
             number_of_additional_hybrid_orbitals = []
 
@@ -1177,12 +1113,10 @@ class Jas_Basis_sets(Basis_sets):
             nucleus_index=nucleus_index,
             shell_ang_mom=shell_ang_mom,
             shell_ang_mom_turbo_notation=shell_ang_mom_turbo_notation,
-            shell_factor=shell_factor,
             shell_index=shell_index,
             exponent=exponent,
             coefficient=coefficient,
             coefficient_imag=coefficient_imag,
-            prim_factor=prim_factor,
         )
 
         self.number_of_additional_hybrid_orbitals = number_of_additional_hybrid_orbitals

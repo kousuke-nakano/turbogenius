@@ -68,15 +68,21 @@ class Convertfort10_genius(GeniusIO):
             nx = int(Lx / ax)
             ny = int(Ly / ay)
             nz = int(Lz / az)
-            if nx%2 != 0:
-                nx+=1
-            if ny%2 != 0:
-                ny+=1
-            if nz%2 != 0:
-                nz+=1
-            self.convertfort10.set_parameter(parameter="nx", value=nx, namelist="&mesh_info")
-            self.convertfort10.set_parameter(parameter="ny", value=ny, namelist="&mesh_info")
-            self.convertfort10.set_parameter(parameter="nz", value=nz, namelist="&mesh_info")
+            if nx % 2 != 0:
+                nx += 1
+            if ny % 2 != 0:
+                ny += 1
+            if nz % 2 != 0:
+                nz += 1
+            self.convertfort10.set_parameter(
+                parameter="nx", value=nx, namelist="&mesh_info"
+            )
+            self.convertfort10.set_parameter(
+                parameter="ny", value=ny, namelist="&mesh_info"
+            )
+            self.convertfort10.set_parameter(
+                parameter="nz", value=nz, namelist="&mesh_info"
+            )
             self.convertfort10.comment_out(parameter="ax")
             self.convertfort10.comment_out(parameter="ay")
             self.convertfort10.comment_out(parameter="az")
@@ -85,9 +91,7 @@ class Convertfort10_genius(GeniusIO):
             Lx = np.max(pos[:, 0]) - np.min(pos[:, 0]) + 6.0
             Ly = np.max(pos[:, 1]) - np.min(pos[:, 1]) + 6.0
             Lz = np.max(pos[:, 2]) - np.min(pos[:, 2]) + 6.0
-            logger.info(
-                "Lbox is set to +- 3.0 bohr from the edges of the molecules."
-            )
+            logger.info("Lbox is set to +- 3.0 bohr from the edges of the molecules.")
             logger.info(f"Lx={Lx}, Ly={Ly}, Lz={Lz}")
             ax = self.grid_size
             ay = self.grid_size
@@ -95,12 +99,12 @@ class Convertfort10_genius(GeniusIO):
             nx = int(Lx / ax)
             ny = int(Ly / ay)
             nz = int(Lz / az)
-            if nx%2 != 0:
-                nx+=1
-            if ny%2 != 0:
-                ny+=1
-            if nz%2 != 0:
-                nz+=1
+            if nx % 2 != 0:
+                nx += 1
+            if ny % 2 != 0:
+                ny += 1
+            if nz % 2 != 0:
+                nz += 1
             logger.info(f"nx={nx}, ny={ny}, nz={nz}")
             self.convertfort10.set_parameter(
                 parameter="ax", value=ax, namelist="&mesh_info"
@@ -178,9 +182,7 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 

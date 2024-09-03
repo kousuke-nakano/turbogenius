@@ -18,6 +18,7 @@ import os
 import shutil
 import argparse
 import numpy as np
+import scipy
 import glob
 from typing import Optional
 
@@ -87,7 +88,7 @@ def trexio_to_turborvb_wf(
     # read electron num
     num_ele_up = trexio_r.num_ele_up
     num_ele_dn = trexio_r.num_ele_dn
-    num_ele_total = num_ele_up + num_ele_dn
+    # num_ele_total = num_ele_up + num_ele_dn
 
     # read structure info.
     nucleus_num_r = trexio_r.nucleus_num_r
@@ -97,7 +98,7 @@ def trexio_to_turborvb_wf(
     # total_charge = np.sum(charges_r) - num_ele_total
 
     atomic_number_list = [return_atomic_number(Z) for Z in labels_r]
-    atomic_number_unique = list(set(atomic_number_list))
+    # atomic_number_unique = list(set(atomic_number_list))
     element_list = labels_r
 
     # check data
@@ -125,7 +126,9 @@ def trexio_to_turborvb_wf(
         phase_dn = [+k1, +k2, +k3]
 
         if np.abs(cell_a[1]) > 1.0e-10 or np.abs(cell_a[2]) > 1.0e-10:
-            logger.error('TREXIO to TurboRVB conveter currently accepts only cell_a = [a, 0.0, 0.0].')
+            logger.error(
+                "TREXIO to TurboRVB conveter currently accepts only cell_a = [a, 0.0, 0.0]."
+            )
             raise NotImplementedError
 
         cell = Cell(
@@ -157,10 +160,9 @@ def trexio_to_turborvb_wf(
     # view(atom)
 
     # Reading basis sets info
-    basis_type = trexio_r.basis_type
-    basis_shell_num = trexio_r.basis_shell_num
-    basis_shell_index = trexio_r.basis_shell_index
-    basis_prim_num = trexio_r.basis_prim_num
+    # basis_type = trexio_r.basis_type
+    # basis_shell_num = trexio_r.basis_shell_num
+    # basis_prim_num = trexio_r.basis_prim_num
     basis_nucleus_index = trexio_r.basis_nucleus_index
     basis_shell_ang_mom = trexio_r.basis_shell_ang_mom
     basis_shell_factor = trexio_r.basis_shell_factor
@@ -178,7 +180,7 @@ def trexio_to_turborvb_wf(
     try:
         ecp_max_ang_mom_plus_1 = trexio_r.ecp_max_ang_mom_plus_1
         ecp_z_core = trexio_r.ecp_z_core
-        ecp_num = trexio_r.ecp_num
+        # ecp_num = trexio_r.ecp_num
         ecp_ang_mom = trexio_r.ecp_ang_mom
         ecp_nucleus_index = trexio_r.ecp_nucleus_index
         ecp_exponent = trexio_r.ecp_exponent
@@ -190,7 +192,7 @@ def trexio_to_turborvb_wf(
 
     # ao info
     ao_cartesian = trexio_r.ao_cartesian
-    ao_num = trexio_r.ao_num
+    # ao_num = trexio_r.ao_num
     ao_shell = trexio_r.ao_shell
     ao_normalization = trexio_r.ao_normalization
 
@@ -198,7 +200,7 @@ def trexio_to_turborvb_wf(
     logger.debug(ao_shell)
 
     # mo info
-    mo_type = trexio_r.mo_type
+    # mo_type = trexio_r.mo_type
     mo_num = trexio_r.mo_num
     mo_coefficient = trexio_r.mo_coefficient
     mo_occupation = trexio_r.mo_occupation
@@ -297,16 +299,60 @@ def trexio_to_turborvb_wf(
         basis_coefficient_imag = [0.0] * len(basis_coefficient)
     else:
         basis_coefficient_imag = []
+
+    # Normalization considered here!
+
+    # primitive and contracted basis set normalization factors.
+    # TurboRVB considers the primitive normalization factors inside the code.
+    # Thus, the primitive normalization factors should be subtracted here.
+    # TurboRVB implements no other normalization inside the code. So, if
+    # shell normalization factors are stored, they should be considered
+    # togother with the coefficients.
+    basis_coefficient_refactored = []
+
+    for shell_index, basis_exp, basis_coeff, basis_prim in zip(
+        basis_shell_index, basis_exponent, basis_coefficient, basis_prim_factor
+    ):
+        shell_ang_mom = basis_shell_ang_mom[shell_index]
+        shell_factor = basis_shell_factor[shell_index]
+
+        # turborvb normalization
+        # f = 2**(2*l+3) * math.factorial(l+1) * (2*expnt)**(l+1.5) \
+        #        / (math.factorial(2*l+2) * math.sqrt(math.pi))
+        # return math.sqrt(f)
+
+        n = shell_ang_mom * 2 + 2
+        alpha = 2 * basis_exp
+        n1 = (n + 1) * 0.5
+        gaussian_int = scipy.special.gamma(n1) / (2.0 * alpha**n1)
+        turborvb_prim_norm_factor = 1 / np.sqrt(gaussian_int)
+
+        coeff_refactored = (
+            shell_factor * (basis_coeff / turborvb_prim_norm_factor) * basis_prim
+        )
+        basis_coefficient_refactored.append(coeff_refactored)
+
+    basis_coefficient = basis_coefficient_refactored
+
+    # AO normalization
+    # TurboRVB implements no other normalization inside the code than the primitive norm factors.
+    # So, if AO normalization factors are stored, they should be considered here.
+    mo_coefficient_refactored = []
+    for mo_coeff in mo_coefficient:
+        mo_coeff_refactored = [
+            ao_norm * mo_cf for ao_norm, mo_cf in zip(ao_normalization, mo_coeff)
+        ]  # for each AO
+        mo_coefficient_refactored.append(mo_coeff_refactored)
+    mo_coefficient = mo_coefficient_refactored
+
     det_basis_sets = Det_Basis_sets(
         nucleus_index=basis_nucleus_index,
         shell_ang_mom=basis_shell_ang_mom,
         shell_ang_mom_turbo_notation=shell_ang_mom_turbo_notation,
-        shell_factor=basis_shell_factor,
         shell_index=basis_shell_index,
         exponent=basis_exponent,
         coefficient=basis_coefficient,
         coefficient_imag=basis_coefficient_imag,
-        prim_factor=basis_prim_factor,
     )
 
     # Pseudopotentials
@@ -387,7 +433,7 @@ def trexio_to_turborvb_wf(
     namelist.set_parameter(
         parameter="phasedo(3)", value=phase_dn[2], namelist="&system"
     )
-    
+
     # symmetry in makefort10
     if nosymmetry:
         namelist.set_parameter(

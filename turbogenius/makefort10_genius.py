@@ -456,8 +456,8 @@ class Makefort10_genius(GeniusIO):
         else:
             logger.error("phase up is not equal to +1 * phase up and -1 * phase dn")
             raise ValueError
-        
-        #symmetry
+
+        # symmetry
         if self.symmetry:
             namelist.set_parameter(
                 parameter="nosym", value=".false.", namelist="&symmetries"

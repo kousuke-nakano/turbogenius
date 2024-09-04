@@ -281,19 +281,6 @@ def trexio_to_turborvb_wf(
         ):
             raise NotImplementedError
 
-    # basis sets
-    shell_ang_mom_turbo_notation = []
-
-    for i, ang_mom in enumerate(basis_shell_ang_mom):
-        if list(basis_shell_index).count(i) > 1:  # contracted orbitals
-            shell_ang_mom_turbo_notation.append(
-                turbo_cont_orb_type_num(return_orbchr(ang_mom))
-            )
-        else:  # uncontracted orbitals
-            shell_ang_mom_turbo_notation.append(
-                turbo_prim_orb_type_num(return_orbchr(ang_mom))
-            )
-
     # if complex_flag is true, we need a dummy coeff_imag!!
     if complex_flag:
         basis_coefficient_imag = [0.0] * len(basis_coefficient)
@@ -344,6 +331,29 @@ def trexio_to_turborvb_wf(
         ]  # for each AO
         mo_coefficient_refactored.append(mo_coeff_refactored)
     mo_coefficient = mo_coefficient_refactored
+
+    # basis sets
+    shell_ang_mom_turbo_notation = []
+
+    for i, ang_mom in enumerate(basis_shell_ang_mom):
+        # contracted shells
+        if list(basis_shell_index).count(i) > 1:
+            shell_ang_mom_turbo_notation.append(
+                turbo_cont_orb_type_num(return_orbchr(ang_mom))
+            )
+        # uncontracted shells
+        else:
+            prim_basis_coeff = basis_coefficient[list(basis_shell_index).index(i)]
+            # treated as a primitive shell
+            if prim_basis_coeff == 1.0:
+                shell_ang_mom_turbo_notation.append(
+                    turbo_prim_orb_type_num(return_orbchr(ang_mom))
+                )
+            # treated as a contracted basis
+            else:
+                shell_ang_mom_turbo_notation.append(
+                    turbo_cont_orb_type_num(return_orbchr(ang_mom))
+                )
 
     det_basis_sets = Det_Basis_sets(
         nucleus_index=basis_nucleus_index,

@@ -101,10 +101,10 @@ class Makefort10(FortranIO):
             atomic_number = self.structure.atomic_numbers[num]
 
             if self.structure.has_celldm:
-                #logger.warning("Cartesian coord.")
+                # logger.warning("Cartesian coord.")
                 x, y, z = self.structure.positions[num]
             else:
-                #logger.warning("Fractional coord.")
+                # logger.warning("Fractional coord.")
                 x, y, z = self.structure.positions_frac[num]
 
             # we need this operation even if basis_sets_unique_element is True
@@ -254,6 +254,7 @@ class Makefort10(FortranIO):
                         i for i, x in enumerate(basis_sets.shell_index) if x == shell
                     ]
 
+                    # contracted shells
                     if len(prim_index) > 1:
                         logger.debug("Contracted shell!")
                         # contracted shell
@@ -299,24 +300,80 @@ class Makefort10(FortranIO):
                             for coefficient in coefficient_list:
                                 output.append(" {:12f}".format(coefficient))
                         output.append("\n")
+
+                    # primitive shells
                     else:
-                        logger.debug("Uncontracted shell!")
+                        logger.debug("primitive shell!")
                         prim_index = prim_index[0]
-                        # uncontracted shell
+
                         exponent = basis_sets.exponent[prim_index]
+                        coefficient = basis_sets.coefficient[prim_index]
+                        if basis_sets.complex_flag:
+                            coefficient_imag = coefficient_imag[prim_index]
+
                         logger.debug(exponent)
-                        output.append(
-                            "  {:d}   {:d}   {:d}\n".format(
-                                2 * shell_ang_mom + 1, 1, shell_ang_mom_turbo
-                            )
-                        )
-                        if basis_sets_unique_element:
-                            nucleus_index_label = 1
+                        logger.debug(coefficient)
+
+                        if basis_sets.complex_flag:
+                            if coefficient == 1.0 and coefficient_imag == 0.0:
+                                flag_treated_as_contracted_shell = False
+                            else:
+                                flag_treated_as_contracted_shell = True
                         else:
-                            nucleus_index_label = nucleus + 1
-                        output.append(
-                            "  {:d}   {:.12f}\n".format(nucleus_index_label, exponent)
-                        )
+                            if coefficient == 1.0:
+                                flag_treated_as_contracted_shell = False
+                            else:
+                                flag_treated_as_contracted_shell = True
+
+                        # the shell is primitive, but treated as a contracted shell
+                        # because its coeff is not 1.
+                        if flag_treated_as_contracted_shell:
+                            num_param = 2
+
+                            output.append(
+                                "  {:d}   {:d}   {:d}\n".format(
+                                    2 * shell_ang_mom + 1,
+                                    num_param,
+                                    shell_ang_mom_turbo,
+                                )
+                            )
+                            if basis_sets_unique_element:
+                                nucleus_index_label = 1
+                            else:
+                                nucleus_index_label = nucleus + 1
+                            output.append("  {:d}".format(nucleus_index_label))
+
+                            # exponent
+                            output.append(" {:12f}".format(exponent))
+
+                            # coefficients
+                            if basis_sets.complex_flag:
+                                output.append(
+                                    " {:12f} {:12f}".format(
+                                        coefficient, coefficient_imag
+                                    )
+                                )
+                            else:  # real case
+                                output.append(" {:12f}".format(coefficient))
+
+                            output.append("\n")
+
+                        # primitive shell (coeff is omitted)
+                        else:
+                            output.append(
+                                "  {:d}   {:d}   {:d}\n".format(
+                                    2 * shell_ang_mom + 1, 1, shell_ang_mom_turbo
+                                )
+                            )
+                            if basis_sets_unique_element:
+                                nucleus_index_label = 1
+                            else:
+                                nucleus_index_label = nucleus + 1
+                            output.append(
+                                "  {:d}   {:.12f}\n".format(
+                                    nucleus_index_label, exponent
+                                )
+                            )
 
                 # hybrid orbitals (k==0):
                 if k == 0:  # hybrid orbital:

@@ -315,12 +315,14 @@ class Makefort10(FortranIO):
                         logger.debug(coefficient)
 
                         if basis_sets.complex_flag:
-                            if coefficient == 1.0 and coefficient_imag == 0.0:
+                            if np.isclose(coefficient, 1.0, atol=1e-06) and np.isclose(
+                                coefficient_imag, 0.0, atol=1e-06
+                            ):
                                 flag_treated_as_contracted_shell = False
                             else:
                                 flag_treated_as_contracted_shell = True
                         else:
-                            if coefficient == 1.0:
+                            if np.isclose(coefficient, 1.0, atol=1e-06):
                                 flag_treated_as_contracted_shell = False
                             else:
                                 flag_treated_as_contracted_shell = True

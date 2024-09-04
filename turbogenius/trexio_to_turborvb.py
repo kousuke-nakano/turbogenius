@@ -345,7 +345,7 @@ def trexio_to_turborvb_wf(
         else:
             prim_basis_coeff = basis_coefficient[list(basis_shell_index).index(i)]
             # treated as a primitive shell
-            if prim_basis_coeff == 1.0:
+            if np.isclose(prim_basis_coeff, 1.0, atol=1e-06):
                 shell_ang_mom_turbo_notation.append(
                     turbo_prim_orb_type_num(return_orbchr(ang_mom))
                 )

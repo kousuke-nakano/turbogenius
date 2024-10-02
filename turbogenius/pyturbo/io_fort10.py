@@ -1605,6 +1605,11 @@ class F10detbasissets:
             return False
 
     @property
+    def num_ao(self):
+        self.read()
+        return len(self.__atom_label)
+
+    @property
     def num_mo(self):
         self.read()
         return len(self.__mo_atom_label)

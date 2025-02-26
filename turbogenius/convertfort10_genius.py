@@ -43,8 +43,8 @@ class Convertfort10_genius(GeniusIO):
         in_fort10: str = "fort.10_in",
         out_fort10: str = "fort.10_out",
         grid_size: float = 0.10,
+        add_onebody2det: bool = False,
     ):
-
         self.in_fort10 = in_fort10
         self.out_fort10 = out_fort10
         self.grid_size = grid_size
@@ -124,6 +124,10 @@ class Convertfort10_genius(GeniusIO):
             self.convertfort10.set_parameter(
                 parameter="nz", value=nz, namelist="&mesh_info"
             )
+
+        self.convertfort10.set_parameter(
+            parameter="add_onebody2det", value=add_onebody2det, namelist="&mesh_info"
+        )
 
     def run_all(
         self,

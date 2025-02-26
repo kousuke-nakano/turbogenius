@@ -315,8 +315,9 @@ def trexio_to_turborvb_wf(
         turborvb_prim_norm_factor = 1 / np.sqrt(gaussian_int)
 
         coeff_refactored = (
-            shell_factor * (basis_coeff / turborvb_prim_norm_factor) * basis_prim
+            shell_factor * basis_coeff / turborvb_prim_norm_factor * basis_prim
         )
+
         basis_coefficient_refactored.append(coeff_refactored)
 
     basis_coefficient = basis_coefficient_refactored
@@ -324,10 +325,19 @@ def trexio_to_turborvb_wf(
     # AO normalization
     # TurboRVB implements no other normalization inside the code than the primitive norm factors.
     # So, if AO normalization factors are stored, they should be considered here.
+
+    # ao_normalization in TREXIO employs the solid harmonics notation,
+    # which is different from the spherical harmonics notation.
+    # this is why the prefactor, np.sqrt(4 * np.pi) / np.sqrt(2 * l + 1), is needed here.
+
     mo_coefficient_refactored = []
     for mo_coeff in mo_coefficient:
         mo_coeff_refactored = [
-            ao_norm * mo_cf for ao_norm, mo_cf in zip(ao_normalization, mo_coeff)
+            ao_norm
+            * mo_cf
+            * np.sqrt(4 * np.pi)
+            / np.sqrt(2 * basis_shell_ang_mom[ao_shell_i] + 1)
+            for ao_norm, mo_cf, ao_shell_i in zip(ao_normalization, mo_coeff, ao_shell)
         ]  # for each AO
         mo_coefficient_refactored.append(mo_coeff_refactored)
     mo_coefficient = mo_coefficient_refactored
@@ -390,7 +400,10 @@ def trexio_to_turborvb_wf(
     if jas_basis_sets.shell_num == 0:
         jastrow_type = 0
     else:
-        jastrow_type = -6  # the standard choice for PP calc.
+        if has_ecp:
+            jastrow_type = -5  # the standard choice for PP calc.
+        else:
+            jastrow_type = -15 # the standard choice for all-electron calc.
 
     # makefort10
     namelist = Makefort10.read_default_namelist(
@@ -483,7 +496,7 @@ def trexio_to_turborvb_wf(
         namelist=namelist,
     )
     makefort10.generate_input(
-        input_name="makefort10.input", basis_sets_unique_element=False
+        input_name="makefort10.input", basis_sets_unique_element=True
     )
     makefort10.run()
 
@@ -672,7 +685,6 @@ def trexio_to_turborvb_wf(
                     reorder_l_list = [0] * 1
 
                 elif current_ang_mom == 1:  # p shell
-
                     if ao_cartesian != 0:
                         logger.debug("p shell/no permutation is needed.")
                         logger.debug("(trexio  notation): px(m=+1), py(m=-1), pz(m=0)")
@@ -689,7 +701,6 @@ def trexio_to_turborvb_wf(
                         reorder_l_list = [1] * 3
 
                 elif current_ang_mom == 2:  # d shell
-
                     if ao_cartesian != 0:
                         logger.debug(
                             "Cartesian notation for d shell is not implemented yet! Sorry."
@@ -708,7 +719,6 @@ def trexio_to_turborvb_wf(
                         reorder_l_list = [2] * 5
 
                 elif current_ang_mom == 3:  # f shell
-
                     if ao_cartesian != 0:
                         logger.debug(
                             "Cartesian notation for f shell is not implemented yet! Sorry."
@@ -728,7 +738,6 @@ def trexio_to_turborvb_wf(
                         reorder_l_list = [3] * 7
 
                 elif current_ang_mom == 4:  # g shell
-
                     if ao_cartesian != 0:
                         logger.debug(
                             "Cartesian notation for g shell is not implemented yet! Sorry."
@@ -748,7 +757,6 @@ def trexio_to_turborvb_wf(
                         reorder_l_list = [4] * 9
 
                 elif current_ang_mom == 5:  # h shell
-
                     if ao_cartesian != 0:
                         logger.debug(
                             "Cartesian notation for h shell is not implemented yet! Sorry."
@@ -780,7 +788,6 @@ def trexio_to_turborvb_wf(
                         reorder_l_list = [5] * 11
 
                 elif current_ang_mom == 6:  # i shell
-
                     if ao_cartesian != 0:
                         logger.debug(
                             "Cartesian notation for i shell is not implemented yet! Sorry."

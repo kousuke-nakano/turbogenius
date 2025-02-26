@@ -33,7 +33,6 @@ class Trexio_wrapper_r:
     """
 
     def __init__(self, trexio_file: str):
-
         # prefix and file names
         logger.info(f"TREXIO file = {trexio_file}")
 
@@ -54,7 +53,12 @@ class Trexio_wrapper_r:
             self.cell_a = trexio.read_cell_a(file_r)
             self.cell_b = trexio.read_cell_b(file_r)
             self.cell_c = trexio.read_cell_c(file_r)
-            self.k_point = trexio.read_pbc_k_point(file_r)
+            try:
+                self.k_point = trexio.read_pbc_k_point(file_r)
+            except trexio.Error:
+                logger.warning('k_point is not stored in the TREXIO file.')
+                logger.warning('Assuming Gamma point.')
+                self.k_point = [0.0,0.0,0.0]
         else:
             logger.info("Molecule (Open boundary condition)")
 
@@ -84,9 +88,7 @@ class Trexio_wrapper_r:
 
         # Pseudo potentials info
         if trexio.has_ecp_num(file_r):
-            self.ecp_max_ang_mom_plus_1 = trexio.read_ecp_max_ang_mom_plus_1(
-                file_r
-            )
+            self.ecp_max_ang_mom_plus_1 = trexio.read_ecp_max_ang_mom_plus_1(file_r)
             self.ecp_z_core = trexio.read_ecp_z_core(file_r)
             self.ecp_num = trexio.read_ecp_num(file_r)
             self.ecp_ang_mom = trexio.read_ecp_ang_mom(file_r)
@@ -102,7 +104,7 @@ class Trexio_wrapper_r:
         self.ao_normalization = trexio.read_ao_normalization(file_r)
 
         # mo info
-        self.mo_type = trexio.read_mo_type(file_r)
+        # self.mo_type = trexio.read_mo_type(file_r)
         self.mo_num = trexio.read_mo_num(file_r)
         self.mo_occupation = trexio.read_mo_occupation(file_r)
         self.mo_coefficient = trexio.read_mo_coefficient(file_r)
@@ -128,21 +130,15 @@ if __name__ == "__main__":
     logger.setLevel("DEBUG")
     stream_handler = StreamHandler()
     stream_handler.setLevel("DEBUG")
-    handler_format = Formatter(
-        "%(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
+    handler_format = Formatter("%(name)s - %(levelname)s - %(lineno)d - %(message)s")
     stream_handler.setFormatter(handler_format)
     logger.addHandler(stream_handler)
 
     # moved to examples
-    sys.path.append(
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-    )
+    sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
     from utils_workflows.env import turbo_genius_root
 
-    trexio_test_dir = os.path.join(
-        turbo_genius_root, "tests", "trexio_to_turborvb"
-    )
+    trexio_test_dir = os.path.join(turbo_genius_root, "tests", "trexio_to_turborvb")
 
     os.chdir(trexio_test_dir)
 

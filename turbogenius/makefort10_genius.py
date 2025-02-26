@@ -54,6 +54,7 @@ class Makefort10_genius(GeniusIO):
          jas_cut_basis_option (bool): if True, Jastrow basis set is cut according to the Andrea Zen's procedure.
          det_exp_to_discard (float): determinant basis set whose exponents smaller than "det_exp_to_discard" are disregarded
          jastrow_type (int): One- and Two- Jastrow type specified.
+         jastrow_4body (bool): Flag for activating 4-body Jastrow components in the 3body Jastrow.
          complex (bool): if True, the WF is complex, if False, the WF is real.
          phase_up (list): 3-float numbers for the up-phase [x, y, z].
          phase_dn (list): 3-float numbers for the dn-phase [x, y, z].
@@ -76,6 +77,7 @@ class Makefort10_genius(GeniusIO):
         jas_cut_basis_option: bool = False,
         det_exp_to_discard: float = 0.00,
         jastrow_type: int = -6,
+        jastrow_4body: bool = False,
         complex: bool = False,
         phase_up: Optional[list] = None,
         phase_dn: Optional[list] = None,
@@ -491,6 +493,17 @@ class Makefort10_genius(GeniusIO):
             parameter="neldiff", value=self.neldiff, namelist="&electrons"
         )
 
+        # 4-body Jastrow
+        if jastrow_4body:
+            namelist.set_parameter(
+                parameter="no_4body_jas", value=".false.", namelist="&electrons"
+            )
+        else:
+            namelist.set_parameter(
+                parameter="no_4body_jas", value=".true.", namelist="&electrons"
+            )
+
+        # complex
         if complex:
             det_basis_sets.real_to_complex()
             namelist.set_parameter(

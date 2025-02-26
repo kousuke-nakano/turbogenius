@@ -59,6 +59,7 @@ logger = getLogger("Turbo-Genius").getChild(__name__)
 def trexio_to_turborvb_wf(
     trexio_file: str,
     jas_basis_sets: Optional[Jas_Basis_sets] = None,
+    jastrow_4body:bool = False,
     max_occ_conv: int = 0,
     mo_num_conv: int = -1,
     only_mol: bool = True,
@@ -71,6 +72,7 @@ def trexio_to_turborvb_wf(
     Args:
         trexio_file (str): TREXIO file name
         jas_basis_sets (Jas_basis_sets): Jastrow basis sets added to the TREXIO WF.
+        jastrow_4body (bool): If true, jastrow_4body is switched on.
         max_occ_conv (int): maximum occ used for the conv, not used with mo_num
         mo_num_conv (int): num mo used for the conv, not used with max occ
         only_mol (bool): if True, only moleculer orbitals option = True in convertfort10mol
@@ -476,6 +478,16 @@ def trexio_to_turborvb_wf(
     else:
         namelist.set_parameter(
             parameter="symmagp", value=".false.", namelist="&symmetries"
+        )
+
+    # 4-body Jastrow
+    if jastrow_4body:
+        namelist.set_parameter(
+            parameter="no_4body_jas", value=".false.", namelist="&electrons"
+        )
+    else:
+        namelist.set_parameter(
+            parameter="no_4body_jas", value=".true.", namelist="&electrons"
         )
 
     # complex or real

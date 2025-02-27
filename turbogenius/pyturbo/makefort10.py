@@ -603,9 +603,11 @@ class Makefort10(FortranIO):
         # twobody part
         for i in range(num_twobody):
             if jastrow_type == -15:
-                namelist.set_parameter(f"twobodypar({i+1})", 0.5, "&electrons")
+                namelist.set_parameter(f"twobodypar({i+1})", 1.5, "&electrons")
             elif jastrow_type == -6:
                 namelist.set_parameter(f"twobodypar({i+1})", 1.0, "&electrons")
+            elif jastrow_type == -5:
+                namelist.set_parameter(f"twobodypar({i+1})", 1.5, "&electrons")
             else:
                 namelist.set_parameter(f"twobodypar({i+1})", 0.5, "&electrons")
         namelist.comment_out("twobodypar")

@@ -309,7 +309,7 @@ class Makefort10(FortranIO):
                         exponent = basis_sets.exponent[prim_index]
                         coefficient = basis_sets.coefficient[prim_index]
                         if basis_sets.complex_flag:
-                            coefficient_imag = coefficient_imag[prim_index]
+                            coefficient_imag = basis_sets.coefficient_imag[prim_index]
 
                         logger.debug(exponent)
                         logger.debug(coefficient)

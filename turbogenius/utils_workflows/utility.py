@@ -88,25 +88,25 @@ def get_optimizer_flags(
     # det. basis set optimization
     if opt_det_basis_coeff or opt_det_basis_exp:
         iesup = 1
-        if opt_det_basis_coeff and not opt_det_basis_exp:  # opt only coeff.
+        if opt_det_basis_coeff:
             if optimizer == "sr":  # stochastic reconfiguration
                 optimizer_number = return_optimizer_number(
-                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                    optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=True
                 )
             elif optimizer == "lr":  # linear method
                 optimizer_number = return_optimizer_number(
-                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                    optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=True
                 )
             else:
                 raise NotImplementedError
-        else:  # opt also exponents
+        else:
             if optimizer == "sr":  # stochastic reconfiguration
                 optimizer_number = return_optimizer_number(
-                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True
+                    optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=False
                 )
             elif optimizer == "lr":  # linear method
                 optimizer_number = return_optimizer_number(
-                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True
+                    optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=False
                 )
             else:
                 raise NotImplementedError
@@ -114,11 +114,11 @@ def get_optimizer_flags(
         iesup = 0
         if optimizer == "sr":  # stochastic reconfiguration
             optimizer_number = return_optimizer_number(
-                optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=False
             )
         elif optimizer == "lr":  # linear method
             optimizer_number = return_optimizer_number(
-                optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=False
             )
         else:
             raise NotImplementedError
@@ -126,25 +126,25 @@ def get_optimizer_flags(
     # jas. basis set optimization
     if opt_jas_basis_coeff or opt_jas_basis_exp:
         iesm = 1
-        if opt_jas_basis_coeff and not opt_jas_basis_exp:  # opt only coeff.
+        if opt_jas_basis_coeff:
             if optimizer == "sr":  # stochastic reconfiguration
                 assert optimizer_number == return_optimizer_number(
-                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                    optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=True
                 ), "There is a conflict!! Not implemented."
             elif optimizer == "lr":  # linear method
                 assert optimizer_number == return_optimizer_number(
-                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                    optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=True
                 ), "There is a conflict!! Not implemented."
             else:
                 raise NotImplementedError
         else:
             if optimizer == "sr":  # stochastic reconfiguration
                 assert optimizer_number == return_optimizer_number(
-                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True
+                    optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=False
                 ), "There is a conflict!! Not implemented."
             elif optimizer == "lr":  # linear method
                 assert optimizer_number == return_optimizer_number(
-                    optimizer=optimizer, qmc_type=qmc_type, opt_exponent=True
+                    optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=False
                 ), "There is a conflict!! Not implemented."
             else:
                 raise NotImplementedError
@@ -153,11 +153,11 @@ def get_optimizer_flags(
 
         if optimizer == "sr":  # stochastic reconfiguration
             assert optimizer_number == return_optimizer_number(
-                optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=False
             ), "There is a conflict!! Not implemented."
         elif optimizer == "lr":  # linear method
             assert optimizer_number == return_optimizer_number(
-                optimizer=optimizer, qmc_type=qmc_type, opt_exponent=False
+                optimizer=optimizer, qmc_type=qmc_type, opt_basis_coeff=False
             ), "There is a conflict!! Not implemented."
         else:
             raise NotImplementedError
@@ -176,16 +176,16 @@ def get_optimizer_flags(
 
 
 def return_optimizer_number(
-    optimizer: str = "sr", qmc_type: str = "vmc", opt_exponent: bool = False
+    optimizer: str = "sr", qmc_type: str = "vmc", opt_basis_coeff: bool = False
 ):
     if optimizer == "lr":
         if qmc_type == "vmc":
-            if opt_exponent:
+            if opt_basis_coeff:
                 optimizer_number = -8
             else:
                 optimizer_number = -4
         elif qmc_type == "lrdmc":
-            if opt_exponent:
+            if opt_basis_coeff:
                 optimizer_number = -28
             else:
                 optimizer_number = -24
@@ -194,12 +194,12 @@ def return_optimizer_number(
 
     elif optimizer == "sr":
         if qmc_type == "vmc":
-            if opt_exponent:
+            if opt_basis_coeff:
                 optimizer_number = -5
             else:
                 optimizer_number = -9
         elif qmc_type == "lrdmc":
-            if opt_exponent:
+            if opt_basis_coeff:
                 optimizer_number = -25
             else:
                 optimizer_number = -29

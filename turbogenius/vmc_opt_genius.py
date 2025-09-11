@@ -44,6 +44,7 @@ class VMCopt_genius(GeniusIO):
          optimizer (str): Choose optimizer, selected from sr:stochastic reconfiguration or lr:linear method.
          learning_rate (float): optimization step size, default values=sr:0.05, lr:0.35
          regularization (float): regularization parameter
+         num_opt_param (int): the number of optimized parameters
          opt_onebody (bool): flag to optimize onebody Jastrow
          opt_twobody (bool): flag to optimize twobody Jastrow
          opt_det_mat (bool): flag to optimize matrix elements in the determinant part
@@ -70,6 +71,7 @@ class VMCopt_genius(GeniusIO):
         optimizer: str = "sr",
         learning_rate: float = 0.35,
         regularization: float = 0.001,
+        num_opt_param: int = 0,
         opt_onebody: bool = True,
         opt_twobody: bool = True,
         opt_det_mat: bool = False,
@@ -197,6 +199,11 @@ class VMCopt_genius(GeniusIO):
         self.vmcopt.set_parameter(
             parameter="iesm", value=iesm, namelist="&parameters"
         )
+
+        if num_opt_param !=0:
+            self.vmcopt.set_parameter(
+                parameter="npbra", value=num_opt_param, namelist="&optimization"
+            )
 
         # structural optimization
         if opt_structure:

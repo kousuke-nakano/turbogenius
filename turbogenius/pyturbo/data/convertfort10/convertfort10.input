@@ -2,6 +2,7 @@
 /
 
 &control
+    change_contr=.false.
 /
 
 &mesh_info

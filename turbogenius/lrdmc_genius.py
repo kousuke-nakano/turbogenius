@@ -34,17 +34,18 @@ class LRDMC_genius(GeniusIO):
     This class is a wrapper of pyturbo LRDMC class
 
     Attributes:
-         fort10 (str): fort.10 WF file
-         lrdmcsteps (int): total number of MCMC steps.
-         alat (float): Lattice space (Bohr)
-         time_branching: interval between two branching steps. (a.u.)
-         etry (float): Trial Energy (Ha)
-         num_walkers (int): The number of walkers, -1 (default) = the number of MPI processes
-         maxtime (int): Maxtime (sec.)
-         twist_average (bool): Twist average flag, True or False
-         kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
-         force_calc_flag (bool): if True, compute energy and force, if False, compute only energy
-         nonlocalmoves (str): Treatment of locality approximation, choose from "tmove", "dla", "dlatm"
+        fort10 (str): fort.10 WF file
+        lrdmcsteps (int): total number of MCMC steps.
+        alat (float): Lattice space (Bohr)
+        time_branching: interval between two branching steps. (a.u.)
+        etry (float): Trial Energy (Ha)
+        num_walkers (int): The number of walkers, -1 (default) = the number of MPI processes
+        pw_regularization (float): 0.00 (default). If this is > 0.0, the Pathak-Wager regularization is turned on.
+        maxtime (int): Maxtime (sec.)
+        twist_average (bool): Twist average flag, True or False
+        kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
+        force_calc_flag (bool): if True, compute energy and force, if False, compute only energy
+        nonlocalmoves (str): Treatment of locality approximation, choose from "tmove", "dla", "dlatm"
     """
 
     def __init__(
@@ -55,6 +56,7 @@ class LRDMC_genius(GeniusIO):
         time_branching: float = 0.10,
         etry: float = 0.0,
         num_walkers: int = -1,  # default -1 -> num of MPI process.
+        pw_regularization: float = 0.00,
         maxtime: int = 172800,
         twist_average: bool = False,
         kpoints: Optional[list] = None,
@@ -107,7 +109,6 @@ class LRDMC_genius(GeniusIO):
             self.lrdmc.comment_out(parameter="typereg")
             self.lrdmc.comment_out(parameter="npow")
 
-        # Do you want to compute forces?
         if not self.force_calc_flag:
             pass
         else:
@@ -121,13 +122,14 @@ class LRDMC_genius(GeniusIO):
                 self.lrdmc.set_parameter(
                     parameter="yespress", value='.true.', namelist="&parameters"
                 )
-            # to be arguments of the class
-            self.lrdmc.set_parameter(parameter="parcutg", value=0, namelist="&dmclrdmc")
+
+        if pw_regularization > 0.0:
+            #self.lrdmc.set_parameter(parameter="parcutg", value=0, namelist="&dmclrdmc")
             self.lrdmc.set_parameter(
                 parameter="true_wagner", value=1, namelist="&dmclrdmc"
             )
             self.lrdmc.set_parameter(
-                parameter="cutweight", value=-1.0e-4, namelist="&dmclrdmc"
+                parameter="cutweight", value=-pw_regularization, namelist="&dmclrdmc"
             )
 
         # pseudo integration

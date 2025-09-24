@@ -22,7 +22,7 @@
     !iesrandoma=.true.
     !plat(1)=0.0
     gamma=0.0
-    parcutg=1
+    !parcutg=1
     !novar=0
     !epscutdmc=0
     !tstepfn=1.0

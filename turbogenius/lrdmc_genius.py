@@ -109,6 +109,11 @@ class LRDMC_genius(GeniusIO):
             self.lrdmc.comment_out(parameter="typereg")
             self.lrdmc.comment_out(parameter="npow")
 
+        if io_fort10.pp_flag:
+            self.lrdmc.set_parameter(parameter="parcutg", value=1, namelist="&dmclrdmc")
+        else:
+            self.lrdmc.set_parameter(parameter="parcutg", value=2, namelist="&dmclrdmc")
+
         if not self.force_calc_flag:
             pass
         else:

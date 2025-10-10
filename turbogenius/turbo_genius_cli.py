@@ -784,6 +784,14 @@ def prep(
     default=False,
     type=bool,
 )
+@click.option(
+    "-num_opt_param",
+    "num_opt_param",
+    help="Specify the number of optimized parameters. 0 means all the parameters are optimized.",
+    is_flag=False,
+    default=0,
+    type=int,
+)
 @header
 def vmcopt(
     g: bool,
@@ -809,6 +817,7 @@ def vmcopt(
     opt_jas_basis_exp: bool = False,
     opt_det_basis_coeff: bool = False,
     opt_jas_basis_coeff: bool = False,
+    num_opt_param: int = 0,
     opt_structure: bool = False,
     str_learning_rate: float = 1.0e-6,
     twist_average: bool = False,
@@ -839,6 +848,7 @@ def vmcopt(
             opt_jas_basis_exp=opt_jas_basis_exp,
             opt_det_basis_coeff=opt_det_basis_coeff,
             opt_jas_basis_coeff=opt_jas_basis_coeff,
+            num_opt_param=num_opt_param,
             opt_structure=opt_structure,
             str_learning_rate=str_learning_rate,
             twist_average=twist_average,

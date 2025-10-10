@@ -44,7 +44,7 @@ class VMCopt_genius(GeniusIO):
          optimizer (str): Choose optimizer, selected from sr:stochastic reconfiguration or lr:linear method.
          learning_rate (float): optimization step size, default values=sr:0.05, lr:0.35
          regularization (float): regularization parameter
-         num_opt_param (int): the number of optimized parameters
+         num_opt_param (int): the number of optimized parameters. 0 means all the parameters are optimized.
          opt_onebody (bool): flag to optimize onebody Jastrow
          opt_twobody (bool): flag to optimize twobody Jastrow
          opt_det_mat (bool): flag to optimize matrix elements in the determinant part

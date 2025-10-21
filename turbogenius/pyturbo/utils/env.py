@@ -46,7 +46,7 @@ else:
             os.path.dirname(subprocess.check_output(cmd, shell=True, env=sys_env))
         ).decode()
         turborvb_bin_root = os.path.join(turborvb_root, "bin")
-    except:
+    except Exception:
         raise ValueError(
             "Set TURBORVB_ROOT (e.g., export TURBORVB_ROOT=XXX in ~.bashrc)"
         )
@@ -124,3 +124,11 @@ else:
     turbo_convertfortpfaff_run_command = os.path.join(
         turborvb_bin_root, "convertpfaff.x"
     )
+if "TURBOPLOTORBITAL_RUN_COMMAND" in os.environ:
+    turbo_plot_orbital_run_command = os.environ["TURBOPLOTORBITAL_RUN_COMMAND"]
+else:
+    turbo_plot_orbital_run_command = os.path.join(turborvb_bin_root, "plot_orbitals.x")
+if "TURBOPLOTCONTRACTED_RUN_COMMAND" in os.environ:
+    turbo_plot_contracted_run_command = os.environ["TURBOPLOTCONTRACTED_RUN_COMMAND"]
+else:
+    turbo_plot_contracted_run_command = os.path.join(turborvb_bin_root, "plot_contracted.x")

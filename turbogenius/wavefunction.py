@@ -469,6 +469,7 @@ class Wavefunction:
         else:
             pseudo_potentials = Pseudopotentials()
         det_basis_sets = self.io_fort10.f10detbasissets.det_basis_sets
+        print(f'det_basis_sets.hyb_nucleus_index = {det_basis_sets.hyb_nucleus_index}')
         jas_basis_sets = self.io_fort10.f10jasbasissets.jas_basis_sets
 
         # add number of hybrid orbitals
@@ -544,6 +545,7 @@ class Wavefunction:
                 in_fort10="fort.10_in",
                 out_fort10="fort.10_out",
                 grid_size=grid_size,
+                change_contr=True
             )
 
             convertfort10_genius.generate_input(input_name="convertfort10.input")
@@ -553,6 +555,7 @@ class Wavefunction:
                 in_fort10="fort.10_in",
                 out_fort10="fort.10_out",
                 grid_size=grid_size,
+                change_contr=True
             )
 
             convertfort10_genius.generate_input(input_name="convertfort10.input")

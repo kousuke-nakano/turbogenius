@@ -36,6 +36,8 @@ class Convertfort10_genius(GeniusIO):
          in_fort10 (str): fort.10 WF file (input)
          out_fort10 (str): fort.10 WF file (template)
          grid_size (float): grid size for xyz (bohr)
+         add_onebody2det (bool): add one-body potential to the determinant part
+         change_contr (bool): allow the change in contraction coefficients
     """
 
     def __init__(
@@ -44,10 +46,13 @@ class Convertfort10_genius(GeniusIO):
         out_fort10: str = "fort.10_out",
         grid_size: float = 0.10,
         add_onebody2det: bool = False,
+        change_contr: bool = False,
     ):
         self.in_fort10 = in_fort10
         self.out_fort10 = out_fort10
         self.grid_size = grid_size
+        self.add_onebody2det = add_onebody2det
+        self.change_contr = change_contr
 
         self.convertfort10 = Convertfort10.parse_from_default_namelist(
             in_fort10=in_fort10, out_fort10=out_fort10
@@ -126,7 +131,11 @@ class Convertfort10_genius(GeniusIO):
             )
 
         self.convertfort10.set_parameter(
-            parameter="add_onebody2det", value=add_onebody2det, namelist="&mesh_info"
+            parameter="add_onebody2det", value=self.add_onebody2det, namelist="&mesh_info"
+        )
+
+        self.convertfort10.set_parameter(
+            parameter="change_contr", value=self.change_contr, namelist="&control"
         )
 
     def run_all(

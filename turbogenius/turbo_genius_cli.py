@@ -1649,5 +1649,22 @@ def writestr(operation: bool, log_level: str, structure: str):
     structure_.write(structure)
 
 
+
+# --------------------------------------------------------------
+# command-line tools
+# --------------------------------------------------------------
+@cli.command(short_help="visualize Molecular orbitals")
+@header
+def plotorb(
+    operation: bool,
+    log_level: str,
+) -> None:
+    """
+    Plot orbital(s) written in fort.10
+
+    """
+    io_fort10 = IO_fort10(fort10="fort.10")
+    io_fort10.plot_orbitals()
+
 if __name__ == "__main__":
     cli()

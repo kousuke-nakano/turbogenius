@@ -379,11 +379,13 @@ class Makefort10(FortranIO):
 
                 # hybrid orbitals (k==0):
                 if k == 0:  # hybrid orbital:
+                    print(basis_sets.hyb_nucleus_index)
                     hyb_index_list = [
                         i
                         for i, x in enumerate(basis_sets.hyb_nucleus_index)
                         if x == nucleus
                     ]
+                    print(f"hyb_index_list = {hyb_index_list}")
                     for hyb_index in hyb_index_list:
                         hyb_shell_ang_mom = basis_sets.hyb_shell_ang_mom[hyb_index]
                         hyb_shell_ang_mom_turbo = (

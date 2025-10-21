@@ -387,6 +387,112 @@ class IO_fort10:
 
         return ansatz
 
+    @property
+    def has_hybrid_orbitals(self) -> bool:
+        """
+        True -> hybrid orbitals are used in the WF, False -> no hybrid orbitals
+        """
+        return self.f10detbasissets.has_hybrid_orbitals
+
+    @property
+    def has_molecular_orbitals(self) -> bool:
+        """
+        True -> molecular orbitals are used in the WF, False -> no molecular orbitals
+        """
+        return self.f10detbasissets.has_mo
+
+    def plot_orbitals(self):
+        """
+        Plot orbitals in fort.10 file
+
+        Args:
+            None
+        Returns:
+            None
+        """
+
+        if self.has_hybrid_orbitals or self.has_molecular_orbitals:
+            logger.info("Plot orbitals in fort.10")
+
+            if self.has_hybrid_orbitals:
+                logger.info("Plot hybrid orbitals")
+                from turbogenius.pyturbo.utils.execute import run
+                from turbogenius.pyturbo.utils.env import turbo_plot_contracted_run_command
+
+                for i_atom in range(self.f10structure.structure.natom):
+                    logger.info(f"Plot hybrid orbitals for atom {i_atom+1}")
+                    with open(("plot_contracted.in"), "w") as f:
+                        if self.f10structure.pbc_flag:
+                            a = self.f10structure.norm_vec_a
+                            b = self.f10structure.norm_vec_b
+                            c = self.f10structure.norm_vec_c
+                        else:
+                            pos = self.f10structure.positions
+                            a = np.max(pos[:, 0]) - np.min(pos[:, 0]) + 7.5
+                            b = np.max(pos[:, 1]) - np.min(pos[:, 1]) + 7.5
+                            c = np.max(pos[:, 2]) - np.min(pos[:, 2]) + 7.5
+                            f.write(f"{int(a)} {int(b)} {int(c)}\n")
+
+                        f.write(f"{int(a*5)} {int(b*5)} {int(c*5)}\n")
+                        f.write(f"{int(i_atom+1)}\n")
+                        num_hyb_orb = self.f10detbasissets.hyb_atom_label.count(i_atom + 1)
+                        f.write(f"1 {int(num_hyb_orb)}\n")
+                        f.write("false\n")
+
+                    run(
+                        binary=turbo_plot_contracted_run_command,
+                        input_name="plot_contracted.in",
+                        output_name="plot_contracted.out",
+                    )
+
+                    for i_mo in range(num_hyb_orb):
+                        os.rename(f"output_orbital{i_mo+1:06d}.xsf", f"orbital_atom_{i_atom+1}_hyb_{i_mo+1}.xsf")
+                        os.rename(f"output_orbsqrd{i_mo+1:06d}.xsf", f"orbital_squared_atom_{i_atom+1}_hyb_{i_mo+1}.xsf")
+
+                    if os.path.exists("plot_contracted.in"):
+                        os.remove("plot_contracted.in")
+                    if os.path.exists("plot_contracted.out"):
+                        os.remove("plot_contracted.out")
+
+            if self.has_molecular_orbitals:
+                logger.info("Plot molecular orbitals")
+                from turbogenius.pyturbo.utils.execute import run
+                from turbogenius.pyturbo.utils.env import turbo_plot_orbital_run_command
+                num_mo = self.f10detbasissets.num_mo
+
+                with open(("plot_orbitals.in"), "w") as f:
+                    if self.f10structure.pbc_flag:
+                        a = self.f10structure.norm_vec_a
+                        b = self.f10structure.norm_vec_b
+                        c = self.f10structure.norm_vec_c
+                    else:
+                        pos = self.f10structure.positions
+                        a = np.max(pos[:, 0]) - np.min(pos[:, 0]) + 7.5
+                        b = np.max(pos[:, 1]) - np.min(pos[:, 1]) + 7.5
+                        c = np.max(pos[:, 2]) - np.min(pos[:, 2]) + 7.5
+                        f.write(f"{int(a)} {int(b)} {int(c)}\n")
+
+                    f.write(f"{int(a*5)} {int(b*5)} {int(c*5)}\n")
+                    f.write("all\n")
+                    f.write("false\n")
+
+                run(
+                    binary=turbo_plot_orbital_run_command,
+                    input_name="plot_orbitals.in",
+                    output_name="plot_orbitals.out",
+                )
+
+                for i_mo in range(num_mo):
+                    os.rename(f"output_orbital{i_mo+1:06d}.xsf", f"mo_{i_mo+1}.xsf")
+                    os.rename(f"output_orbsqrd{i_mo+1:06d}.xsf", f"mo_squared_{i_mo+1}.xsf")
+
+                if os.path.exists("plot_orbitals.in"):
+                    os.remove("plot_orbitals.in")
+                if os.path.exists("plot_orbitals.out"):
+                    os.remove("plot_orbitals.out")
+
+        else:
+            logger.info("No hybrid or molecular orbitals are found in fort.10")
 
 class F10header:
     def __init__(self, fort10: str, in_place: bool = True):
@@ -1600,6 +1706,14 @@ class F10detbasissets:
     def has_mo(self):
         self.read()
         if len(self.__mo_atom_label) > 0:
+            return True
+        else:
+            return False
+
+    @property
+    def has_hybrid_orbitals(self):
+        self.read()
+        if len(self.__hyb_atom_label) > 0:
             return True
         else:
             return False

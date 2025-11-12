@@ -59,6 +59,8 @@ logger = getLogger("Turbo-Genius").getChild(__name__)
 def trexio_to_turborvb_wf(
     trexio_file: str,
     jas_basis_sets: Optional[Jas_Basis_sets] = None,
+    jastrow_1body: Optional[str] = None,
+    jastrow_2body: Optional[str] = None,
     jastrow_4body:bool = False,
     max_occ_conv: int = 0,
     mo_num_conv: int = -1,
@@ -72,6 +74,8 @@ def trexio_to_turborvb_wf(
     Args:
         trexio_file (str): TREXIO file name
         jas_basis_sets (Jas_basis_sets): Jastrow basis sets added to the TREXIO WF.
+        jastrow_1body (str): Jastrow 1-body function type.
+        jastrow_2body (str): Jastrow 2-body function type.
         jastrow_4body (bool): If true, jastrow_4body is switched on.
         max_occ_conv (int): maximum occ used for the conv, not used with mo_num
         mo_num_conv (int): num mo used for the conv, not used with max occ
@@ -399,13 +403,17 @@ def trexio_to_turborvb_wf(
         pseudopotentials = Pseudopotentials()
 
     # set jastrow_type:
-    if jas_basis_sets.shell_num == 0:
+    if jastrow_1body is None and jastrow_2body is None:
         jastrow_type = 0
+    elif jastrow_1body is None and jastrow_2body == 'pade':
+        jastrow_type = -5
+    elif jastrow_1body is None and jastrow_2body == 'exp':
+        jastrow_type = -6
+    elif jastrow_1body == 'exp' and jastrow_2body == 'pade':
+        jastrow_type = -15
     else:
-        if has_ecp:
-            jastrow_type = -5  # the standard choice for PP calc.
-        else:
-            jastrow_type = -15 # the standard choice for all-electron calc.
+        logger.error("The specified jastrow_1body and jastrow_2body are not supported.")
+        raise NotImplementedError
 
     # makefort10
     namelist = Makefort10.read_default_namelist(

@@ -376,6 +376,7 @@ class Wavefunction:
         nosym: bool = False,
         clean_flag: bool = False,
         only_generate_template: bool = False,
+        change_contr: bool = True,
     ) -> None:
         """
         Convert for.10 to the symmetric or non-symmetric AGP format
@@ -387,6 +388,7 @@ class Wavefunction:
             additional_hyb (list): a list of the numbers of added hybrid orbitals
             nosym (bool): flag for nosymmetry
             clean_flag (bool): cleaning temporary files
+            change_contr (bool): allow the change in contraction coefficients
 
         """
         if additional_hyb is None:
@@ -545,7 +547,7 @@ class Wavefunction:
                 in_fort10="fort.10_in",
                 out_fort10="fort.10_out",
                 grid_size=grid_size,
-                change_contr=True
+                change_contr=change_contr
             )
 
             convertfort10_genius.generate_input(input_name="convertfort10.input")
@@ -555,7 +557,7 @@ class Wavefunction:
                 in_fort10="fort.10_in",
                 out_fort10="fort.10_out",
                 grid_size=grid_size,
-                change_contr=True
+                change_contr=change_contr
             )
 
             convertfort10_genius.generate_input(input_name="convertfort10.input")

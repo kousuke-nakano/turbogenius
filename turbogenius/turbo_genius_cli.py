@@ -365,7 +365,7 @@ def makefort10(
 @cli.command(short_help="convertfort10mol_genius")
 @decorate_grpost
 @click.option(
-    "--random_mo",
+    "--random_mo/--no-random_mo",
     "add_random_mo",
     help="flag for adding random MOs",
     is_flag=True,
@@ -993,7 +993,7 @@ def vmc(
 @cli.command(short_help="readforward_genius")
 @decorate_grpost
 @click.option(
-    "-corr",
+    "-corr/-no-corr",
     "corr_sampling",
     help="correlated sampling",
     is_flag=True,
@@ -1268,6 +1268,30 @@ def correlated_sampling(
     default=[0, 0, 0, 0, 0, 0],
     type=int,
 )
+@click.option(
+    "-plot",
+    "plot_graph",
+    help="flag for plotting graph",
+    is_flag=True,
+    default=False,
+    type=bool,
+)
+@click.option(
+    "-interactive",
+    "plot_interactive",
+    help="flag for interactive plotting graph",
+    is_flag=True,
+    default=False,
+    type=bool,
+)
+@click.option(
+    "-num_opt_param",
+    "num_opt_param",
+    help="Specify the number of optimized parameters. 0 means all the parameters are optimized.",
+    is_flag=False,
+    default=0,
+    type=int,
+)
 @header
 def lrdmcopt(
     g: bool,
@@ -1275,34 +1299,36 @@ def lrdmcopt(
     post: bool,
     operation: bool,
     log_level: str,
-    lrdmcoptsteps: int = 100,
-    optwarmupsteps: int = 10,
-    steps: int = 10,
-    bin_block: int = 1,
-    warmupblocks: int = 0,
-    num_walkers: int = -1,  # default -1 -> num of MPI process.
-    maxtime: int = 172800,
-    optimizer: str = "lr",
-    learning_rate: float = 0.35,
-    regularization: float = 0.001,
-    alat: float = -0.20,
-    etry: float = 0.0,
-    nonlocalmoves: str = "tmove",  # tmove, dla, dlatm
-    opt_onebody: bool = True,
-    opt_twobody: bool = True,
-    opt_det_mat: bool = False,
-    opt_jas_mat: bool = True,
-    opt_det_basis_exp: bool = False,
-    opt_jas_basis_exp: bool = False,
-    opt_det_basis_coeff: bool = False,
-    opt_jas_basis_coeff: bool = False,
-    twist_average: bool = False,
-    kpoints: list = [1, 1, 1, 0, 0, 0],
+    lrdmcoptsteps: int,
+    optwarmupsteps: int,
+    steps: int,
+    bin_block: int,
+    warmupblocks: int,
+    num_walkers: int,  # default -1 -> num of MPI process.
+    maxtime: int,
+    optimizer: str,
+    learning_rate: float,
+    regularization: float,
+    alat: float,
+    etry: float,
+    nonlocalmoves: str,  # tmove, dla, dlatm
+    opt_onebody: bool,
+    opt_twobody: bool,
+    opt_det_mat: bool,
+    opt_jas_mat: bool,
+    opt_det_basis_exp: bool,
+    opt_jas_basis_exp: bool,
+    opt_det_basis_coeff: bool,
+    opt_jas_basis_coeff: bool,
+    num_opt_param: int,
+    twist_average: bool,
+    kpoints: list,
+    plot_graph: bool = False,
+    plot_interactive: bool = False,
 ):
     pkl_name = "lrdmcopt_genius_cli.pkl"
     root_dir = os.getcwd()
     pkl_file = os.path.join(root_dir, pkl_name)
-
     if g:
         lrdmcopt_genius = LRDMCopt_genius(
             lrdmcoptsteps=lrdmcoptsteps,
@@ -1314,6 +1340,7 @@ def lrdmcopt(
             optimizer=optimizer,
             learning_rate=learning_rate,
             regularization=regularization,
+            num_opt_param=num_opt_param,
             alat=alat,
             etry=etry,
             nonlocalmoves=nonlocalmoves,
@@ -1329,7 +1356,6 @@ def lrdmcopt(
             kpoints=kpoints,
         )
         lrdmcopt_genius.generate_input()
-
         with open(pkl_file, "wb") as f:
             pickle.dump(lrdmcopt_genius, f)
 
@@ -1351,13 +1377,16 @@ def lrdmcopt(
         except FileNotFoundError:
             logger.error("Did you generate your input file using turbogenius?")
             raise FileNotFoundError
-        flags = lrdmcopt.check_results()
+        flags = lrdmcopt_genius.check_results()
         if all(flags):
             logger.info("Job was successful.")
         else:
             logger.info("Job was failure. See the output file.")
             return
-        # avarege? optwarmupsteps=optwarmupsteps,
+        lrdmcopt_genius.plot_energy_and_devmax(interactive=plot_interactive)
+        if plot_graph:
+            lrdmcopt_genius.plot_parameters_history(interactive=plot_interactive)
+        lrdmcopt_genius.average(optwarmupsteps=optwarmupsteps, graph_plot=plot_graph)
 
 
 # --------------------------------------------------------------

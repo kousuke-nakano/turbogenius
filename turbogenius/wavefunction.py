@@ -257,7 +257,7 @@ class Wavefunction:
             logger.info("spin polarized case")
             shutil.copy(self.io_fort10.fort10, "fort.10_bak")
             shutil.copy(self.io_fort10.fort10, "fort.10_in")
-            self.io_fort10.to_agp(
+            self.to_agp(
                 triplet=True,
                 pfaffian_flag=True,
                 grid_size=grid_size,

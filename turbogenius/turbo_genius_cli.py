@@ -1215,7 +1215,7 @@ def correlated_sampling(
     "-opt_det_mat",
     "opt_det_mat",
     help="flag for opt_det_mat",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
@@ -1229,35 +1229,35 @@ def correlated_sampling(
     "-opt_det_basis_exp",
     "opt_det_basis_exp",
     help="flag for opt_det_basis_exp",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
     "-opt_jas_basis_exp",
     "opt_jas_basis_exp",
     help="flag for opt_jas_basis_exp",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
     "-opt_det_basis_coeff",
     "opt_det_basis_coeff",
     help="flag for opt_det_basis_coeff",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
     "-opt_jas_basis_coeff",
     "opt_jas_basis_coeff",
     help="flag for opt_jas_basis_coeff",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
     "-twist",
     "twist_average",
     help="flag for twist_average",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
@@ -1275,29 +1275,34 @@ def lrdmcopt(
     post: bool,
     operation: bool,
     log_level: str,
-    lrdmcoptsteps: int,
-    steps: int,
-    bin_block: int,
-    warmupblocks: int,
-    num_walkers: int,  # default -1 -> num of MPI process.
-    maxtime: int,
-    optimizer: str,
-    learning_rate: float,
-    regularization: float,
-    alat: float,
-    etry: float,
-    nonlocalmoves: str,  # tmove, dla, dlatm
-    opt_onebody: bool,
-    opt_twobody: bool,
-    opt_det_mat: bool,
-    opt_jas_mat: bool,
-    opt_det_basis_exp: bool,
-    opt_jas_basis_exp: bool,
-    opt_det_basis_coeff: bool,
-    opt_jas_basis_coeff: bool,
-    twist_average: bool,
-    kpoints: list,
+    lrdmcoptsteps: int = 100,
+    optwarmupsteps: int = 10,
+    steps: int = 10,
+    bin_block: int = 1,
+    warmupblocks: int = 0,
+    num_walkers: int = -1,  # default -1 -> num of MPI process.
+    maxtime: int = 172800,
+    optimizer: str = "lr",
+    learning_rate: float = 0.35,
+    regularization: float = 0.001,
+    alat: float = -0.20,
+    etry: float = 0.0,
+    nonlocalmoves: str = "tmove",  # tmove, dla, dlatm
+    opt_onebody: bool = True,
+    opt_twobody: bool = True,
+    opt_det_mat: bool = False,
+    opt_jas_mat: bool = True,
+    opt_det_basis_exp: bool = False,
+    opt_jas_basis_exp: bool = False,
+    opt_det_basis_coeff: bool = False,
+    opt_jas_basis_coeff: bool = False,
+    twist_average: bool = False,
+    kpoints: list = [1, 1, 1, 0, 0, 0],
 ):
+    pkl_name = "lrdmcopt_genius_cli.pkl"
+    root_dir = os.getcwd()
+    pkl_file = os.path.join(root_dir, pkl_name)
+
     if g:
         lrdmcopt_genius = LRDMCopt_genius(
             lrdmcoptsteps=lrdmcoptsteps,
@@ -1325,11 +1330,33 @@ def lrdmcopt(
         )
         lrdmcopt_genius.generate_input()
 
+        with open(pkl_file, "wb") as f:
+            pickle.dump(lrdmcopt_genius, f)
+
     if r:
+        os.chdir(root_dir)
+        try:
+            with open(pkl_file, "rb") as f:
+                lrdmcopt_genius = pickle.load(f)
+        except FileNotFoundError:
+            logger.error("Did you generate your input file using turbogenius?")
+            raise FileNotFoundError
         lrdmcopt_genius.run()
 
     if post:
-        lrdmcopt.check_results()
+        os.chdir(root_dir)
+        try:
+            with open(pkl_file, "rb") as f:
+                lrdmcopt_genius = pickle.load(f)
+        except FileNotFoundError:
+            logger.error("Did you generate your input file using turbogenius?")
+            raise FileNotFoundError
+        flags = lrdmcopt.check_results()
+        if all(flags):
+            logger.info("Job was successful.")
+        else:
+            logger.info("Job was failure. See the output file.")
+            return
         # avarege? optwarmupsteps=optwarmupsteps,
 
 

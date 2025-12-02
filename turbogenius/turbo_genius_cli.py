@@ -365,7 +365,7 @@ def makefort10(
 @cli.command(short_help="convertfort10mol_genius")
 @decorate_grpost
 @click.option(
-    "--random_mo",
+    "--random_mo/--no-random_mo",
     "add_random_mo",
     help="flag for adding random MOs",
     is_flag=True,
@@ -993,7 +993,7 @@ def vmc(
 @cli.command(short_help="readforward_genius")
 @decorate_grpost
 @click.option(
-    "-corr",
+    "-corr/-no-corr",
     "corr_sampling",
     help="correlated sampling",
     is_flag=True,

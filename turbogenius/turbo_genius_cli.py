@@ -1215,7 +1215,7 @@ def correlated_sampling(
     "-opt_det_mat",
     "opt_det_mat",
     help="flag for opt_det_mat",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
@@ -1229,35 +1229,35 @@ def correlated_sampling(
     "-opt_det_basis_exp",
     "opt_det_basis_exp",
     help="flag for opt_det_basis_exp",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
     "-opt_jas_basis_exp",
     "opt_jas_basis_exp",
     help="flag for opt_jas_basis_exp",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
     "-opt_det_basis_coeff",
     "opt_det_basis_coeff",
     help="flag for opt_det_basis_coeff",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
     "-opt_jas_basis_coeff",
     "opt_jas_basis_coeff",
     help="flag for opt_jas_basis_coeff",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
     "-twist",
     "twist_average",
     help="flag for twist_average",
-    is_flag=False,
+    is_flag=True,
     type=bool,
 )
 @click.option(
@@ -1387,7 +1387,6 @@ def lrdmcopt(
         if plot_graph:
             lrdmcopt_genius.plot_parameters_history(interactive=plot_interactive)
         lrdmcopt_genius.average(optwarmupsteps=optwarmupsteps, graph_plot=plot_graph)
-
 
 
 # --------------------------------------------------------------

@@ -299,6 +299,13 @@ class Wavefunction:
             additional_mo=0,
             clean_flag=clean_flag,
         )
+        
+        # copy Jastrow
+        shutil.copy("fort.10_bak", "fort.10_new")
+        copy_jastrow(fort10_to="fort.10", fort10_from="fort.10_new")
+
+        if clean_flag:
+            os.remove("fort.10_new")
 
     # to agps
     def to_agps(

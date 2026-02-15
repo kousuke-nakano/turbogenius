@@ -98,7 +98,9 @@ class VMC_genius(GeniusIO):
                 parameter="epscut", value=0.0, namelist="&vmc"
             )
         else:
-            self.vmc.comment_out(parameter="epscut")
+            self.vmc.set_parameter(
+                parameter="epscut", value=1.0e-10, namelist="&vmc"
+            )
             self.vmc.set_parameter(
                 parameter="ieskin", value=1, namelist="&parameters"
             )

@@ -18,7 +18,7 @@
     etry=0.0d0
     Klrdmc=0.0
     alat=0.10d0
-    alat2=0.0d0
+    !alat2=0.0d0
     !iesrandoma=.true.
     !plat(1)=0.0
     gamma=0.0

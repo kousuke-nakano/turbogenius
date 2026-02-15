@@ -36,6 +36,7 @@ class DFT_genius(GeniusIO):
     Attributes:
          fort.10 (str): fort.10 WF file
          grid_size (list):  3 floats, grid sizes [x,y,z]
+         double_mesh (bool): Use the double-grid algorithm
          lbox (list):  3 floats, Box sizes [x,y,z] (angstrom)
          smearing (float): smearing parameter (Ha)
          maxtime (int): maximum time (sec.)
@@ -56,6 +57,7 @@ class DFT_genius(GeniusIO):
         fort10: str = "fort.10",
         det_contraction_flag: Optional[bool] = None,
         grid_size: Optional[list] = None,
+        double_mesh = False,
         lbox: Optional[list] = None,
         smearing: float = 0.0,
         maxtime: int = 172800,
@@ -81,6 +83,7 @@ class DFT_genius(GeniusIO):
 
         self.fort10 = fort10
         self.grid_a, self.grid_b, self.grid_c = grid_size
+        self.double_mesh = double_mesh
         self.lbox_a, self.lbox_b, self.lbox_c = lbox
         self.smearing = smearing
         self.maxtime = maxtime
@@ -158,6 +161,11 @@ class DFT_genius(GeniusIO):
 
         self.prep.set_parameter(
             parameter="maxtime", value=maxtime, namelist="&simulation"
+        )
+
+        if double_mesh:
+            self.prep.set_parameter(
+            parameter="double_mesh", value='.true.', namelist="&simulation"
         )
 
         # set L_box

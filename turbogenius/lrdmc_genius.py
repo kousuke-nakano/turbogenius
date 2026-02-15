@@ -12,6 +12,7 @@ Todo:
 
 # python modules
 import os
+import numpy as np
 from typing import Optional
 
 # Logger
@@ -95,6 +96,8 @@ class LRDMC_genius(GeniusIO):
 
         self.lrdmc.set_parameter(parameter="etry", value=etry, namelist="&dmclrdmc")
         self.lrdmc.set_parameter(parameter="alat", value=alat, namelist="&dmclrdmc")
+        if alat < 0.0:
+            self.lrdmc.set_parameter(parameter="alat2", value=0.0, namelist="&dmclrdmc")
         self.lrdmc.set_parameter(
             parameter="tbra", value=time_branching, namelist="&dmclrdmc"
         )
@@ -128,13 +131,13 @@ class LRDMC_genius(GeniusIO):
                     parameter="yespress", value='.true.', namelist="&parameters"
                 )
 
-        if pw_regularization > 0.0:
+        if np.abs(pw_regularization) > 0.0:
             #self.lrdmc.set_parameter(parameter="parcutg", value=0, namelist="&dmclrdmc")
             self.lrdmc.set_parameter(
                 parameter="true_wagner", value=1, namelist="&dmclrdmc"
             )
             self.lrdmc.set_parameter(
-                parameter="cutweight", value=-pw_regularization, namelist="&dmclrdmc"
+                parameter="cutweight", value=-np.abs(pw_regularization), namelist="&dmclrdmc"
             )
 
         # pseudo integration

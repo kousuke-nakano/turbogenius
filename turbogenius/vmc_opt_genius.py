@@ -12,6 +12,7 @@ Todo:
 
 # python modules
 import os
+import numpy as np
 from typing import Optional
 
 # Logger
@@ -54,6 +55,7 @@ class VMCopt_genius(GeniusIO):
          opt_det_basis_coeff (bool): flag to optimize coefficients of the determinant basis sets
          opt_jas_basis_coeff (bool): flag to optimize coefficients of the Jastrow basis sets
          opt_structure (bool): flag to optimize the structure
+         opt_molecular_orbitals (bool): flag to optimize molecular orbitals
          str_learning_rate (float): optimization step size for structural optimization
          twist_average (bool): Twist average flag, True or False
          kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
@@ -81,6 +83,7 @@ class VMCopt_genius(GeniusIO):
         opt_det_basis_coeff: bool = False,
         opt_jas_basis_coeff: bool = False,
         opt_structure: bool = False,
+        opt_molecular_orbitals: bool = False,
         str_learning_rate: float = 1.0e-6,
         twist_average: bool = False,
         kpoints: Optional[list] = None,
@@ -125,6 +128,10 @@ class VMCopt_genius(GeniusIO):
             opt_jas_basis_coeff=opt_jas_basis_coeff,
             qmc_type="vmc",
         )
+
+        self.opt_molecular_orbitals = opt_molecular_orbitals
+        if opt_molecular_orbitals:
+            iessw = 1
 
         self.energy = None
         self.energy_error = None
@@ -200,6 +207,75 @@ class VMCopt_genius(GeniusIO):
             parameter="iesm", value=iesm, namelist="&parameters"
         )
 
+        if self.opt_molecular_orbitals:
+            self.vmcopt.set_parameter(
+                parameter="molopt", value=-1, namelist="&optimization"
+            )
+
+            io_fort10 = IO_fort10(self.fort10)
+            
+            self.grid_a, self.grid_b, self.grid_c = [0.2, 0.2, 0.2]
+
+            if io_fort10.f10structure.pbc_flag:
+                # for crystals, Lx, Ly, and Lz are cells
+                self.Lx = io_fort10.f10structure.norm_vec_a
+                self.Ly = io_fort10.f10structure.norm_vec_b
+                self.Lz = io_fort10.f10structure.norm_vec_c
+                logger.info("Lbox is the norms of the lattice vectors")
+                logger.info(f"Lx={self.Lx}, Ly={self.Ly}, Lz={self.Lz}")
+                self.ax = self.grid_a
+                self.ay = self.grid_b
+                self.az = self.grid_c
+                self.nx = int(self.Lx / self.ax)
+                self.ny = int(self.Ly / self.ay)
+                self.nz = int(self.Lz / self.az)
+                if self.nx%2 != 0:
+                    self.nx+=1
+                if self.ny%2 != 0:
+                    self.ny+=1
+                if self.nz%2 != 0:
+                    self.nz+=1
+            else:
+                self.lbox_a, self.lbox_b, self.lbox_c = [15.0, 15.0, 15.0]
+                # +- 7.5 bohr from the edges.
+                pos = io_fort10.f10structure.positions
+                self.Lx = np.max(pos[:, 0]) - np.min(pos[:, 0]) + self.lbox_a
+                self.Ly = np.max(pos[:, 1]) - np.min(pos[:, 1]) + self.lbox_b
+                self.Lz = np.max(pos[:, 2]) - np.min(pos[:, 2]) + self.lbox_c
+                logger.info(
+                    "Actual lboxes are set to +- (the input lboxes)/2.0 (bohr) from the edges of the molecules."
+                )
+                logger.info(f"Lx={self.Lx}, Ly={self.Ly}, Lz={self.Lz}")
+                self.ax = self.grid_a
+                self.ay = self.grid_b
+                self.az = self.grid_c
+                self.nx = int(self.Lx / self.ax)
+                self.ny = int(self.Ly / self.ay)
+                self.nz = int(self.Lz / self.az)
+                if self.nx%2 != 0:
+                    self.nx+=1
+                if self.ny%2 != 0:
+                    self.ny+=1
+                if self.nz%2 != 0:
+                    self.nz+=1
+                logger.info(f"nx={self.nx}, ny={self.ny}, nz={self.nz}")
+
+            # set L_box
+            if io_fort10.f10structure.pbc_flag:
+                self.vmcopt.set_parameter(parameter="nx", value=self.nx, namelist="&molecul")
+                self.vmcopt.set_parameter(parameter="ny", value=self.ny, namelist="&molecul")
+                self.vmcopt.set_parameter(parameter="nz", value=self.nz, namelist="&molecul")
+                self.vmcopt.comment_out(parameter="ax")
+                self.vmcopt.comment_out(parameter="ay")
+                self.vmcopt.comment_out(parameter="az")
+            else:
+                self.vmcopt.set_parameter(parameter="ax", value=self.ax, namelist="&molecul")
+                self.vmcopt.set_parameter(parameter="ay", value=self.ay, namelist="&molecul")
+                self.vmcopt.set_parameter(parameter="az", value=self.az, namelist="&molecul")
+                self.vmcopt.set_parameter(parameter="nx", value=self.nx, namelist="&molecul")
+                self.vmcopt.set_parameter(parameter="ny", value=self.ny, namelist="&molecul")
+                self.vmcopt.set_parameter(parameter="nz", value=self.nz, namelist="&molecul")
+
         if num_opt_param !=0:
             self.vmcopt.set_parameter(
                 parameter="npbra", value=num_opt_param, namelist="&optimization"
@@ -235,8 +311,10 @@ class VMCopt_genius(GeniusIO):
             )  # 5 = iskipdyn
 
         # Does the VMC optimization changes the nodal surface? if not, it is better to switch off epscut option.
-        if opt_det_mat or opt_det_basis_exp or opt_det_basis_coeff:
-            self.vmcopt.comment_out(parameter="epscut")
+        if opt_det_mat or opt_det_basis_exp or opt_det_basis_coeff or opt_molecular_orbitals:
+            self.vmcopt.set_parameter(
+                parameter="epscut", value=1.0e-10, namelist="&vmc"
+            )
         else:
             self.vmcopt.set_parameter(
                 parameter="epscut", value=0.0, namelist="&vmc"
@@ -467,7 +545,9 @@ class VMCopt_genius(GeniusIO):
             twist_average_copyjas = False
 
         flags = self.vmcopt.check_results(output_names=output_names)
-        assert all(flags)
+        if not all(flags):
+            logger.error("Something wrong in the optimization. Please check the output file.")
+            raise ValueError
         self.vmcopt.average_optimized_parameters(
             equil_steps=optwarmupsteps,
             input_file_used=input_name,

@@ -222,6 +222,7 @@ class LRDMC(FortranIO):
             error = float(line[5])
         else:
             line = get_line_from_file(file="pip0_fn.d", line_no=1).split()
+            print(line)
             energy = float(line[2])
             error = float(line[3])
         return energy, error

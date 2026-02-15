@@ -37,7 +37,8 @@ class LRDMC_genius(GeniusIO):
         fort10 (str): fort.10 WF file
         lrdmcsteps (int): total number of MCMC steps.
         alat (float): Lattice space (Bohr)
-        time_branching: interval between two branching steps. (a.u.)
+        time_branching: interval between two branching steps. (a.u.).
+        num_branching: interval between two branching steps. (a.u.) If num_branching is specified, time_branching is ignored.
         etry (float): Trial Energy (Ha)
         num_walkers (int): The number of walkers, -1 (default) = the number of MPI processes
         pw_regularization (float): 0.00 (default). If this is > 0.0, the Pathak-Wager regularization is turned on.
@@ -54,6 +55,7 @@ class LRDMC_genius(GeniusIO):
         lrdmcsteps: int = 100,
         alat: float = -0.20,
         time_branching: float = 0.10,
+        num_branching: int = 0,
         etry: float = 0.0,
         num_walkers: int = -1,  # default -1 -> num of MPI process.
         pw_regularization: float = 0.00,
@@ -92,12 +94,18 @@ class LRDMC_genius(GeniusIO):
             self.lrdmc.set_parameter(
                 parameter="nw", value=num_walkers, namelist="&simulation"
             )
-
+        if num_branching != 0:
+            self.lrdmc.set_parameter(
+                parameter="nbra", value=num_branching, namelist="&simulation"
+            )
+            self.lrdmc.comment_out(parameter="tbra")
+        else:
+            self.lrdmc.set_parameter(
+                parameter="tbra", value=time_branching, namelist="&dmclrdmc"
+            )
         self.lrdmc.set_parameter(parameter="etry", value=etry, namelist="&dmclrdmc")
         self.lrdmc.set_parameter(parameter="alat", value=alat, namelist="&dmclrdmc")
-        self.lrdmc.set_parameter(
-            parameter="tbra", value=time_branching, namelist="&dmclrdmc"
-        )
+
         io_fort10 = IO_fort10(fort10=fort10)
         if io_fort10.pp_flag:
             typereg, npow = get_nonlocalmoves_setting(nonlocalmoves=nonlocalmoves)

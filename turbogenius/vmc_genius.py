@@ -35,6 +35,7 @@ class VMC_genius(GeniusIO):
          fort10 (str): fort.10 WF file
          vmcsteps (int): total number of MCMC steps.
          num_walkers (int): The number of walkers, -1 (default) = the number of MPI processes
+         num_mcmc_per_measurement (int): number of MCMC steps per measurement, -1 (default) = automatic setting
          maxtime (int): Maxtime (sec.)
          twist_average (bool): Twist average flag, True or False
          kpoints (list): k Monkhorst-Pack grids, [kx,ky,kz,nx,ny,nz], kx,y,z-> grids, nx,y,z-> shift=0, noshift=1.
@@ -45,7 +46,8 @@ class VMC_genius(GeniusIO):
         self,
         fort10: str = "fort.10",
         vmcsteps: int = 100,
-        num_walkers: int = -1,  # default -1 -> num of MPI process.
+        num_walkers: int = -1,
+        num_mcmc_per_measurement: int = -1,
         maxtime: int = 172800,
         twist_average: bool = False,
         kpoints: Optional[list] = None,
@@ -78,7 +80,12 @@ class VMC_genius(GeniusIO):
             self.vmc.set_parameter(
                 parameter="nw", value=num_walkers, namelist="&simulation"
             )
-        
+        if num_mcmc_per_measurement != -1:
+            self.vmc.set_parameter(
+                parameter="nbra",
+                value=num_mcmc_per_measurement,
+                namelist="&simulation",
+            )
         self.io_fort10=IO_fort10(fort10)
 
         self.energy = None

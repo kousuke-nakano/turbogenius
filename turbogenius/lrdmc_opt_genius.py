@@ -45,8 +45,10 @@ class LRDMCopt_genius(GeniusIO):
          optimizer (str): Choose optimizer, selected from sr:stochastic reconfiguration or lr:linear method.
          learning_rate (float): optimization step size, default values=sr:0.05, lr:0.35
          regularization (float): regularization parameter
+         num_opt_param (int): the number of optimized parameters. 0 means all the parameters are optimized.
          alat (float): Lattice space (Bohr)
          time_branching (float): interval between two branching steps (a.u.)
+         num_branching: interval between two branching steps. (a.u.) If num_branching is specified, time_branching is ignored.
          etry (float): Trial Energy (Ha)
          nonlocalmoves (str): Treatment of locality approximation, choose from "tmove", "dla", "dlatm"
          opt_onebody (bool): flag to optimize onebody Jastrow
@@ -73,8 +75,10 @@ class LRDMCopt_genius(GeniusIO):
         optimizer: str = "sr",
         learning_rate: float = 0.02,
         regularization: float = 0.001,
+        num_opt_param: int = 0,
         alat: float = -0.20,
         time_branching: float = 0.10,
+        num_branching: int = 0,
         etry: float = 0.0,
         nonlocalmoves: str = "dla",  # tmove, dla, dlatm
         opt_onebody: bool = True,
@@ -157,7 +161,10 @@ class LRDMCopt_genius(GeniusIO):
         self.lrdmcopt.set_parameter(
             parameter="parr", value=regularization, namelist="&optimization"
         )
-
+        if num_opt_param !=0:
+            self.lrdmcopt.set_parameter(
+                parameter="npbra", value=num_opt_param, namelist="&optimization"
+            )
         self.lrdmcopt.set_parameter(
             parameter="iesdonebodyoff",
             value=iesdonebodyoff,
@@ -190,10 +197,15 @@ class LRDMCopt_genius(GeniusIO):
 
         self.lrdmcopt.set_parameter(parameter="alat", value=alat, namelist="&dmclrdmc")
         self.lrdmcopt.set_parameter(parameter="etry", value=etry, namelist="&dmclrdmc")
-        self.lrdmcopt.set_parameter(
-            parameter="tbra", value=time_branching, namelist="&dmclrdmc"
-        )
-
+        if num_branching != 0:
+            self.lrdmcopt.set_parameter(
+                parameter="nbra", value=num_branching, namelist="&simulation"
+            )
+            self.lrdmc.comment_out(parameter="tbra")
+        else:
+            self.lrdmcopt.set_parameter(
+                parameter="tbra", value=time_branching, namelist="&dmclrdmc"
+            )
         typereg, npow = get_nonlocalmoves_setting(nonlocalmoves=nonlocalmoves)
         self.lrdmcopt.set_parameter(
             parameter="typereg", value=typereg, namelist="&dmclrdmc"

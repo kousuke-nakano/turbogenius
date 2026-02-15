@@ -478,7 +478,7 @@ class Wavefunction:
         else:
             pseudo_potentials = Pseudopotentials()
         det_basis_sets = self.io_fort10.f10detbasissets.det_basis_sets
-        print(f'det_basis_sets.hyb_nucleus_index = {det_basis_sets.hyb_nucleus_index}')
+        logger.debug(f'det_basis_sets.hyb_nucleus_index = {det_basis_sets.hyb_nucleus_index}')
         jas_basis_sets = self.io_fort10.f10jasbasissets.jas_basis_sets
 
         # add number of hybrid orbitals

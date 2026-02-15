@@ -75,7 +75,7 @@ class Readforward_genius(GeniusIO):
 
     def run_all(
         self,
-        input_name: str = "datasvmc.input",
+        input_name: str = "readforward.input",
         output_name: str = "out_readforward",
     ) -> None:
         """
@@ -89,7 +89,7 @@ class Readforward_genius(GeniusIO):
         self.generate_input(input_name=input_name)
         self.run(input_name=input_name, output_name=output_name)
 
-    def generate_input(self, input_name: str = "datasvmc.input") -> None:
+    def generate_input(self, input_name: str = "readforward.input") -> None:
         """
         Generate input file.
 
@@ -101,7 +101,7 @@ class Readforward_genius(GeniusIO):
 
     def run(
         self,
-        input_name: str = "datasvmc.input",
+        input_name: str = "readforward.input",
         output_name: str = "out_readforward",
     ) -> None:
         """

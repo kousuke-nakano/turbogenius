@@ -41,6 +41,7 @@ class VMCopt_genius(GeniusIO):
          bin_block (int): binning length
          warmupblocks (int): the number of disregarded blocks,
          num_walkers (int): The number of walkers, -1 (default) = the number of MPI processes
+         num_mcmc_per_measurement: int = -1, number of MCMC steps per measurement, -1 (default) = automatic setting
          maxtime (int): Maxtime (sec.)
          optimizer (str): Choose optimizer, selected from sr:stochastic reconfiguration or lr:linear method.
          learning_rate (float): optimization step size, default values=sr:0.05, lr:0.35
@@ -68,7 +69,8 @@ class VMCopt_genius(GeniusIO):
         steps: int = 10,
         bin_block: int = 1,
         warmupblocks: int = 0,
-        num_walkers: int = -1,  # default -1 -> num of MPI process.
+        num_walkers: int = -1,
+        num_mcmc_per_measurement: int = -1,
         maxtime: int = 172800,
         optimizer: str = "sr",
         learning_rate: float = 0.35,
@@ -153,6 +155,12 @@ class VMCopt_genius(GeniusIO):
         if num_walkers != -1:
             self.vmcopt.set_parameter(
                 parameter="nw", value=num_walkers, namelist="&simulation"
+            )
+        if num_mcmc_per_measurement != -1:
+            self.vmcopt.set_parameter(
+                parameter="nbra",
+                value=num_mcmc_per_measurement,
+                namelist="&simulation",
             )
 
         # pseudo integration

@@ -45,6 +45,7 @@ class LRDMCopt_genius(GeniusIO):
          optimizer (str): Choose optimizer, selected from sr:stochastic reconfiguration or lr:linear method.
          learning_rate (float): optimization step size, default values=sr:0.05, lr:0.35
          regularization (float): regularization parameter
+         num_opt_param (int): the number of optimized parameters. 0 means all the parameters are optimized.
          alat (float): Lattice space (Bohr)
          time_branching (float): interval between two branching steps (a.u.)
          num_branching: interval between two branching steps. (a.u.) If num_branching is specified, time_branching is ignored.
@@ -74,6 +75,7 @@ class LRDMCopt_genius(GeniusIO):
         optimizer: str = "sr",
         learning_rate: float = 0.02,
         regularization: float = 0.001,
+        num_opt_param: int = 0,
         alat: float = -0.20,
         time_branching: float = 0.10,
         num_branching: int = 0,
@@ -159,7 +161,10 @@ class LRDMCopt_genius(GeniusIO):
         self.lrdmcopt.set_parameter(
             parameter="parr", value=regularization, namelist="&optimization"
         )
-
+        if num_opt_param !=0:
+            self.lrdmcopt.set_parameter(
+                parameter="npbra", value=num_opt_param, namelist="&optimization"
+            )
         self.lrdmcopt.set_parameter(
             parameter="iesdonebodyoff",
             value=iesdonebodyoff,

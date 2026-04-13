@@ -28,6 +28,7 @@ from turbogenius.pyturbo.makefort10 import Makefort10
 from turbogenius.pyturbo.utils.utility import remove_file
 from turbogenius.utils_workflows.env import turbo_genius_root
 from turbogenius.trexio_to_turborvb import trexio_to_turborvb_wf
+from turbogenius.trexio_wrapper import Trexio_wrapper_r
 from turbogenius.makefort10_genius import Makefort10_genius
 from turbogenius.convertfort10mol_genius import Convertfort10mol_genius
 from turbogenius.convertfort10_genius import Convertfort10_genius
@@ -83,10 +84,12 @@ class Wavefunction:
         cleanup: bool = True,
     ) -> None:
         """
-        Convert trexio file to TurboRVB WF file (fort.10)
+        Convert trexio file to TurboRVB WF file (fort.10).
+        For multi-k TREXIO files, fort.10 for each k-point is generated
+        and stored in turborvb.scratch/fort.10_{k_index:06d}.
 
         Args:
-            trexio_file (str): TREXIO file name
+            trexio_filename (str): TREXIO file name
             jas_basis_sets (Jas_basis_sets): Jastrow basis sets added to the TREXIO WF.
             max_occ_conv (int): maximum occ used for the conv, not used with mo_num
             mo_num_conv (int): num mo used for the conv, not used with max occ
@@ -97,14 +100,47 @@ class Wavefunction:
         if os.path.isfile("fort.10"):
             logger.warning("fort.10 in the current directory is overwritten!")
 
-        trexio_to_turborvb_wf(
-            trexio_file=trexio_filename,
-            jas_basis_sets=jas_basis_sets,
-            max_occ_conv=max_occ_conv,
-            mo_num_conv=mo_num_conv,
-            only_mol=only_mol,
-            cleanup=cleanup,
-        )
+        # auto-detect number of k-points
+        trexio_r = Trexio_wrapper_r(trexio_file=trexio_filename)
+        if trexio_r.periodic:
+            k_num = trexio_r.k_point_num
+        else:
+            k_num = 1
+
+        # generate kp_info.dat for downstream use
+        if k_num > 1:
+            k_points = trexio_r.k_point
+            with open(os.path.join(os.getcwd(), "kp_info.dat"), "w") as f:
+                f.write(f"# k_index  kx  ky  kz\n")
+                for k_idx, kp in enumerate(k_points):
+                    f.write(f"{k_idx}  {kp[0]:.10f}  {kp[1]:.10f}  {kp[2]:.10f}\n")
+            logger.info(f"kp_info.dat has been generated with {k_num} k-points.")
+
+        for k_idx in range(k_num):
+            logger.info(f"Converting k-point {k_idx}/{k_num}...")
+            trexio_to_turborvb_wf(
+                trexio_file=trexio_filename,
+                k_index=k_idx,
+                jas_basis_sets=jas_basis_sets,
+                max_occ_conv=max_occ_conv,
+                mo_num_conv=mo_num_conv,
+                only_mol=only_mol,
+                cleanup=cleanup,
+            )
+
+            if k_num > 1:
+                turborvb_scratch_dir = os.path.join(os.getcwd(), "turborvb.scratch")
+                os.makedirs(turborvb_scratch_dir, exist_ok=True)
+                shutil.move(
+                    os.path.join(os.getcwd(), "fort.10"),
+                    os.path.join(turborvb_scratch_dir, "fort.10_{:0>6}".format(k_idx)),
+                )
+
+        if k_num > 1:
+            shutil.copy(
+                os.path.join(turborvb_scratch_dir, "fort.10_{:0>6}".format(0)),
+                os.path.join(os.getcwd(), "fort.10"),
+            )
 
         self.io_fort10 = IO_fort10(fort10="fort.10")
         self.read_flag = True

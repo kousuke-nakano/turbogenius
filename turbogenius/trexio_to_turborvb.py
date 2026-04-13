@@ -58,6 +58,7 @@ logger = getLogger("Turbo-Genius").getChild(__name__)
 
 def trexio_to_turborvb_wf(
     trexio_file: str,
+    k_index: int = 0,
     jas_basis_sets: Optional[Jas_Basis_sets] = None,
     jastrow_1body: Optional[str] = None,
     jastrow_2body: Optional[str] = None,
@@ -73,6 +74,8 @@ def trexio_to_turborvb_wf(
 
     Args:
         trexio_file (str): TREXIO file name
+        k_index (int): Index of the k-point to convert (0-based). For multi-k TREXIO files,
+            MOs belonging to this k-point are extracted via mo_k_point filtering.
         jas_basis_sets (Jas_basis_sets): Jastrow basis sets added to the TREXIO WF.
         jastrow_1body (str): Jastrow 1-body function type.
         jastrow_2body (str): Jastrow 2-body function type.
@@ -122,7 +125,14 @@ def trexio_to_turborvb_wf(
         cell_a = trexio_r.cell_a
         cell_b = trexio_r.cell_b
         cell_c = trexio_r.cell_c
-        k1, k2, k3 = trexio_r.k_point
+        k_point_num = trexio_r.k_point_num
+        logger.info(f"k_point_num = {k_point_num}, converting k_index = {k_index}.")
+        if k_index >= k_point_num:
+            logger.error(
+                f"k_index={k_index} is out of range (k_point_num={k_point_num})."
+            )
+            raise ValueError
+        k1, k2, k3 = trexio_r.k_point[k_index]
         # phase_up=[+k1, +k2, +k3]
         # phase_dn=[-k1, -k2, -k3]
         # Thank you very much Michele, this opposite spin approach is obviously not general
@@ -207,12 +217,28 @@ def trexio_to_turborvb_wf(
 
     # mo info
     # mo_type = trexio_r.mo_type
-    mo_num = trexio_r.mo_num
-    mo_coefficient = trexio_r.mo_coefficient
-    mo_occupation = trexio_r.mo_occupation
-    mo_spin = trexio_r.mo_spin
+    # filter MOs by k_index using mo_k_point
+    if trexio_r.mo_k_point is None:
+        if k_index != 0:
+            logger.error(
+                f"k_index={k_index} is specified but mo_k_point is not stored in the TREXIO file."
+            )
+            raise ValueError
+        logger.info("mo_k_point is not stored in the TREXIO file. Using all MOs.")
+        k_mask = np.ones(trexio_r.mo_num, dtype=bool)
+    else:
+        mo_k_point_index = np.array(trexio_r.mo_k_point)
+        k_mask = (mo_k_point_index == k_index)
+    if not np.any(k_mask):
+        logger.error(f"No MOs found for k_index={k_index}.")
+        raise ValueError
+    mo_num = int(np.sum(k_mask))
+    mo_coefficient = [trexio_r.mo_coefficient[i] for i in np.where(k_mask)[0]]
+    mo_occupation = [trexio_r.mo_occupation[i] for i in np.where(k_mask)[0]]
+    mo_spin = [trexio_r.mo_spin[i] for i in np.where(k_mask)[0]]
+    logger.info(f"mo_num for k_index={k_index}: {mo_num} (total in file: {trexio_r.mo_num})")
     if complex_flag:
-        mo_coefficient_imag = trexio_r.mo_coefficient_imag
+        mo_coefficient_imag = [trexio_r.mo_coefficient_imag[i] for i in np.where(k_mask)[0]]
         mo_coefficient = [
             [complex(i, j) for i, j in zip(mo_real, mo_imag)]
             for mo_real, mo_imag in zip(mo_coefficient, mo_coefficient_imag)
@@ -1057,6 +1083,21 @@ def trexio_to_turborvb_wf(
         mo_exponent_turbo = mo_exponent_turbo[0:mo_num_use]
 
     # molecular orbital swapped, spin polarized cases.
+    # For multi-k calculations, check that the number of occupied bands
+    # at this k-point matches num_ele_up/num_ele_dn (insulator assumption).
+    # Metallic systems where occupations vary per k-point are not supported.
+    if not spin_restricted:
+        n_occ_up = sum(1 for occ, spin in zip(mo_occupation, mo_spin) if spin == 0 and occ > 0.5)
+        n_occ_dn = sum(1 for occ, spin in zip(mo_occupation, mo_spin) if spin == 1 and occ > 0.5)
+        if n_occ_up != num_ele_up or n_occ_dn != num_ele_dn:
+            logger.error(
+                f"The number of occupied MOs at this k-point (n_occ_up={n_occ_up}, n_occ_dn={n_occ_dn}) "
+                f"differs from the cell electron counts (num_ele_up={num_ele_up}, num_ele_dn={num_ele_dn}). "
+                f"This indicates a metallic system where occupations vary per k-point, "
+                f"which is not supported by TurboRVB."
+            )
+            raise NotImplementedError
+
     if spin_restricted:
         logger.info("Molecular orbitals are swapped (spin-resticted case).")
         # spin-restricted case, here, the MOs are reordered such that
@@ -1209,13 +1250,6 @@ def main():
         action="store_true",
     )
     parser.add_argument(
-        "-twist",
-        "--twist_average",
-        help="flag for twist average",
-        default=False,
-        action="store_true",
-    )
-    parser.add_argument(
         "-log",
         "--loglevel",
         help="logger setlevel",
@@ -1246,143 +1280,146 @@ def main():
 
     logger.info(f"turbogenius {turbogenius_version}")
 
-    # twist average setting
-    if args.twist_average:
-        with open(os.path.join(os.getcwd(), "kp_info.dat"), "r") as f:
-            lines = f.readlines()
-        k_num = len(lines) - 1
+    # read TREXIO file to determine k-point info
+    trexio_file = args.trexio_file
+    trexio_r = Trexio_wrapper_r(trexio_file=trexio_file)
+    element_symbols = trexio_r.labels_r
+
+    # auto-detect number of k-points
+    if trexio_r.periodic:
+        k_num = trexio_r.k_point_num
     else:
         k_num = 1
+    logger.info(f"Number of k-points: {k_num}")
 
-    for num in range(k_num):
-        if args.twist_average:
-            trexio_file = os.path.join(
-                os.path.dirname(args.trexio_file),
-                f"k{num}_" + os.path.basename(args.trexio_file),
-            )
-        else:
-            trexio_file = args.trexio_file
-        logger.info(trexio_file)
-        trexio_r = Trexio_wrapper_r(trexio_file=trexio_file)
-        element_symbols = trexio_r.labels_r
+    # generate kp_info.dat for downstream use (e.g., twist-averaged QMC)
+    if k_num > 1:
+        k_points = trexio_r.k_point
+        with open(os.path.join(os.getcwd(), "kp_info.dat"), "w") as f:
+            f.write(f"# k_index  kx  ky  kz\n")
+            for k_idx, kp in enumerate(k_points):
+                f.write(f"{k_idx}  {kp[0]:.10f}  {kp[1]:.10f}  {kp[2]:.10f}\n")
+        logger.info(f"kp_info.dat has been generated with {k_num} k-points.")
 
-        # jastrow setting
-        if args.jas_basis_sets is not None:
-            database_setup(database="BSE")
-            jas_basis_files = []
-            jas_basis_choice = {}
+    # jastrow setting (common for all k-points)
+    if args.jas_basis_sets is not None:
+        database_setup(database="BSE")
+        jas_basis_files = []
+        jas_basis_choice = {}
 
-            def database_founder(
-                data_sets_list, element, data_choice, prefix="basis_set"
-            ):
-                if len(data_sets_list) == 0:
-                    logger.error(f"The chosen {prefix} is not found in the database!!")
-                    raise NotImplementedError
-                elif len(data_sets_list) == 1:
-                    data_set_found = data_sets_list[0]
+        def database_founder(
+            data_sets_list, element, data_choice, prefix="basis_set"
+        ):
+            if len(data_sets_list) == 0:
+                logger.error(f"The chosen {prefix} is not found in the database!!")
+                raise NotImplementedError
+            elif len(data_sets_list) == 1:
+                data_set_found = data_sets_list[0]
+                logger.info(
+                    f"The chosen {prefix} is found, {os.path.basename(data_set_found)}"
+                )
+                return data_set_found, data_choice
+            else:  # >= 2
+                if element not in data_choice.keys():
+                    logger.info(f"More than two {prefix}s are found!")
+
+                    def checker(choice):
+                        try:
+                            if int(choice) in range(len(data_sets_list)):
+                                return True
+                            else:
+                                return False
+                        except ValueError:
+                            return False
+
+                    b_list_shown = [
+                        f"{i}:{os.path.basename(d)}"
+                        for i, d in enumerate(data_sets_list)
+                    ]
+                    b_index = int(
+                        prompt(
+                            f"Choose one of them, 0,1,.. from {b_list_shown}:",
+                            checker=checker,
+                        )
+                    )
+                    data_set_found = data_sets_list[b_index]
+                    data_choice[element] = data_set_found
+                    logger.info(
+                        f"The chosen {prefix} is {os.path.basename(data_set_found)}"
+                    )
+                    return data_set_found, data_choice
+
+                else:
+                    data_set_found = data_choice[element]
                     logger.info(
                         f"The chosen {prefix} is found, {os.path.basename(data_set_found)}"
                     )
                     return data_set_found, data_choice
-                else:  # >= 2
-                    if element not in data_choice.keys():
-                        logger.info(f"More than two {prefix}s are found!")
 
-                        def checker(choice):
-                            try:
-                                if int(choice) in range(len(data_sets_list)):
-                                    return True
-                                else:
-                                    return False
-                            except ValueError:
-                                return False
-
-                        b_list_shown = [
-                            f"{i}:{os.path.basename(d)}"
-                            for i, d in enumerate(data_sets_list)
-                        ]
-                        b_index = int(
-                            prompt(
-                                f"Choose one of them, 0,1,.. from {b_list_shown}:",
-                                checker=checker,
-                            )
-                        )
-                        data_set_found = data_sets_list[b_index]
-                        data_choice[element] = data_set_found
-                        logger.info(
-                            f"The chosen {prefix} is {os.path.basename(data_set_found)}"
-                        )
-                        return data_set_found, data_choice
-
-                    else:
-                        data_set_found = data_choice[element]
-                        logger.info(
-                            f"The chosen {prefix} is found, {os.path.basename(data_set_found)}"
-                        )
-                        return data_set_found, data_choice
-
-            # jas. basis set
-            for element in element_symbols:
-                jas_basis_sets_list = glob.glob(
-                    os.path.join(
-                        turbo_genius_tmp_dir,
-                        "basis_set",
-                        "BSE",
-                        f"{element}_{args.jas_basis_sets}*.basis",
-                    )
+        # jas. basis set
+        for element in element_symbols:
+            jas_basis_sets_list = glob.glob(
+                os.path.join(
+                    turbo_genius_tmp_dir,
+                    "basis_set",
+                    "BSE",
+                    f"{element}_{args.jas_basis_sets}*.basis",
                 )
-                logger.debug(jas_basis_sets_list)
-                jas_basis_chosen, jas_basis_choice = database_founder(
-                    data_sets_list=jas_basis_sets_list,
-                    element=element,
-                    data_choice=jas_basis_choice,
-                    prefix="basis_set",
-                )
-                jas_basis_files.append(jas_basis_chosen)
-            jas_basis_sets = Jas_Basis_sets.parse_basis_sets_from_gamess_format_files(
-                files=jas_basis_files
             )
+            logger.debug(jas_basis_sets_list)
+            jas_basis_chosen, jas_basis_choice = database_founder(
+                data_sets_list=jas_basis_sets_list,
+                element=element,
+                data_choice=jas_basis_choice,
+                prefix="basis_set",
+            )
+            jas_basis_files.append(jas_basis_chosen)
+        jas_basis_sets = Jas_Basis_sets.parse_basis_sets_from_gamess_format_files(
+            files=jas_basis_files
+        )
 
-            if not args.jas_contracted_flag:
-                jas_basis_sets.contracted_to_uncontracted()
+        if not args.jas_contracted_flag:
+            jas_basis_sets.contracted_to_uncontracted()
 
-            if args.jas_cut_basis_option:
-                # cut basis, jas_basis, according to max criteria, exponents > max (det part)
-                for nuc, element in enumerate(element_symbols):
-                    # thr_exp = 8 * return_atomic_number(element) ** 2
-                    thr_exp = 4 * return_atomic_number(element)  # not 8*Z**2 but 4*Z
-                    jas_basis_sets.cut_orbitals(
-                        thr_exp=thr_exp, nucleus_index=nuc, method="larger"
-                    )
-                    thr_angmom = jas_basis_sets.get_largest_angmom(nucleus_index=nuc)
-                    jas_basis_sets.cut_orbitals(
-                        thr_angmom=thr_angmom,
-                        nucleus_index=nuc,
-                        method="larger-angmom",
-                    )
+        if args.jas_cut_basis_option:
+            # cut basis, jas_basis, according to max criteria, exponents > max (det part)
+            for nuc, element in enumerate(element_symbols):
+                # thr_exp = 8 * return_atomic_number(element) ** 2
+                thr_exp = 4 * return_atomic_number(element)  # not 8*Z**2 but 4*Z
+                jas_basis_sets.cut_orbitals(
+                    thr_exp=thr_exp, nucleus_index=nuc, method="larger"
+                )
+                thr_angmom = jas_basis_sets.get_largest_angmom(nucleus_index=nuc)
+                jas_basis_sets.cut_orbitals(
+                    thr_angmom=thr_angmom,
+                    nucleus_index=nuc,
+                    method="larger-angmom",
+                )
 
-        # jastrow is None
-        else:
-            jas_basis_sets = Jas_Basis_sets()
+    # jastrow is None
+    else:
+        jas_basis_sets = Jas_Basis_sets()
 
-        # trexio -> turborvb_wf
-        # conversion
+    # trexio -> turborvb_wf conversion for each k-point
+    for k_idx in range(k_num):
+        logger.info(f"Converting k-point {k_idx}/{k_num}...")
         trexio_to_turborvb_wf(
             trexio_file=trexio_file,
+            k_index=k_idx,
             cleanup=args.cleanup,
             max_occ_conv=0.01,
             jas_basis_sets=jas_basis_sets,
         )
 
-        if args.twist_average:
+        if k_num > 1:
             turborvb_scratch_dir = os.path.join(os.getcwd(), "turborvb.scratch")
             os.makedirs(turborvb_scratch_dir, exist_ok=True)
             shutil.move(
-                os.path.join(os.path.join(os.getcwd(), "fort.10")),
-                os.path.join(turborvb_scratch_dir, "fort.10_{:0>6}".format(num)),
+                os.path.join(os.getcwd(), "fort.10"),
+                os.path.join(turborvb_scratch_dir, "fort.10_{:0>6}".format(k_idx)),
             )
 
-    if args.twist_average:
+    if k_num > 1:
         shutil.copy(
             os.path.join(turborvb_scratch_dir, "fort.10_{:0>6}".format(0)),
             os.path.join(os.getcwd(), "fort.10"),

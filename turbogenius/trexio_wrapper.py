@@ -54,11 +54,13 @@ class Trexio_wrapper_r:
             self.cell_b = trexio.read_cell_b(file_r)
             self.cell_c = trexio.read_cell_c(file_r)
             try:
+                self.k_point_num = trexio.read_pbc_k_point_num(file_r)
                 self.k_point = trexio.read_pbc_k_point(file_r)
             except trexio.Error:
                 logger.warning('k_point is not stored in the TREXIO file.')
                 logger.warning('Assuming Gamma point.')
-                self.k_point = [0.0,0.0,0.0]
+                self.k_point_num = 1
+                self.k_point = [[0.0,0.0,0.0]]
         else:
             logger.info("Molecule (Open boundary condition)")
 
@@ -112,6 +114,10 @@ class Trexio_wrapper_r:
             self.mo_spin = trexio.read_mo_spin(file_r)
         except:  # backward compatibility
             self.mo_spin = [0 for _ in range(self.mo_num)]
+        try:
+            self.mo_k_point = trexio.read_mo_k_point(file_r)
+        except trexio.Error:
+            self.mo_k_point = None
         if trexio.has_mo_coefficient_im(file_r):
             logger.info("The WF is complex")
             self.mo_coefficient_imag = trexio.read_mo_coefficient_im(file_r)

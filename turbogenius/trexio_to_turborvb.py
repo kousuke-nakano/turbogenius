@@ -107,6 +107,18 @@ def trexio_to_turborvb_wf(
     # total_charge = np.sum(charges_r) - num_ele_total
 
     atomic_number_list = [return_atomic_number(Z) for Z in labels_r]
+    # Ghost atoms (nucleus_charge == 0 in TREXIO) need to be marked as
+    # atomic_number = 0 here so that Makefort10's ATOMIC_POSITIONS gets
+    # valence_electron = Z - z_core = 0 and the type discriminator does
+    # not collide with the corresponding real-element atom (e.g. a slab H
+    # with ECP at fake_Z=1.01 versus a ghost H at fake_Z=0.xx). This
+    # mirrors the historical pyscf BSSE convention where ghost atoms
+    # were labelled "X-O", "X-H", which already resolved to
+    # return_atomic_number=0.
+    atomic_number_list = [
+        0 if float(c) == 0.0 else z
+        for c, z in zip(charges_r, atomic_number_list)
+    ]
     # atomic_number_unique = list(set(atomic_number_list))
     element_list = labels_r
 
@@ -410,17 +422,50 @@ def trexio_to_turborvb_wf(
     # Pseudopotentials
     if has_ecp:
         logger.info(f"ecp_z_core={ecp_z_core}")
-        cutoff = [0.0] * len(ecp_z_core)
+        # TREXIO stores ecp_z_core / ecp_max_ang_mom_plus_1 as per-nucleus
+        # arrays of length nucleus_num. Nuclei without ECP terms (e.g.
+        # ghost atoms written by CP2K with nucleus_charge==0) are absent
+        # from ecp_nucleus_index. turborvb's pseudo.dat needs an entry
+        # per atom that has an ECP block; the historical pyscf BSSE
+        # workflow handled this by attaching a null (coeff=0) ECP term to
+        # every ghost atom so they all appear in ecp_nucleus_index. Mimic
+        # that here for any ghost atom that is missing from the term
+        # arrays: inject a single dummy s-wave term with coefficient 0
+        # which is a no-op physically but keeps the pseudo.dat layout
+        # consistent with what convertfort10mol expects.
+        ecp_active_set = set(int(i) for i in ecp_nucleus_index)
+        ghost_missing = [
+            i
+            for i, c in enumerate(charges_r)
+            if float(c) == 0.0 and i not in ecp_active_set
+        ]
+        ecp_nucleus_index_l = [int(i) for i in ecp_nucleus_index] + ghost_missing
+        ecp_ang_mom_l = [int(a) for a in ecp_ang_mom] + [0] * len(ghost_missing)
+        ecp_exponent_l = [float(e) for e in ecp_exponent] + [1.0] * len(ghost_missing)
+        ecp_coefficient_l = [float(c) for c in ecp_coefficient] + [0.0] * len(ghost_missing)
+        ecp_power_l = [int(p) for p in ecp_power] + [0] * len(ghost_missing)
+
+        # Per-nucleus arrays. For ghosts that had no ECP terms, CP2K may
+        # leave stale values in ecp_max_ang_mom_plus_1 (e.g. 0) and
+        # ecp_z_core (e.g. the bare atomic number). Override to match
+        # the injected dummy term: one s-component, no core electrons.
+        ecp_max_ang_mom_plus_1_l = [int(x) for x in ecp_max_ang_mom_plus_1]
+        ecp_z_core_l = [int(x) for x in ecp_z_core]
+        for gi in ghost_missing:
+            ecp_max_ang_mom_plus_1_l[gi] = 1
+            ecp_z_core_l[gi] = 0
+
+        cutoff = [0.0] * len(ecp_z_core_l)
         pseudopotentials = Pseudopotentials(
-            max_ang_mom_plus_1=ecp_max_ang_mom_plus_1,
-            z_core=ecp_z_core,
+            max_ang_mom_plus_1=ecp_max_ang_mom_plus_1_l,
+            z_core=ecp_z_core_l,
             cutoff=cutoff,
-            nucleus_index=ecp_nucleus_index,
-            element_list=element_list,
-            ang_mom=ecp_ang_mom,
-            exponent=ecp_exponent,
-            coefficient=ecp_coefficient,
-            power=ecp_power,
+            nucleus_index=ecp_nucleus_index_l,
+            element_list=list(element_list),
+            ang_mom=ecp_ang_mom_l,
+            exponent=ecp_exponent_l,
+            coefficient=ecp_coefficient_l,
+            power=ecp_power_l,
         )
         pseudopotentials.set_cutoffs()
         logger.debug(pseudopotentials.cutoff)
@@ -541,8 +586,16 @@ def trexio_to_turborvb_wf(
         pseudo_potentials=pseudopotentials,
         namelist=namelist,
     )
+    # When ghost atoms are present, per-element basis deduplication
+    # collapses ghost atoms of different elements onto the same fake_Z
+    # (all share Z=0 here) and prevents Makefort10 from emitting a
+    # separate &shells section per ghost. Fall back to per-atom basis
+    # sections in that case so each ghost atom carries its own basis,
+    # which matches the historical pyscf BSSE workflow.
+    has_ghost = any(float(c) == 0.0 for c in charges_r)
     makefort10.generate_input(
-        input_name="makefort10.input", basis_sets_unique_element=True
+        input_name="makefort10.input",
+        basis_sets_unique_element=(not has_ghost),
     )
     makefort10.run()
 

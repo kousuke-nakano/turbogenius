@@ -94,7 +94,36 @@ class Makefort10(FortranIO):
         output.append("ATOMIC_POSITIONS \n")
         atomic_numbers_done = []
         atomic_numbers_done_counter = []
-        dummy_atomic_number_shift = 0.01
+        # Small fractional shift that makes every (dummy/ghost) atom unique.
+        # It accumulates per element occurrence, so it must be small enough
+        # not to reach 1.0 (which would collide with the next element).
+        #
+        # DO NOT make this smaller than 1e-2 without also changing how
+        # makefort10.x writes fort.10.  Two independent limits bite:
+        #
+        #   1. makefort10.x rounds the atomic number to two decimals when it
+        #      writes the ion section of fort.10, so 1e-3 and below are lost:
+        #      hydrogen (z_core == 0, hence the only element that normally
+        #      carries a shift under a ccECP) comes out as 1.00 instead of
+        #      1.000001.  Measured on 2026-08-17 by generating fort.10 with
+        #      shifts 1e-2 ... 1e-6; only 1e-2 survived.
+        #   2. The pre-2026-05 intc.f90 renders one or two decimals only and
+        #      returns a blank section name for anything finer, which makes
+        #      findsection() fail with "Section ATOM_ not found".  1e-2 keeps
+        #      older TurboRVB builds working.
+        #
+        # A shift that silently vanishes from fort.10 is not a cosmetic
+        # problem: it corrupts LRDMC.  With the shift lost, water came out at
+        # -24.46 Ha against a VMC energy of -17.20 (an energy above VMC, or
+        # far below it, is impossible for a correct fixed-node calculation);
+        # restoring 1.01 in fort.10 by hand gave -17.23, i.e. the expected
+        # 0.03 Ha below VMC.  Every Slim05 system containing hydrogen was
+        # affected, none of the hydrogen-free ones were.
+        #
+        # 1e-2 allows ~100 atoms of the same (base) atomic number, which only
+        # constrains the basis_sets_unique_element=False path; with unique
+        # per-element basis sets the shift is a constant, not a counter.
+        dummy_atomic_number_shift = 1e-2
         atomic_numbers_shifted_list = []
 
         for num in range(self.structure.natom):
